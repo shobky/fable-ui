@@ -4,6 +4,8 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SiteHeader } from "@/components/site-header"
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { siteConfig } from "@/lib/config";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -25,7 +27,7 @@ export default function RootLayout({
     >
       <body
         className={cn(
-          "group/body overscroll-none antialiased [--footer-height:calc(var(--spacing)*14)] [--header-height:calc(var(--spacing)*14)] lg:[--header-height:calc(var(--spacing)*12)] xl:[--footer-height:calc(var(--spacing)*24)]"
+          "group/body overscroll-none antialiased [--footer-height:calc(var(--spacing)*14)] [--header-height:calc(var(--spacing)*14)] lg:[--header-height:calc(var(--spacing)*16)] xl:[--footer-height:calc(var(--spacing)*24)]"
         )}>
         <ThemeProvider>
           <div
@@ -34,6 +36,8 @@ export default function RootLayout({
           >
             <SiteHeader />
             <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+            <p className="max-w-3xl mx-auto text-muted-foreground py-12">Built by <Link className="underline" href={"https://shobky.vercel.app"} target="blank">@shobky</Link>. The source code is available on <Link className="underline" href={siteConfig.links.github} target="blank">
+              github</Link></p>
           </div>
         </ThemeProvider>
       </body>
