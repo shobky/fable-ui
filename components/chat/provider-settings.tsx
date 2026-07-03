@@ -157,6 +157,24 @@ export function ProviderSettings({
         </Select>
       </label>
 
+       {credentialSource === "browser-key" ? (
+          <label className="flex flex-col gap-2 text-sm">
+            <span className="font-medium text-muted-foreground">Selected local key</span>
+            <Select value={selectedKeyId || ""} onValueChange={(value) => onSelectedKeyChange(value || undefined)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose saved key" />
+              </SelectTrigger>
+              <SelectContent>
+                {eligibleKeys.map((key) => (
+                  <SelectItem key={key.id} value={key.id}>
+                    {key.label} ({key.maskedPreview})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+        ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-2 text-sm">
           <span className="font-medium text-muted-foreground">Provider</span>
@@ -238,23 +256,7 @@ export function ProviderSettings({
 
 
 
-        {credentialSource === "browser-key" ? (
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-muted-foreground">Selected local key</span>
-            <Select value={selectedKeyId || ""} onValueChange={(value) => onSelectedKeyChange(value || undefined)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose saved key" />
-              </SelectTrigger>
-              <SelectContent>
-                {eligibleKeys.map((key) => (
-                  <SelectItem key={key.id} value={key.id}>
-                    {key.label} ({key.maskedPreview})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </label>
-        ) : null}
+       
 
         <div className="grid gap-3 rounded-lg border border-border/60 p-3">
           <div className="grid gap-3 sm:grid-cols-[1fr_1.4fr]">
