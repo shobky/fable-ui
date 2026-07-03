@@ -28,7 +28,7 @@ export function ShowTable({
       entityLabel="rows"
       columns={columns}
       rows={rows}
-      pageSize={Math.max(rows.length, 1)}
+      pageSize={Math.max(rows.length, 10)}
       isLoading={isLoading}
       isDisabled={isDisabled}
       error={error}
