@@ -1,5 +1,4 @@
 import type { NextConfig } from "next"
-import path from "path"
 import { createMDX } from "fumadocs-mdx/next"
 
 const nextConfig: NextConfig = {
@@ -7,16 +6,10 @@ const nextConfig: NextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
-    outputFileTracingIncludes: {
-        "/*": ["./registry/**/*", "./styles/**/*"],
-    },
     images: {
         remotePatterns: [
         ],
         qualities: [100, 75, 90]
-    },
-    turbopack: {
-        root: path.resolve(import.meta.dirname, "../.."),
     },
     redirects() {
         return [
