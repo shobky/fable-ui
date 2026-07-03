@@ -103,7 +103,7 @@ const MessageRow = memo(function MessageRow({
             return (
               <div
                 key={`${message.id}-tool-${index}`}
-                className="my-6 w-full max-w-5xl"
+                className="w-full max-w-5xl"
               >
                 <ToolPartRenderer part={part as ToolRenderPart} />
               </div>
