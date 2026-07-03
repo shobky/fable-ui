@@ -59,7 +59,6 @@ export async function POST(req: Request) {
 
     return json({ ok: true, message: "Key is valid for this provider/model." });
   } catch (error) {
-    console.log(error.message)
     return json({ ok: false, message: getPublicTestError(error) }, 401);
   }
 }
