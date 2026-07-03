@@ -10,6 +10,7 @@ import { ShowTable } from "@/components/fable-ui/data-browser/show-table"
 import { FormCard, type FormCardProps } from "@/components/fable-ui/form-card/form-card"
 import { MetricCard, type MetricCardProps } from "@/components/fable-ui/metric-card/metric-card"
 import { SuggestedActions, type SuggestedActionsProps } from "@/components/fable-ui/suggested-actions/suggested-actions"
+import { HighlightedSourceBlock } from "@/components/highlighted-source-block"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { DataColumn, DataRow } from "@/lib/fable-ui/core"
 
@@ -44,12 +45,11 @@ function PreviewStateTabs({
 }
 
 function SourceBlock({ children, preview = false }: { children: string; preview?: boolean }) {
-  const code = preview ? children.split("\n").slice(0, 10).join("\n") : children
-
   return (
-    <pre className="m-0 overflow-x-auto bg-code px-4 py-3.5 text-sm text-code-foreground">
-      <code>{code}</code>
-    </pre>
+    <HighlightedSourceBlock
+      code={children}
+      previewLines={preview ? 10 : undefined}
+    />
   )
 }
 
@@ -67,7 +67,7 @@ function PreviewFrame({
       <div className="absolute top-4">
         <PreviewStateTabs value={state} onValueChange={onStateChange} />
       </div>
-      <div className="w-full h-full pt-10">
+      <div className="w-full h-full pt-10 flex justify-center">
         {children}
       </div>
     </div>

@@ -51,70 +51,21 @@ export function ComponentPreviewTabs({
     <div
       data-slot="component-preview"
       className={cn(
-        "group relative mt-4 mb-12 flex flex-col overflow-hidden rounded-xl border",
+        "group relative mt-4 mb-12 flex flex-col bg overflow-hidden rounded-xl border",
         className
       )}
       {...props}
     >
-      {direction === "rtl" ? (
-        <LanguageProvider defaultLanguage="ar">
-          <div className="flex h-16 items-center border-b px-4">
-            <RtlLanguageSelector />
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="ml-auto size-7"
-                >
-                  <IconAlertCircle />
-                  <span className="sr-only">Toggle</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="bottom"
-                align="end"
-                className="w-56 text-xs"
-              >
-                <div>
-                  I used AI to translate the text for demonstration purposes.
-                  It&apos;s not perfect and may contain errors.
-                </div>
-                <Separator className="-mx-2.5 w-auto!" />
-                <div data-lang="ar">
-                  لقد استخدمت الذكاء الاصطناعي لترجمة النص للأغراض التجريبية
-                  فقط. قد لا تكون الترجمة دقيقة وقد تحتوي على أخطاء.
-                </div>
-                <Separator className="-mx-2.5 w-auto!" />
-                <div data-lang="he">
-                  השתמשתי בבינה מלאכותית כדי לתרגם את הטקסט למטרות הדגמה. זה לא
-                  מושלם ויכול להכיל שגיאות.
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <PreviewWrapper
-            align={align}
-            chromeLessOnMobile={chromeLessOnMobile}
-            previewClassName={previewClassName}
-          >
-            <DirectionProviderWrapper base={base}>
-              {component}
-            </DirectionProviderWrapper>
-          </PreviewWrapper>
-        </LanguageProvider>
-      ) : (
-        <DirectionProviderWrapper base={base} dir="ltr">
-          <PreviewWrapper
-            align={align}
-            chromeLessOnMobile={chromeLessOnMobile}
-            previewClassName={previewClassName}
-            dir="ltr"
-          >
-            {component}
-          </PreviewWrapper>
-        </DirectionProviderWrapper>
-      )}
+      <DirectionProviderWrapper base={base} dir="ltr">
+        <PreviewWrapper
+          align={align}
+          chromeLessOnMobile={chromeLessOnMobile}
+          previewClassName={previewClassName}
+          dir="ltr"
+        >
+          {component}
+        </PreviewWrapper>
+      </DirectionProviderWrapper>
       {!hideCode && (
         <div
           data-slot="code"
@@ -230,7 +181,7 @@ function PreviewWrapper({
         data-align={align}
         data-chromeless={chromeLessOnMobile}
         className={cn(
-          "preview relative flex h-72 w-full justify-center p-10 data-[align=center]:items-center data-[align=end]:items-end data-[align=start]:items-start data-[chromeless=true]:h-auto data-[chromeless=true]:p-0",
+          "preview  relative flex h-72 w-full justify-center p-10 data-[align=center]:items-center data-[align=end]:items-end data-[align=start]:items-start data-[chromeless=true]:h-auto data-[chromeless=true]:p-0",
           previewClassName
         )}
       >

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
 
 export type FormCardField =
   | { name: string; label: string; type: "text" | "date" | "textarea"; required?: boolean; placeholder?: string }
@@ -71,7 +72,9 @@ export function FormCard({
             const value = values[field.name]
 
             return (
-              <label key={field.name} className="flex flex-col gap-2 text-sm font-medium">
+              <label key={field.name} className={cn("flex flex-col gap-2 text-sm font-medium", {
+                "flex-row-reverse items-center justify-end": field.type === "toggle"
+              })}>
                 <span>{field.label}</span>
                 {field.type === "textarea" ? (
                   <Textarea

@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import { ComponentPreviewTabs } from "@/components/component-preview-tabs"
+import { HighlightedSourceBlock } from "@/components/highlighted-source-block"
 import { Button } from "@/components/ui/button"
 import { MetricCard, type MetricCardProps } from "@/components/fable-ui/metric-card/metric-card"
 import { cn } from "@/lib/utils"
@@ -70,14 +71,11 @@ export function RevenueMetric() {
 }`
 
 function SourceBlock({ preview = false }: { preview?: boolean }) {
-  const lines = preview
-    ? metricCardSource.split("\n").slice(0, 10).join("\n")
-    : metricCardSource
-
   return (
-    <pre className="m-0 overflow-x-auto bg-code px-4 py-3.5 text-sm text-code-foreground">
-      <code>{lines}</code>
-    </pre>
+    <HighlightedSourceBlock
+      code={metricCardSource}
+      previewLines={preview ? 10 : undefined}
+    />
   )
 }
 
