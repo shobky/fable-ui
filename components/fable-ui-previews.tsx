@@ -63,9 +63,13 @@ function PreviewFrame({
   onStateChange: (state: PreviewState) => void
 }) {
   return (
-    <div className="flex w-full flex-col items-center gap-4">
-      <PreviewStateTabs value={state} onValueChange={onStateChange} />
-      {children}
+    <div className=" flex w-full flex-col items-center gap-4">
+      <div className="absolute top-4">
+        <PreviewStateTabs value={state} onValueChange={onStateChange} />
+      </div>
+      <div className="w-full h-full pt-10">
+        {children}
+      </div>
     </div>
   )
 }
