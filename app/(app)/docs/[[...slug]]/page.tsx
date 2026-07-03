@@ -8,6 +8,8 @@ import { source } from "@/lib/source"
 import { absoluteUrl } from "@/lib/utils"
 import { DocsTableOfContents } from "@/components/docs-toc"
 import { Button } from "@/components/ui/button"
+import { COMPONENTS_BETA } from "@/lib/docs"
+import { Badge } from "@/components/ui/badge"
 
 export const revalidate = false
 export const dynamic = "force-static"
@@ -93,7 +95,9 @@ export default async function Page(props: {
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between md:items-start">
                 <h1 className="scroll-m-24 text-3xl font-semibold tracking-tight sm:text-3xl">
-                  {doc.title}
+                  {doc.title} {COMPONENTS_BETA.includes(page.url) && <Badge className="text-base bg-yellow-500/20 text-yellow-500">
+                    Beta
+                  </Badge>}
                 </h1>
                 <div className="docs-nav flex items-center gap-2">
                   <div className="ml-auto flex gap-2">

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { PAGES_NEW } from "@/lib/docs"
+import { COMPONENTS_BETA, PAGES_NEW } from "@/lib/docs"
 import { getPagesFromFolder } from "@/lib/page-tree"
 import type { source } from "@/lib/source"
 import {
@@ -16,6 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { Badge } from "./ui/badge"
 
 const TOP_LEVEL_SECTIONS = [
   { name: "Introduction", href: "/docs/introduction" },
@@ -73,6 +74,7 @@ export function DocsSidebar({
                             title="New"
                           />
                         )}
+
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -110,6 +112,11 @@ export function DocsSidebar({
                                   className="flex size-2 rounded-full bg-blue-500"
                                   title="New"
                                 />
+                              )}
+                              {COMPONENTS_BETA.includes(page.url) && (
+                                <Badge className="scale-90 bg-yellow-500/15 text-yellow-500">
+                                  Beta
+                                </Badge>
                               )}
                             </Link>
                           </SidebarMenuButton>
