@@ -1,11 +1,12 @@
-import { anthropic } from "@ai-sdk/anthropic";
-import { google } from "@ai-sdk/google";
-import { openai } from "@ai-sdk/openai";
-import { mistral } from "@ai-sdk/mistral";
-import { deepseek } from "@ai-sdk/deepseek";
+import { anthropic, createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
+import { createOpenAI, openai } from "@ai-sdk/openai";
+import { createMistral, mistral } from "@ai-sdk/mistral";
+import { createDeepSeek, deepseek } from "@ai-sdk/deepseek";
 import { createOpenRouter, openrouter } from "@openrouter/ai-sdk-provider";
 
 export type ProviderId = 'google' | 'anthropic' | 'openai' | 'openrouter' | 'mistral' | 'deepseek';
+export type ProviderCredentialSource = "server-env" | "browser-key" | "session-key" | "none";
 export type ProviderOption = {
   id: ProviderId;
   label: string;
@@ -13,9 +14,21 @@ export type ProviderOption = {
   envKey: "GOOGLE_GENERATIVE_AI_API_KEY" | "ANTHROPIC_API_KEY" | "OPENAI_API_KEY" | "OPENROUTER_API_KEY" | "MISTRAL_API_KEY" | "DEEPSEEK_API_KEY";
 };
 
+export type ModelReadiness = {
+  model: string;
+  isConfigured: boolean;
+  source: "server-env" | "browser-key" | "none";
+  eligibleLocalKeyCount: number;
+  selectedKeyId?: string;
+};
+
 export type ProviderReadiness = ProviderOption & {
+  serverConfigured: boolean;
+  browserConfigured: boolean;
   isConfigured: boolean;
   isDefault: boolean;
+  localKeyCount: number;
+  modelReadiness?: Record<string, ModelReadiness>;
 };
 
 const providerOptions: ProviderOption[] = [
@@ -29,11 +42,10 @@ const providerOptions: ProviderOption[] = [
 
 export const modelCatalog: Record<ProviderId, string[]> = {
   google: [
-    "gemini-3.1-pro",
-    "gemini-3.1-flash",
-    "gemini-3.0-pro",
-    "gemini-3.0-flash",
-    "gemma-2"
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-3.1-pro-preview",
+    "gemini-3-flash-preview",
   ],
   anthropic: [
     "claude-opus-4.8",
@@ -67,8 +79,14 @@ export const modelCatalog: Record<ProviderId, string[]> = {
   ]
 };
 
-function isProviderId(value: unknown): value is ProviderId {
+export function isProviderId(value: unknown): value is ProviderId {
   return ["google", "anthropic", "openai", "openrouter", "mistral", "deepseek"].includes(value as string);
+}
+
+export function isModelForProvider(provider: ProviderId, model: string) {
+  const knownModels = modelCatalog[provider];
+
+  return !knownModels || knownModels.includes(model);
 }
 
 export function getProviderOptions() {
@@ -77,7 +95,7 @@ export function getProviderOptions() {
 
 export function getDefaultProviderConfig() {
   const provider = isProviderId(process.env.AI_PROVIDER) ? process.env.AI_PROVIDER : "google";
-  const option = providerOptions.find((candidate) => candidate.id === provider) || providerOptions[0];
+  const option = providerOptions.find((candidate) => candidate.id === provider) || providerOptions[0]!;
 
   return {
     provider: option.id,
@@ -90,15 +108,18 @@ export function getProviderReadiness() {
 
   return providerOptions.map((option) => ({
     ...option,
+    serverConfigured: Boolean(process.env[option.envKey]),
+    browserConfigured: false,
     isConfigured: Boolean(process.env[option.envKey]),
     isDefault: option.id === defaults.provider,
+    localKeyCount: 0,
   })) satisfies ProviderReadiness[];
 }
 
-export function assertProviderConfigured(provider: ProviderId) {
-  const option = providerOptions.find((candidate) => candidate.id === provider) || providerOptions[0];
+export function assertProviderConfigured(provider: ProviderId, apiKey?: string) {
+  const option = providerOptions.find((candidate) => candidate.id === provider) || providerOptions[0]!;
 
-  if (!process.env[option.envKey]) {
+  if (!apiKey && !process.env[option.envKey]) {
     throw new Error(
       `${option.label} is not configured. Add ${option.envKey} to .env.local or switch providers.`,
     );
@@ -108,25 +129,46 @@ export function assertProviderConfigured(provider: ProviderId) {
 export function resolveProviderConfig(provider?: string, model?: string) {
   const defaults = getDefaultProviderConfig();
   const resolvedProvider = isProviderId(provider) ? provider : defaults.provider;
-  const option = providerOptions.find((candidate) => candidate.id === resolvedProvider) || providerOptions[0];
+  const option = providerOptions.find((candidate) => candidate.id === resolvedProvider) || providerOptions[0]!;
+  const resolvedModel = model || (resolvedProvider === defaults.provider ? defaults.model : option.defaultModel);
 
   return {
     provider: option.id,
-    model: model || (resolvedProvider === defaults.provider ? defaults.model : option.defaultModel),
+    model: resolvedModel,
   };
 }
 
-export function getConfiguredModel(provider?: string, model?: string) {
-  const resolved = resolveProviderConfig(provider, model);
+export function getConfiguredModel(
+  providerOrInput?: string | { provider?: string; model?: string; apiKey?: string },
+  model?: string,
+) {
+  const input =
+    typeof providerOrInput === "object"
+      ? providerOrInput
+      : { provider: providerOrInput, model };
+  const resolved = resolveProviderConfig(input.provider, input.model);
+  const apiKey = input.apiKey?.trim();
+
+  if (apiKey) {
+    switch (resolved.provider) {
+      case "anthropic": return createAnthropic({ apiKey })(resolved.model as Parameters<typeof anthropic>[0]);
+      case "openai": return createOpenAI({ apiKey })(resolved.model as Parameters<typeof openai>[0]);
+      case "mistral": return createMistral({ apiKey })(resolved.model as Parameters<typeof mistral>[0]);
+      case "deepseek": return createDeepSeek({ apiKey })(resolved.model as Parameters<typeof deepseek>[0]);
+      case "openrouter": return createOpenRouter({ apiKey })(resolved.model);
+      case "google":
+      default: return createGoogleGenerativeAI({ apiKey })(resolved.model as Parameters<typeof google>[0]);
+    }
+  }
 
   // Each provider instance is treated as a function that creates the model
   switch (resolved.provider) {
-    case "anthropic": return anthropic(resolved.model);
-    case "openai": return openai(resolved.model);
-    case "mistral": return mistral(resolved.model);
-    case "deepseek": return deepseek(resolved.model);
+    case "anthropic": return anthropic(resolved.model as Parameters<typeof anthropic>[0]);
+    case "openai": return openai(resolved.model as Parameters<typeof openai>[0]);
+    case "mistral": return mistral(resolved.model as Parameters<typeof mistral>[0]);
+    case "deepseek": return deepseek(resolved.model as Parameters<typeof deepseek>[0]);
     case "openrouter": return openrouter(resolved.model);
     case "google":
-    default: return google(resolved.model);
+    default: return google(resolved.model as Parameters<typeof google>[0]);
   }
 }

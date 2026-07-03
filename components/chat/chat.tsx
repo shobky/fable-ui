@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { describeChatError } from "@/lib/helpers/chat.helpers";
 import { SubmittedPrompt } from "@/lib/types/chat.types";
+import { useProviderSettings } from "@/hooks/use-provider-settings";
 import { MessageList } from "./message-list";
 import ChatComposer from "./chat-composer";
 import { MessageScrollerProvider } from "../ui/message-scroller";
@@ -27,10 +28,12 @@ export default function Chat({
     autoSend,
 }: ChatPlaygroundProps) {
 
-    const [provider, setProvider] = useState<ProviderId>(providerDefaults.provider);
-    const [model, setModel] = useState(providerDefaults.model);
     const [clientError, setClientError] = useState<string | null>(null);
     const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
+    const providerSettings = useProviderSettings({
+        defaults: providerDefaults,
+        serverReadiness: providerReadiness,
+    });
     const { messages, sendMessage, status, error, clearError } = useChat<UIMessage>({
         transport,
         messages: [],
@@ -40,15 +43,8 @@ export default function Chat({
         },
     });
 
-    const selectedProvider = providerReadiness.find((candidate) => candidate.id === provider);
     const isBusy = status === "submitted" || status === "streaming";
     const errorText = clientError || (error ? describeChatError(error) : null);
-
-    function handleProviderChange(nextProvider: ProviderId) {
-        setProvider(nextProvider);
-        const next = providerReadiness.find((candidate) => candidate.id === nextProvider);
-        setModel(next?.defaultModel || "");
-    }
 
     const clearVisibleError = useCallback(() => {
         clearError();
@@ -60,6 +56,7 @@ export default function Chat({
             clearVisibleError();
 
             try {
+                const credentials = await providerSettings.resolveRequestCredentials();
                 await sendMessage(
                     {
                         text,
@@ -72,8 +69,11 @@ export default function Chat({
                     },
                     {
                         body: {
-                            provider,
-                            model,
+                            provider: providerSettings.provider,
+                            model: providerSettings.model,
+                            credentialSource: credentials.credentialSource,
+                            selectedKeyId: credentials.selectedKeyId,
+                            apiKey: credentials.apiKey,
                         },
                     },
                 );
@@ -84,7 +84,7 @@ export default function Chat({
                 return false;
             }
         },
-        [clearVisibleError, model, provider, sendMessage],
+        [clearVisibleError, providerSettings, sendMessage],
     );
 
     return <MessageScrollerProvider
@@ -111,16 +111,26 @@ export default function Chat({
     </div>
 
     <ChatComposer
-      provider={provider}
-      model={model}
-      selectedProvider={selectedProvider}
-      providerReadiness={providerReadiness}
+      provider={providerSettings.provider}
+      model={providerSettings.model}
+      selectedProvider={providerSettings.selectedProviderReadiness}
+      providerReadiness={providerSettings.readiness}
+      selectedKeyId={providerSettings.selectedKeyId}
+      localKeys={providerSettings.localKeys}
+      credentialSource={providerSettings.credentialSource}
+      storeError={providerSettings.storeError}
       isBusy={isBusy}
       errorText={errorText}
       initialPrompt={initialPrompt}
       autoSend={autoSend}
-      onProviderChange={handleProviderChange}
-      onModelChange={setModel}
+      onProviderChange={providerSettings.setProvider}
+      onModelChange={providerSettings.setModel}
+      onCredentialSourceChange={providerSettings.setCredentialSource}
+      onSelectedKeyChange={providerSettings.setSelectedKeyId}
+      onAddKey={providerSettings.addKey}
+      onDeleteKey={providerSettings.deleteKey}
+      onRenameKey={providerSettings.renameKey}
+      onTestKey={providerSettings.testKey}
       onClearError={clearVisibleError}
       onSend={sendPrompt}
     />

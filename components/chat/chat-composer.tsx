@@ -1,4 +1,5 @@
-import { ProviderId, ProviderReadiness } from "@/lib/ai/provider-config";
+import { type ProviderCredentialSource, ProviderId, ProviderReadiness } from "@/lib/ai/provider-config";
+import type { StoredProviderKey } from "@/lib/ai/client-provider-key-store";
 import { PendingAttachment, SubmittedPrompt } from "@/lib/types/chat.types";
 import {
   ChangeEvent,
@@ -40,17 +41,33 @@ import { AttachmentGrid } from "./attachment-grid";
 import { HugeIcon } from "../hugeicon";
 import { ProviderSettings } from "./provider-settings";
 import { ModelSelector } from "./model-selector";
+import { ArrowLeft } from "lucide-react";
 type ChatComposerProps = {
   provider: ProviderId;
   model: string;
   selectedProvider?: ProviderReadiness;
   providerReadiness: ProviderReadiness[];
+  selectedKeyId?: string;
+  localKeys: StoredProviderKey[];
+  credentialSource: ProviderCredentialSource;
+  storeError?: string | null;
   isBusy: boolean;
   errorText?: string | null;
   initialPrompt?: string;
   autoSend?: boolean;
   onProviderChange: (provider: ProviderId) => void;
   onModelChange: (model: string) => void;
+  onCredentialSourceChange: (source: ProviderCredentialSource) => void;
+  onSelectedKeyChange: (keyId: string | undefined) => void;
+  onAddKey: (input: {
+    provider: ProviderId;
+    label: string;
+    apiKey: string;
+    modelScope: "*" | string[];
+  }) => Promise<void>;
+  onDeleteKey: (keyId: string) => Promise<void>;
+  onRenameKey: (keyId: string, label: string) => Promise<void>;
+  onTestKey: (keyId: string) => Promise<void>;
   onClearError: () => void;
   onSend: (prompt: SubmittedPrompt) => Promise<boolean>;
 };
@@ -60,12 +77,22 @@ const ChatComposer = memo(function ChatComposer({
   model,
   selectedProvider,
   providerReadiness,
+  selectedKeyId,
+  localKeys,
+  credentialSource,
+  storeError,
   isBusy,
   errorText,
   initialPrompt,
   autoSend,
   onProviderChange,
   onModelChange,
+  onCredentialSourceChange,
+  onSelectedKeyChange,
+  onAddKey,
+  onDeleteKey,
+  onRenameKey,
+  onTestKey,
   onClearError,
   onSend,
 }: ChatComposerProps) {
@@ -74,7 +101,7 @@ const ChatComposer = memo(function ChatComposer({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const hasAppliedInitialPromptRef = useRef(false);
-
+  const hasModelConfigured = useMemo(() => providerReadiness.some((p) => p.isConfigured), [providerReadiness]);
   const resizeTextarea = useCallback((target = textareaRef.current) => {
     if (!target) {
       return;
@@ -163,7 +190,6 @@ const ChatComposer = memo(function ChatComposer({
       void submitPrompt();
     }
   }
-
   return (
     <form
       data-testid="chat-composer"
@@ -208,21 +234,34 @@ const ChatComposer = memo(function ChatComposer({
               </InputGroupButton>
               <Dialog>
                 <DialogTrigger asChild>
-                  <InputGroupButton aria-label="Provider settings" size="icon-sm">
+                  <InputGroupButton aria-label="Provider settings" size={hasModelConfigured ? "icon-sm" : "sm"} className="relative">
                     <HugeIcon icon={Settings02Icon} aria-hidden="true" />
+                    {
+                      !hasModelConfigured && <span className="text-blue-500 font-medium">Add API key</span>
+                    }
                   </InputGroupButton>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-xl">
-                  <DialogHeader>
+                <DialogContent className="sm:max-w-2xl p-0">
+                  <DialogHeader className="px-6 pt-6">
                     <DialogTitle>Provider settings</DialogTitle>
-                    <DialogDescription>Choose the model used by this chat page.</DialogDescription>
+                    <DialogDescription>Configure playground/dev BYOK for this browser.</DialogDescription>
                   </DialogHeader>
                   <ProviderSettings
                     provider={provider}
                     model={model}
                     providerReadiness={providerReadiness}
+                    selectedKeyId={selectedKeyId}
+                    localKeys={localKeys}
+                    credentialSource={credentialSource}
+                    storeError={storeError}
                     onProviderChange={onProviderChange}
                     onModelChange={onModelChange}
+                    onCredentialSourceChange={onCredentialSourceChange}
+                    onSelectedKeyChange={onSelectedKeyChange}
+                    onAddKey={onAddKey}
+                    onDeleteKey={onDeleteKey}
+                    onRenameKey={onRenameKey}
+                    onTestKey={onTestKey}
                   />
                 </DialogContent>
               </Dialog>
@@ -232,13 +271,14 @@ const ChatComposer = memo(function ChatComposer({
               {/* <InputGroupText className="hidden truncate sm:flex font-normal">
                 {model || selectedProvider?.defaultModel}
               </InputGroupText> */}
-              <ModelSelector
+
+              {providerReadiness.some((p) => p.isConfigured) && <ModelSelector
                 provider={provider}
                 model={model}
                 providerReadiness={providerReadiness}
                 onProviderChange={onProviderChange}
                 onModelChange={onModelChange}
-              />
+              />}
               <InputGroupButton
                 type="submit"
                 variant="default"

@@ -19,8 +19,8 @@ import * as __fd_glob_6 from "../content/docs/introduction.mdx?collection=docs"
 import * as __fd_glob_5 from "../content/docs/installation.mdx?collection=docs"
 import * as __fd_glob_4 from "../content/docs/ai-sdk-integration.mdx?collection=docs"
 import { default as __fd_glob_3 } from "../content/docs/data-sources/meta.json?collection=docs"
-import { default as __fd_glob_2 } from "../content/docs/architecture/meta.json?collection=docs"
-import { default as __fd_glob_1 } from "../content/docs/components/meta.json?collection=docs"
+import { default as __fd_glob_2 } from "../content/docs/components/meta.json?collection=docs"
+import { default as __fd_glob_1 } from "../content/docs/architecture/meta.json?collection=docs"
 import { default as __fd_glob_0 } from "../content/docs/meta.json?collection=docs"
 import { server } from 'fumadocs-mdx/runtime/server';
 import type * as Config from '../source.config';
@@ -30,4 +30,4 @@ const create = server<typeof Config, import("fumadocs-mdx/runtime/types").Intern
   }
 }>({"doc":{"passthroughs":["extractedReferences"]}});
 
-export const docs = await create.docs("docs", "content/docs", {"meta.json": __fd_glob_0, "components/meta.json": __fd_glob_1, "architecture/meta.json": __fd_glob_2, "data-sources/meta.json": __fd_glob_3, }, {"ai-sdk-integration.mdx": __fd_glob_4, "installation.mdx": __fd_glob_5, "introduction.mdx": __fd_glob_6, "manifests.mdx": __fd_glob_7, "registry.mdx": __fd_glob_8, "architecture/agent-routing.mdx": __fd_glob_9, "architecture/security.mdx": __fd_glob_10, "architecture/system-flow.mdx": __fd_glob_11, "components/confirmation-card.mdx": __fd_glob_12, "components/data-browser.mdx": __fd_glob_13, "components/form-card.mdx": __fd_glob_14, "components/metric-card.mdx": __fd_glob_15, "components/suggested-actions.mdx": __fd_glob_16, "data-sources/actions-and-invalidation.mdx": __fd_glob_17, "data-sources/firebase.mdx": __fd_glob_18, "data-sources/multiple-data-sources.mdx": __fd_glob_19, "data-sources/overview.mdx": __fd_glob_20, "data-sources/resources.mdx": __fd_glob_21, "data-sources/rest.mdx": __fd_glob_22, });
+export const docs = await create.docs("docs", "content/docs", {"meta.json": __fd_glob_0, "architecture/meta.json": __fd_glob_1, "components/meta.json": __fd_glob_2, "data-sources/meta.json": __fd_glob_3, }, {"ai-sdk-integration.mdx": __fd_glob_4, "installation.mdx": __fd_glob_5, "introduction.mdx": __fd_glob_6, "manifests.mdx": __fd_glob_7, "registry.mdx": __fd_glob_8, "architecture/agent-routing.mdx": __fd_glob_9, "architecture/security.mdx": __fd_glob_10, "architecture/system-flow.mdx": __fd_glob_11, "components/confirmation-card.mdx": __fd_glob_12, "components/data-browser.mdx": __fd_glob_13, "components/form-card.mdx": __fd_glob_14, "components/metric-card.mdx": __fd_glob_15, "components/suggested-actions.mdx": __fd_glob_16, "data-sources/actions-and-invalidation.mdx": __fd_glob_17, "data-sources/firebase.mdx": __fd_glob_18, "data-sources/multiple-data-sources.mdx": __fd_glob_19, "data-sources/overview.mdx": __fd_glob_20, "data-sources/resources.mdx": __fd_glob_21, "data-sources/rest.mdx": __fd_glob_22, });

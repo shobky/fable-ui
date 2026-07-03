@@ -1,4 +1,11 @@
-import { assertProviderConfigured, getConfiguredModel, resolveProviderConfig } from "@/lib/ai/provider-config";
+import {
+  assertProviderConfigured,
+  getConfiguredModel,
+  isModelForProvider,
+  isProviderId,
+  resolveProviderConfig,
+  type ProviderCredentialSource,
+} from "@/lib/ai/provider-config";
 import { toolRegistry } from "@/lib/fable-ui/tools";
 import {
   convertToModelMessages,
@@ -18,6 +25,15 @@ type ChatRequestBody = {
   messages?: UIMessage[];
   provider?: string;
   model?: string;
+  mode?: string;
+  credentialSource?: ProviderCredentialSource;
+  apiKey?: string;
+  selectedKeyId?: string;
+};
+
+const noStoreHeaders = {
+  "Cache-Control": "no-store, max-age=0",
+  "Pragma": "no-cache",
 };
 
 export async function POST(req: Request) {
@@ -30,17 +46,45 @@ export async function POST(req: Request) {
   }
 
   const messages = body.messages || [];
+  const credentialSource = body.credentialSource || (body.mode === "mock" ? "none" : "server-env");
+
+  if (body.mode === "mock" || credentialSource === "none") {
+    return createTextOnlyResponse(
+      "Mock mode is active. Configure a server environment key or save a local browser key to call a live provider.",
+      messages,
+    );
+  }
 
   const providerConfig = resolveProviderConfig(body.provider, body.model);
+  const runtimeApiKey =
+    credentialSource === "browser-key" || credentialSource === "session-key"
+      ? body.apiKey?.trim()
+      : undefined;
+
+  if (body.provider && !isProviderId(body.provider)) {
+    return createTextOnlyResponse("Configuration error: unknown provider.", messages);
+  }
+
+  if (!isModelForProvider(providerConfig.provider, providerConfig.model)) {
+    return createTextOnlyResponse("Configuration error: unknown model for the selected provider.", messages);
+  }
+
+  if ((credentialSource === "browser-key" || credentialSource === "session-key") && !runtimeApiKey) {
+    return createTextOnlyResponse("Configuration error: selected browser key is unavailable.", messages);
+  }
 
   try {
-    assertProviderConfigured(providerConfig.provider);
+    assertProviderConfigured(providerConfig.provider, runtimeApiKey);
   } catch (error) {
     return createTextOnlyResponse(getPublicChatError(error), messages);
   }
 
   try {
-    const model = getConfiguredModel(providerConfig.provider, providerConfig.model);
+    const model = getConfiguredModel({
+      provider: providerConfig.provider,
+      model: providerConfig.model,
+      apiKey: runtimeApiKey,
+    });
     const modelMessages = await convertToModelMessages(messages);
 
     const result = streamText({
@@ -64,6 +108,7 @@ export async function POST(req: Request) {
 
     return result.toUIMessageStreamResponse({
       onError: getPublicChatError,
+      headers: noStoreHeaders,
     });
   } catch (error) {
     return createTextOnlyResponse(getPublicChatError(error), messages);
@@ -72,11 +117,10 @@ export async function POST(req: Request) {
 
 
 function getPublicChatError(error: unknown) {
-  console.error(error)
   const message = error instanceof Error ? error.message : String(error || "");
 
   if (/api key|not configured|environment|env/i.test(message)) {
-    return `Configuration error: ${message}`;
+    return "Configuration error: provider credentials are missing or invalid for the selected provider/model.";
   }
 
   if (/unauthorized|authentication|permission|forbidden|401|403/i.test(message)) {
@@ -109,5 +153,5 @@ function createTextOnlyResponse(text: string, messages: UIMessage[] = []) {
     },
   });
 
-  return createUIMessageStreamResponse({ stream });
+  return createUIMessageStreamResponse({ stream, headers: noStoreHeaders });
 }

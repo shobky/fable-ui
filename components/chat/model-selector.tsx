@@ -27,7 +27,7 @@ export function ModelSelector({
     onProviderChange,
     onModelChange,
 }: ModelSelectorProps) {
-    const Icon = Icons[provider] || (() => null);
+    const Icon = Icons[provider === "google" ? "gemini" : provider] || (() => null);
 
     const handleValueChange = (value: string) => {
         // We expect value to be in format "providerId:modelName"
@@ -41,11 +41,12 @@ export function ModelSelector({
             <SelectTrigger className="w-full sm:w-fit bg-transparent">
                 <SelectValue>
                     <div className="flex items-center gap-2">
+                        {Icon({ className: "size-3.5" })}
                         <span className="truncate">{model}</span>
                     </div>
                 </SelectValue>
             </SelectTrigger>
-            <SelectContent className="h-[70svh] max-w-52 mb-5 -ml-4 bg-background/50 backdrop-blur-lg" >
+            <SelectContent className="h-[70svh] max-w-52 mb-5 -ml- bg-background/50 backdrop-blur-lg" >
                 {providerReadiness.map((p) => (
                     <SelectGroup key={p.id}>
                         {modelCatalog[p.id as ProviderId]?.map((m) => {
