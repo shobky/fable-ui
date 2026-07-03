@@ -1,0 +1,11 @@
+{
+  "title": "Data Sources",
+  "pages": [
+    "overview",
+    "resources",
+    "rest",
+    "firebase",
+    "multiple-data-sources",
+    "actions-and-invalidation"
+  ]
+}

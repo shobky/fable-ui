@@ -1,0 +1,34 @@
+---
+title: DataBrowser
+description: Render table snapshots or host-backed data browsing surfaces.
+---
+
+`DataBrowser` is a registry block for small table snapshots and host-backed browsing.
+
+<DataBrowserPreview />
+
+## Installation
+
+<RegistryInstallCommand itemName="data-browser" />
+
+Install a driver only when you need one:
+
+<RegistryInstallCommand itemName="rest-driver" />
+
+<RegistryInstallCommand itemName="firebase-driver" />
+
+## Tools
+
+`show_table` is for small static snapshots where rows are already available.
+
+`show_data_browser` is for browsing, search, filter, sort, pagination, or detail over host-owned data.
+
+The model must not pass raw SQL, raw Firestore query code, secrets, or authorization decisions. The host supplies data access, allowed filters, allowed sort fields, permissions, and row actions.
+
+## ShowTable
+
+`ShowTable` uses the same surface for small static row snapshots.
+
+<ShowTablePreview />
+
+Use `show_table` when the rows are already available in the tool payload. Use `show_data_browser` when the model should select a registered host-owned resource by `resourceId`.

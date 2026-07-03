@@ -1,0 +1,49 @@
+---
+title: Security
+description: The security boundaries for AI-selected Fable UI surfaces.
+---
+
+Fable UI does not make the model a permission boundary. The model can request a UI or action flow, but the host application must still validate authentication, authorization, input, and side effects on the server.
+
+## Tool schemas
+
+Tool schemas validate payload shape. They do not authorize access.
+
+For `show_metric`, the schema can require `label`, `value`, and a valid `trend.direction`. It cannot prove that the user is allowed to see the metric, that the number is fresh, or that the value was computed correctly.
+
+## Host responsibilities
+
+The host app must validate:
+
+- Authentication.
+- Authorization.
+- Tenant or account scope.
+- Input shape and business rules.
+- Side effects.
+- Data freshness where it matters.
+
+For display-only components, the host must ensure the displayed data is safe to show. For future action components, the server endpoint called after user interaction must enforce permissions again.
+
+## Confirmation is not authorization
+
+UI confirmation improves user trust, but it does not authorize the operation. The API called after confirmation must still enforce permissions.
+
+A future `ConfirmationCard` can ask "Are you sure?", but the backend still decides whether the user can perform the action.
+
+## Manifests and catalogs
+
+Manifests must not contain secrets.
+
+Future resource catalogs should describe what the model may ask for. They should not expose connection details, tokens, headers, raw endpoints, collection paths, handler functions, or private authorization logic.
+
+## Safe fallback
+
+Unknown tool calls and invalid payloads should render safe fallback UI instead of crashing the chat or executing behavior. The current router validates render payloads before passing data to a component and uses component error props when validation fails.
+
+## Current component boundary
+
+`MetricCard` is display-only. It does not write data, authorize actions, call a database, or fetch from an API.
+
+## Next steps
+
+Read [System Flow](/docs/architecture/system-flow) for the request path and [Agent Routing](/docs/architecture/agent-routing) for model selection constraints.

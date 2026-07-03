@@ -1,0 +1,66 @@
+---
+title: Agent Routing
+description: How models should choose Fable tools and avoid inventing capabilities.
+---
+
+Agent routing is the process of deciding whether a prompt should be answered in text or with a Fable UI tool call.
+
+## Today
+
+Today the model chooses from tools registered in `toolRegistry`. The current registry exposes only `show_metric`.
+
+The AI SDK route passes those tools to `streamText` with `toolChoice: "auto"`. The model decides whether to call a tool based on the system prompt, the tool description, and the conversation.
+
+## Tool descriptions
+
+Tool descriptions must be short and constrained. `show_metric` says to use it for a single total, count, amount, percentage, status number, or KPI. It also says not to use it for lists, tables, browsing, forms, suggestions, or actions.
+
+That boundary is important. If a prompt asks for "the last 10 orders", the model should not squeeze the answer into a metric card.
+
+## Manifests
+
+Manifests give routing more structure than a short tool description can. A manifest should include:
+
+- Use-when rules.
+- Do-not-use-when rules.
+- Neighboring tools.
+- Positive trigger prompts.
+- Anti-trigger prompts.
+- Conflict prompts.
+- Safety notes.
+
+The `MetricCard` manifest already describes the boundary around `show_metric`. Automated manifest eval execution is planned, not shipped.
+
+## Constraints
+
+The model must not invent:
+
+- Resource IDs.
+- Component names.
+- SQL.
+- Firestore queries.
+- Backend operations.
+- Raw endpoints.
+- Authorization decisions.
+
+The model selects from allowlisted capabilities. The host app validates everything that matters.
+
+## Future resources
+
+Future data-backed components should expose resources through a safe agent resource catalog. The catalog can include labels, descriptions, aliases, allowed filters, allowed actions, and routing hints.
+
+It must not expose tokens, headers, raw endpoints, collection paths, handler functions, or private auth logic.
+
+## Testing routing
+
+Routing should be tested with:
+
+- Positive prompts that should select a tool.
+- Anti-triggers that should not select that tool.
+- Conflict prompts where a neighboring tool is better.
+
+For `show_metric`, "What is today's revenue?" is positive. "Show the last 10 orders" is an anti-trigger. "Show top selling items today" is a conflict prompt that should prefer a future table or browser surface.
+
+## Next steps
+
+Read [Manifests](/docs/manifests) for the contract and [Security](/docs/architecture/security) for the runtime boundary.

@@ -1,0 +1,77 @@
+---
+title: Installation
+description: Install Fable UI registry items from the public GitHub registry.
+---
+
+Fable UI ships as a public shadcn registry. Install items into a Next.js + shadcn/ui app and own the copied source.
+
+## Quickstart
+
+Install the host-safe demo chat. It creates `/fable-chat` and `/api/fable-chat`; it does not overwrite `/chat` or `/api/chat`.
+
+<RegistryInstallCommand itemName="quickstart" />
+
+The quickstart includes mock mode, so it works without provider keys. Provider mode is intentionally minimal and uses the Vercel AI SDK route shape.
+
+## Individual Components
+
+Install one surface at a time:
+
+<RegistryInstallCommand itemName="metric-card" />
+
+Other installable items:
+
+<RegistryInstallCommand itemName="suggested-actions" />
+
+<RegistryInstallCommand itemName="confirmation-card" />
+
+<RegistryInstallCommand itemName="form-card" />
+
+<RegistryInstallCommand itemName="data-browser" />
+
+## Optional Data Drivers
+
+`DataBrowser` works with static rows out of the box. Install a driver only when the host app wants registered resources backed by its own APIs or Firestore.
+
+<RegistryInstallCommand itemName="rest-driver" />
+
+<RegistryInstallCommand itemName="firebase-driver" />
+
+## What Gets Installed
+
+Fable items copy source into host-safe locations:
+
+```txt
+components/fable-ui/<item>/*
+lib/fable-ui/tools/*
+lib/fable-ui/manifests/*
+lib/fable-ui/evals/*
+```
+
+Quickstart routes install to:
+
+```txt
+app/fable-chat/page.tsx
+app/api/fable-chat/route.ts
+components/fable-ui/chat/*
+lib/fable-ui/demo/*
+```
+
+Driver routes, auth, API keys, databases, and permissions stay in the host app. Registry items install UI, tool contracts, manifests, and optional driver adapters.
+
+## Inspect First
+
+Use shadcn to inspect or dry-run before accepting changes:
+
+```bash
+pnpm dlx shadcn@latest view shobky/fable-ui/metric-card
+pnpm dlx shadcn@latest add shobky/fable-ui/metric-card --dry-run
+```
+
+## Tags Later
+
+Current docs use unpinned GitHub install commands. Once releases exist, pin a tag:
+
+```bash
+pnpm dlx shadcn@latest add shobky/fable-ui/metric-card#v0.1.0
+```

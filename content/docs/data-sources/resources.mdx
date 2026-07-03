@@ -1,0 +1,56 @@
+---
+title: Resources
+description: Register allowlisted resources for DataBrowser.
+---
+
+Resources are the product boundary between the model and host data. The model gets labels, columns, filters, sorts, actions, and usage guidance. It does not get `source`.
+
+```ts
+import { defineResource, fableRegistry } from "@/lib/fable-ui/core"
+import { createRestDriver } from "@/lib/fable-ui/drivers/rest"
+
+fableRegistry.registerDriver("rest", createRestDriver())
+
+fableRegistry.registerResource(
+  defineResource({
+    id: "orders",
+    label: "Orders",
+    entityLabel: "orders",
+    driver: "rest",
+    source: { endpoint: "/api/orgs/{orgId}/orders" },
+    columns: [
+      { key: "orderNumber", label: "Order #" },
+      { key: "status", label: "Status" },
+      { key: "total", label: "Total", align: "right" },
+    ],
+    filters: [
+      { key: "status", label: "Status", type: "select", options: ["new", "paid", "canceled"] },
+    ],
+    sort: [
+      { key: "createdAt", label: "Created At", directions: ["desc", "asc"] },
+    ],
+    agent: {
+      description: "Orders for the current organization.",
+      aliases: ["sales", "tickets", "bills"],
+      useWhen: ["The user wants to browse, search, or inspect orders."],
+    },
+  })
+)
+```
+
+`source` is for the driver only. `getAgentResourceManifest()` strips connection details before anything reaches the model.
+
+## Static Mode
+
+For small snapshots, pass rows directly:
+
+```tsx
+<DataBrowser
+  title="Recent orders"
+  entityLabel="orders"
+  columns={columns}
+  rows={rows}
+/>
+```
+
+Static mode supports local search, filters, sort, pagination, loading, empty, error, disabled, and row detail states.

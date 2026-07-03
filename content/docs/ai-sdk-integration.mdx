@@ -1,0 +1,75 @@
+---
+title: AI SDK Integration
+description: Wire Fable tools into a Vercel AI SDK route and render tool parts safely.
+---
+
+Fable tool files export Zod schemas and AI SDK tool definitions. For example, `metric-card` installs `lib/fable-ui/tools/show-metric-tool.ts` with:
+
+```ts
+export const showMetricInputSchema = z.object({ ... })
+export function createShowMetricTool() { ... }
+export const showMetric = defineFableComponent({ ... })
+```
+
+## Register Tools
+
+```ts
+import { streamText } from "ai"
+import { showMetric } from "@/lib/fable-ui/tools/show-metric-tool"
+
+const tools = {
+  show_metric: showMetric.tool,
+}
+
+const result = streamText({
+  model,
+  messages,
+  tools,
+  toolChoice: "auto",
+})
+```
+
+## Render Tool Parts
+
+Install `core` or any item that depends on it, then provide a registry map to the renderer:
+
+```tsx
+import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
+import { showMetric } from "@/lib/fable-ui/tools/show-metric-tool"
+
+const registry = {
+  show_metric: showMetric,
+}
+
+export function ToolPart({ part }: { part: unknown }) {
+  return <FableToolPart part={part} registry={registry} />
+}
+```
+
+Unknown tool parts render a small fallback. Invalid payloads are parsed with the item schema and render the component error state.
+
+## DataBrowser Resources
+
+`show_data_browser` should receive a `resourceId`, not database details. Register resources in host code, then add the safe manifest to your system prompt:
+
+```ts
+import { describeAvailableResources } from "@/components/fable-ui/data-browser/tool-definition"
+
+const result = streamText({
+  model,
+  system: [
+    "Use Fable UI tools for structured UI.",
+    describeAvailableResources(),
+  ].join("\n\n"),
+  messages,
+  tools,
+})
+```
+
+The model can select a resource id from that manifest. It must not pass raw SQL, Firestore paths, collection names, REST URLs, secrets, or permission decisions.
+
+## Quickstart
+
+The quickstart installs a working example at `/fable-chat` and `/api/fable-chat`. It uses mock mode by default so a clean app can render Fable tool parts without provider keys.
+
+Provider mode is opt-in. Keep provider keys, data access, authorization, writes, and validation in your host app.

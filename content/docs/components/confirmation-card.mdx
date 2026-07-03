@@ -1,0 +1,20 @@
+---
+title: ConfirmationCard
+description: Ask for explicit confirmation before host side effects.
+---
+
+`ConfirmationCard` requests user confirmation before the host app performs a write, delete, charge, send, status change, or destructive operation.
+
+<ConfirmationCardPreview />
+
+## Installation
+
+<RegistryInstallCommand itemName="confirmation-card" />
+
+## Tool
+
+The AI SDK tool name is `request_confirmation`.
+
+Confirmation UI is not authorization. Host APIs must still enforce authentication, permissions, validation, and idempotency.
+
+The component only captures an explicit user decision. The host decides whether the requested action is allowed and how it is executed.

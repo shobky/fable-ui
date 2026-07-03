@@ -1,0 +1,20 @@
+---
+title: FormCard
+description: Collect a few structured fields mid-conversation.
+---
+
+`FormCard` collects a small set of structured fields during a chat flow.
+
+<FormCardPreview />
+
+## Installation
+
+<RegistryInstallCommand itemName="form-card" />
+
+## Tool
+
+The AI SDK tool name is `collect_input`.
+
+Supported field types are `text`, `number`, `select`, `date`, `textarea`, and `toggle`. Keep v1 forms short. Server-side validation remains mandatory.
+
+Use this for missing structured values, not for long multi-step workflows. The host receives submitted values and validates them before any side effect.

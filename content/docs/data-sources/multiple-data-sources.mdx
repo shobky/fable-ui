@@ -1,0 +1,32 @@
+---
+title: Multiple Data Sources
+description: Register more than one driver or resource.
+---
+
+The registry can hold many drivers and resources. Use stable driver ids and resource ids that match product language.
+
+```ts
+fableRegistry.registerDriver("rest", createRestDriver())
+fableRegistry.registerDriver("firebase", createFirebaseDriver({ db }))
+
+fableRegistry.registerResource(ordersResource)
+fableRegistry.registerResource(customersResource)
+fableRegistry.registerResource(invoicesResource)
+```
+
+Each resource chooses its driver:
+
+```ts
+defineResource({
+  id: "customers",
+  label: "Customers",
+  entityLabel: "customers",
+  driver: "firebase",
+  source: { collection: "orgs/{orgId}/customers" },
+  columns,
+})
+```
+
+`describeAvailableResources()` summarizes all registered resources for the system prompt. The model picks the best `resourceId` based on `agent.description`, `aliases`, `useWhen`, and `avoidWhen`.
+
+If two resources overlap, make the `agent` guidance explicit. The safer resource should say when to use it; the broader resource should say when to avoid it.

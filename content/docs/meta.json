@@ -1,0 +1,13 @@
+{
+  "root": true,
+  "pages": [
+    "introduction",
+    "installation",
+    "registry",
+    "manifests",
+    "ai-sdk-integration",
+    "data-sources",
+    "components",
+    "architecture"
+  ]
+}

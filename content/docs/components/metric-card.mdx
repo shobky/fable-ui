@@ -1,0 +1,46 @@
+---
+title: MetricCard
+description: Display one primary metric from a validated AI tool payload.
+---
+
+`MetricCard` renders one trusted number with a label, optional trend, and short context line.
+
+<MetricCardPreview />
+
+## Installation
+
+<RegistryInstallCommand itemName="metric-card" />
+
+## Tool
+
+The AI SDK tool name is `show_metric`.
+
+Installed files include:
+
+```txt
+components/fable-ui/metric-card/metric-card.tsx
+components/fable-ui/metric-card/index.ts
+lib/fable-ui/tools/show-metric-tool.ts
+lib/fable-ui/manifests/show-metric.md
+lib/fable-ui/evals/show-metric.md
+```
+
+## Payload
+
+```ts
+{
+  label: string
+  value: string
+  trend?: {
+    direction: "up" | "down" | "neutral"
+    delta: string
+  }
+  context?: string
+}
+```
+
+## Use
+
+Use for totals, counts, amounts, percentages, balances, SLA values, or another KPI already computed by trusted host logic.
+
+Do not use for lists, tables, browsing, forms, confirmations, destructive actions, or long prose explanations.

@@ -1,0 +1,53 @@
+---
+title: Actions and Invalidation
+description: Let rows expose safe host-owned actions.
+---
+
+Rows can expose allowlisted actions such as `mark_paid`, `assign_owner`, or `archive`. Actions are not direct database writes from the model. The host app owns validation and execution.
+
+```ts
+defineResource({
+  id: "orders",
+  label: "Orders",
+  entityLabel: "orders",
+  driver: "rest",
+  source: { endpoint: "/api/orgs/{orgId}/orders" },
+  columns,
+  actions: [
+    {
+      id: "mark_paid",
+      label: "Mark paid",
+      description: "Marks the selected order as paid after host validation.",
+      requiresConfirmation: true,
+    },
+    {
+      id: "set_note",
+      label: "Set note",
+      fields: [
+        { name: "note", label: "Note", type: "textarea", required: true },
+      ],
+    },
+  ],
+})
+```
+
+`DataBrowser` runs actions through the registered driver or a resource runtime:
+
+```ts
+fableRegistry.registerResourceRuntime("orders", {
+  executeAction: async (input, resource, ctx) => {
+    const response = await fetch(`/api/orders/${input.rowId}/actions/${input.actionId}`, {
+      method: "POST",
+      body: JSON.stringify(input.values ?? {}),
+    })
+
+    if (!response.ok) {
+      return { ok: false, message: "Action failed" }
+    }
+
+    return { ok: true, invalidate: true }
+  },
+})
+```
+
+When an action result sets `invalidate: true`, DataBrowser refetches the current resource query. Static row actions can also call `onRowActionSuccess` to update host state.

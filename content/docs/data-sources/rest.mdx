@@ -1,0 +1,40 @@
+---
+title: REST
+description: Use host-owned HTTP endpoints as DataBrowser resources.
+---
+
+Install the browser and the REST adapter:
+
+<RegistryInstallCommand itemName="data-browser" />
+
+<RegistryInstallCommand itemName="rest-driver" />
+
+Register the driver in host code:
+
+```ts
+import { fableRegistry } from "@/lib/fable-ui/core"
+import { createRestDriver } from "@/lib/fable-ui/drivers/rest"
+
+fableRegistry.registerDriver(
+  "rest",
+  createRestDriver({
+    baseUrl: process.env.NEXT_PUBLIC_APP_URL,
+    headers: async (ctx) => ({
+      "x-org-id": String(ctx.orgId),
+    }),
+  })
+)
+```
+
+REST resources use endpoint templates:
+
+```ts
+source: {
+  endpoint: "/api/orgs/{orgId}/orders",
+  rowEndpoint: (rowId) => `/api/orders/${rowId}`,
+}
+```
+
+The driver sends `cursor`, `pageSize`, `search`, `sort`, and `filter[key]` query params. If `ctx.auth.getAccessToken()` returns a token, the driver adds a bearer `Authorization` header.
+
+Host endpoints remain responsible for authentication, authorization, validation, tenancy, rate limits, and write safety.

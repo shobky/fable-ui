@@ -1,0 +1,10 @@
+{
+  "title": "Components",
+  "pages": [
+    "metric-card",
+    "suggested-actions",
+    "confirmation-card",
+    "form-card",
+    "data-browser"
+  ]
+}

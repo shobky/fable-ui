@@ -1,0 +1,61 @@
+---
+title: Manifests
+description: Manifests describe when a model should select a Fable UI tool.
+---
+
+A manifest is the model-selection contract for a Fable UI surface. It is not just prose documentation for humans; it is the boundary description that tells an agent when to use a tool, when to avoid it, and what nearby tool should win in ambiguous cases.
+
+## Current state
+
+`MetricCard` currently includes:
+
+```txt
+lib/fable-ui/manifests/show-metric.md
+lib/fable-ui/evals/show-metric.md
+```
+
+These files document intended routing behavior and eval prompts. Automated manifest eval execution is not implemented in this checkout.
+
+## What a manifest should define
+
+A useful Fable manifest includes:
+
+- Tool name and component name.
+- Use-when rules.
+- Do-not-use-when rules.
+- Neighboring tools to prefer instead.
+- Trigger prompts.
+- Anti-trigger prompts.
+- Eval prompts.
+- Payload shape.
+- Safety notes.
+
+For `show_metric`, the manifest says to use the tool for one primary number and avoid it for records, forms, browsing, or actions.
+
+## Why it is not just docs
+
+Tool descriptions are short because they travel with the AI SDK tool. Manifests can be more explicit. They help developers test routing decisions and keep tool boundaries stable as more surfaces are added.
+
+The manifest should be treated as product behavior. If the manifest says `show_metric` should not handle "show the last 10 orders", tests should catch regressions where the model selects the metric card anyway.
+
+## Neighboring tools
+
+As the registry grows, neighboring tools matter more:
+
+- Use `show_metric` for one number.
+- Prefer `show_table` for a small row snapshot.
+- Prefer `show_data_browser` for browsing, search, filtering, or pagination.
+- Prefer `request_confirmation` before side effects.
+- Prefer `collect_input` when the user must provide structured input.
+
+The registry ships each manifest with its corresponding installable item.
+
+## Safety notes
+
+Manifests must not contain secrets, tokens, raw endpoints, private collection paths, handler functions, or authorization logic.
+
+Fable UI does not make the model a permission boundary. The model can request a UI or action flow, but the host application must still validate authentication, authorization, input, and side effects on the server.
+
+## Next steps
+
+Read [Agent Routing](/docs/architecture/agent-routing) for routing strategy and [Security](/docs/architecture/security) for the runtime boundary.

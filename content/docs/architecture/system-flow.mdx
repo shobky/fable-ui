@@ -1,0 +1,50 @@
+---
+title: System Flow
+description: The end-to-end path from user prompt to rendered Fable UI.
+---
+
+Fable UI keeps the model, tool schema, router, and component renderer separated. The model selects an allowlisted tool; the host app validates the payload; the UI renderer displays the matching component.
+
+## Current flow
+
+```mermaid
+flowchart LR
+  A["User prompt"] --> B["AI model"]
+  B --> C["Fable tool call"]
+  C --> D["schema validation"]
+  D --> E["tool router"]
+  E --> F["React component"]
+  F --> G["rendered UI"]
+```
+
+In the current app, `/api/chat` registers tools from `toolRegistry`, the model can emit `show_metric`, and the chat UI renders `tool-*` message parts through `ToolPartRenderer`.
+
+## Responsibilities
+
+- The AI model chooses from registered tools.
+- The AI SDK validates tool input against the schema.
+- The tool router validates render payloads again before rendering.
+- The React component receives typed props.
+- The host app owns data access, permissions, and side effects.
+
+## Planned data-backed path
+
+The future data-backed architecture is planned. It is not required for the current `MetricCard` setup.
+
+```txt
+resourceId
+-> resource registry
+-> driver
+-> host data source
+-> rendered component
+```
+
+In that model, the agent would receive a safe resource catalog and choose an allowlisted `resourceId`. It would not invent SQL, Firestore queries, raw endpoints, collection paths, handler functions, or backend operations.
+
+## Failure behavior
+
+Unknown tool calls and invalid payloads should render fallback UI instead of crashing. The current router already handles invalid payloads by rendering the component error state. Unknown tools render a small fallback message.
+
+## Next steps
+
+Read [Agent Routing](/docs/architecture/agent-routing) for model selection rules and [Security](/docs/architecture/security) for trust boundaries.

@@ -1,0 +1,51 @@
+---
+title: Introduction
+description: Fable UI renders trusted product UI from AI tool calls.
+---
+
+Fable UI is a copy-and-own registry of AI-intent-aware product experiences. It pairs React components with Vercel AI SDK tool definitions, model-facing manifests, examples, and docs so product engineers can render trusted UI from AI tool calls.
+
+The goal is simple: let an assistant choose from product surfaces your app has explicitly installed and allowlisted, then render those results as typed React UI instead of asking users to read everything as chat text.
+
+## The problem
+
+Chat-only product interfaces are good at conversation, but weak at product work. When the answer is a KPI, a confirmation, a form, or a browsable set of records, a giant text answer makes users parse structure by hand.
+
+Markdown tables help, but they are not product UI. They do not carry component state, interaction patterns, confirmation flows, disabled states, or app-owned validation. Fable UI keeps the conversational model, then routes the model's structured intent into UI the host app owns.
+
+## Core flow
+
+```txt
+User prompt
+-> AI model
+-> Fable tool call
+-> schema validation
+-> tool router
+-> React component
+-> rendered UI
+```
+
+Today the app registers Fable tools with the AI SDK. When the model emits a tool call, the payload is validated against the tool schema. The client-side router maps the tool name to a component renderer and passes validated props into the installed Fable component.
+
+## Currently available
+
+- `MetricCard`, a display-only component for one primary metric.
+- `show_metric`, the AI SDK tool definition for `MetricCard`.
+- `/chat`, a working playground route using Vercel AI SDK tool calling.
+- `toolRegistry`, `defineFableComponent`, and `ToolPartRenderer` for registering and rendering tool-backed components.
+
+## Planned
+
+The intended system includes more component surfaces, stronger manifest and eval coverage, data resources, drivers, `DataBrowser`, `FormCard`, `ConfirmationCard`, and `SuggestedActions`.
+
+Those pieces are planned architecture, not shipped product in this checkout. The current docs describe them only as direction when needed to explain boundaries.
+
+## What Fable UI is not
+
+Fable UI is not an agent framework, a database layer, a permission system, a chat provider, or a prompt-to-code tool. The model can request an allowlisted UI surface; it does not get to render arbitrary code, query private data, or decide authorization.
+
+The host app owns data access, authentication, authorization, validation, and side effects.
+
+## Next steps
+
+Start with [Installation](/docs/installation), then read [MetricCard](/docs/components/metric-card) and [AI SDK Integration](/docs/ai-sdk-integration).

@@ -1,0 +1,51 @@
+---
+title: Registry
+description: How Fable UI registry items are structured.
+---
+
+Fable UI is a copy-and-own registry of AI-intent-aware product surfaces. A registry item is not just a React component; it carries the model contract around that component.
+
+## Item Anatomy
+
+Each installable item can include:
+
+- React UI source owned by the installing project.
+- A Zod schema for the tool payload.
+- An AI SDK-compatible tool definition using `tool({ description, inputSchema, execute })`.
+- Model-facing manifest guidance.
+- Eval prompts for tool selection.
+- Examples or integration glue when useful.
+
+The root `registry.json` is the public GitHub source-registry entrypoint. Install commands resolve items from `shobky/fable-ui/<item>`.
+
+Current registry items:
+
+- `core`
+- `metric-card`
+- `suggested-actions`
+- `confirmation-card`
+- `form-card`
+- `data-browser`
+- `rest-driver`
+- `firebase-driver`
+- `quickstart`
+
+## Dependencies
+
+Bare `registryDependencies` such as `card` or `button` refer to official shadcn items. Fable-to-Fable dependencies use full GitHub addresses:
+
+```json
+{
+  "registryDependencies": ["shobky/fable-ui/core"]
+}
+```
+
+This prevents the CLI from treating a Fable item like `core` as a built-in shadcn item.
+
+## Boundary
+
+Registry files do not import from `app`, docs routes, playground helpers, or the local `/chat` route. The app can import registry source as evidence, but the product boundary is the public registry.
+
+The host app still owns auth, data access, server-side validation, side effects, and persistence.
+
+`data-browser` installs the generic browsing surface and core data-source types. It does not install REST or Firebase code. Install `rest-driver` or `firebase-driver` separately when the host app needs one of those adapters.

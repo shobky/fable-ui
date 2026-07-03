@@ -1,0 +1,55 @@
+---
+title: Overview
+description: How Fable UI connects DataBrowser to host-owned data.
+---
+
+`DataBrowser` does not fetch directly from Firebase, REST, SQL, or any private system. It renders rows from either static props or a registered host-owned resource.
+
+## Concepts
+
+A resource is an allowlisted business object the model may ask to browse, such as `orders`, `customers`, or `invoices`. It defines columns, filters, sort options, row actions, and safe model-facing guidance.
+
+A driver is the host adapter that knows how to list rows for a resource. Fable UI ships optional REST and Firebase drivers, but the host app chooses which driver to install and register.
+
+## Install
+
+<RegistryInstallCommand itemName="data-browser" />
+
+Only install a driver when needed:
+
+<RegistryInstallCommand itemName="rest-driver" />
+
+<RegistryInstallCommand itemName="firebase-driver" />
+
+## Provider
+
+Wrap the chat surface or app area that needs data browsing:
+
+```tsx
+import { FableDataProvider } from "@/lib/fable-ui/core"
+
+export function ChatShell({ children }: { children: React.ReactNode }) {
+  return (
+    <FableDataProvider context={{ orgId: "org_123", auth: { userId: "user_1" } }}>
+      {children}
+    </FableDataProvider>
+  )
+}
+```
+
+The context can include `orgId`, `tenantId`, request cancellation, locale, auth details, and a host-provided token getter.
+
+## Prompting
+
+Give the model the safe resource manifest, not private connection details:
+
+```ts
+import { describeAvailableResources } from "@/components/fable-ui/data-browser/tool-definition"
+
+const system = [
+  "Use show_data_browser for browsable business data.",
+  describeAvailableResources(),
+].join("\n\n")
+```
+
+The model selects a `resourceId` from that manifest. It must never pass raw SQL, Firestore paths, collection names, REST endpoints, secrets, or authorization decisions.

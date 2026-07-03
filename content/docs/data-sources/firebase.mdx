@@ -1,0 +1,55 @@
+---
+title: Firebase
+description: Use Firestore collections as optional DataBrowser resources.
+---
+
+Install the browser and Firebase adapter:
+
+<RegistryInstallCommand itemName="data-browser" />
+
+<RegistryInstallCommand itemName="firebase-driver" />
+
+The Firebase dependency is declared only by `firebase-driver`; core and DataBrowser do not install it.
+
+```ts
+import { defineResource, fableRegistry } from "@/lib/fable-ui/core"
+import { createFirebaseDriver } from "@/lib/fable-ui/drivers/firebase"
+import { db } from "@/lib/firebase"
+
+fableRegistry.registerDriver("firebase", createFirebaseDriver({ db }))
+
+fableRegistry.registerResource(
+  defineResource({
+    id: "orders",
+    label: "Orders",
+    entityLabel: "orders",
+    driver: "firebase",
+    source: { collection: "orgs/{orgId}/orders" },
+    columns: [
+      { key: "orderNumber", label: "Order #" },
+      { key: "status", label: "Status" },
+      { key: "total", label: "Total", align: "right" },
+    ],
+    filters: [
+      { key: "status", label: "Status", type: "select", options: ["new", "paid", "canceled"] },
+      { key: "createdAt", label: "Date", type: "date" },
+    ],
+    sort: [
+      { key: "createdAt", label: "Created At", directions: ["desc", "asc"] },
+    ],
+    search: {
+      mode: "client",
+      fields: ["customer.name", "orderNumber"],
+    },
+    agent: {
+      description: "Orders for the active organization.",
+      aliases: ["sales", "tickets", "bills"],
+      useWhen: ["The user wants to browse or search orders."],
+    },
+  })
+)
+```
+
+Firestore paths can use `{orgId}` and extra `pathParams`. The driver rejects unsafe path params containing `/` or `..`, requires auth by default, validates filters and sorts against the resource config, and serializes Firestore timestamps to ISO strings.
+
+The model still sees only the resource manifest. It never receives collection paths or Firestore query details.
