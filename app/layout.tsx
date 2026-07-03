@@ -36,7 +36,7 @@ export default function RootLayout({
           >
             <SiteHeader />
             <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-            <p className="max-w-3xl mx-auto text-muted-foreground py-12">Built by <Link className="underline" href={"https://shobky.vercel.app"} target="blank">@shobky</Link>. The source code is available on <Link className="underline" href={siteConfig.links.github} target="blank">
+            <p className="max-w-3xl text-center text-sm mx-auto text-muted-foreground py-12">Built by <Link className="underline" href={"https://shobky.vercel.app"} target="blank">@shobky</Link>. The source code is available on <Link className="underline" href={siteConfig.links.github} target="blank">
               github</Link></p>
           </div>
         </ThemeProvider>
