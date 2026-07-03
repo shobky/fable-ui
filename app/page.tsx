@@ -11,6 +11,8 @@ import {
   PageHeaderHeading,
 } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
+import { siteConfig } from "@/lib/config"
+import { SiteFooter } from "@/components/site-footer"
 
 
 const title = "a copy-and-own registry of AI-intent-aware product experiences."
@@ -64,6 +66,7 @@ export default function IndexPage() {
           <LandingPlaygroundDemo />
         </div>
       </div>
+      <SiteFooter />
     </div>
   )
 }

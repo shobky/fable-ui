@@ -194,7 +194,7 @@ const ChatComposer = memo(function ChatComposer({
     <form
       data-testid="chat-composer"
       onSubmit={handleSubmit}
-      className="sticky bottom-0 z-20 bg-background/90 px-4 pb-4 pt-3 backdrop-blur-xl sm:px-6"
+      className="sticky bottom-0 z-20 px-4 pb-4 pt-3  sm:px-6"
     >
       <div className="mx-auto max-w-3xl">
         {errorText ? (
@@ -202,7 +202,7 @@ const ChatComposer = memo(function ChatComposer({
             {errorText}
           </div>
         ) : null}
-        <InputGroup className="has-[[data-slot=input-group-control]:focus-visible]:ring-0 min-h-28 rounded-[2rem] bg-card/90 p-2 shadow-2xl shadow-foreground/10 ring-1 ring-foreground/5">
+        <InputGroup className="has-[[data-slot=input-group-control]:focus-visible]:ring-0 min-h-28 rounded-[2rem] bg-card/90 p-2  ring-1 ring-foreground/5">
           {pendingAttachments.length > 0 ? (
             <InputGroupAddon align="block-start" className="pb-2">
               <AttachmentGrid

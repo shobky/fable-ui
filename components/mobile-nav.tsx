@@ -49,10 +49,9 @@ export function MobileNav({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
+        <button
           className={cn(
-            "extend-touch-target h-8 touch-manipulation items-center justify-start gap-2.5 p-0! hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 active:bg-transparent dark:hover:bg-transparent",
+            "extend-touch-target h-8 touch-manipulation flex items-center justify-start gap-2.5 p-0! ",
             className
           )}
         >
@@ -76,7 +75,7 @@ export function MobileNav({
           <span className="flex h-8 items-center text-lg leading-none font-medium">
             Menu
           </span>
-        </Button>
+        </button>
       </PopoverTrigger>
       <PopoverContent
         className="no-scrollbar h-(--radix-popper-available-height) w-(--radix-popper-available-width) overflow-y-auto rounded-none border-none bg-background/90 p-0 shadow-none backdrop-blur duration-100 data-open:animate-none!"

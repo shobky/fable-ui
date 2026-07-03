@@ -1,5 +1,6 @@
 import type { NextConfig } from "next"
 import { createMDX } from "fumadocs-mdx/next"
+import path from "path"
 
 const nextConfig: NextConfig = {
     devIndicators: false,
@@ -10,6 +11,9 @@ const nextConfig: NextConfig = {
         remotePatterns: [
         ],
         qualities: [100, 75, 90]
+    },
+    turbopack: {
+        root: path.resolve(import.meta.dirname, "../.."),
     },
     redirects() {
         return [

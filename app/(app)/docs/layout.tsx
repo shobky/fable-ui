@@ -1,6 +1,9 @@
 import { DocsSidebar } from "@/components/docs-sidebar"
+import { SiteFooter } from "@/components/site-footer"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import { siteConfig } from "@/lib/config"
 import { source } from "@/lib/source"
+import Link from "next/link"
 
 export default function DocsLayout({
   children,
@@ -20,6 +23,7 @@ export default function DocsLayout({
         <DocsSidebar tree={source.pageTree} />
         <div className="h-full w-full">{children}</div>
       </SidebarProvider>
+      <SiteFooter />
     </div>
   )
 }
