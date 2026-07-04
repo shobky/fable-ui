@@ -10,7 +10,7 @@ const codeBlockTransformers = [
   {
     pre(node) {
       node.properties["class"] =
-        "no-scrollbar m-0 min-w-0 overflow-x-auto overflow-y-auto overscroll-x-contain overscroll-y-auto bg-code px-4 py-3.5 text-sm outline-none !bg-transparent"
+        "no-scrollbar m-0 min-w-0 overflow-x-auto overflow-y-auto overscroll-x-contain overscroll-y-auto bg-code  pr-4 py-3.5 text-sm outline-none !bg-transparent"
     },
     code(node) {
       node.properties["data-line-numbers"] = ""
