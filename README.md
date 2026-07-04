@@ -66,11 +66,11 @@ Current registry items include:
 - `data-browser`: renders static row snapshots or host-backed browsing surfaces with search, filters, sort, pagination, details, and row actions.
 - `rest-driver`: optional driver for host-owned HTTP endpoints.
 - `firebase-driver`: optional driver for Firestore-backed resources.
-- `quickstart`: installs a host-safe demo chat at `/fable-chat` and `/api/fable-chat`.
+- `quickstart`: installs a production-ready chat at `/fable-chat` and `/api/fable-chat`.
 
 ## Quickstart
 
-Install the demo chat into a Next.js + shadcn/ui app:
+Install the quickstart chat into a Next.js + shadcn/ui app:
 
 ```bash
 pnpm dlx shadcn@latest add shobky/fable-ui/quickstart
@@ -82,10 +82,18 @@ The quickstart installs a working example at:
 app/fable-chat/page.tsx
 app/api/fable-chat/route.ts
 components/fable-ui/chat/*
-lib/fable-ui/demo/*
+lib/fable-ui/quickstart/*
 ```
 
-It uses mock mode by default, so you can render Fable tool parts without provider keys. Provider mode is opt-in and follows the Vercel AI SDK route shape.
+Configure the model with three server-only variables:
+
+```env
+FABLE_AI_PROVIDER=google
+FABLE_AI_MODEL=gemini-3-flash-preview
+FABLE_AI_API_KEY=your-provider-api-key
+```
+
+The installed chat calls the configured provider directly and renders Fable tool parts when the model chooses an installed tool.
 
 ## Install Individual Surfaces
 

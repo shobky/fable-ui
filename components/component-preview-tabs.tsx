@@ -139,20 +139,6 @@ const directionTranslations: Translations<Record<string, never>> = {
   },
 }
 
-function RtlLanguageSelector({ className }: { className?: string }) {
-  const context = useLanguageContext()
-  if (!context) {
-    return null
-  }
-  return (
-    <LanguageSelector
-      value={context.language}
-      onValueChange={context.setLanguage}
-      className={className}
-    />
-  )
-}
-
 function PreviewWrapper({
   align,
   chromeLessOnMobile,

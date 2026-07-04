@@ -2,7 +2,7 @@
 
 import type { ToolPartLike } from "@/lib/fable-ui/core/definitions"
 import { FableToolPart as RenderFableToolPart } from "@/lib/fable-ui/core/tool-renderer"
-import { fableToolRegistry } from "@/lib/fable-ui/demo/tools"
+import { fableToolRegistry } from "@/lib/fable-ui/quickstart/tools"
 
 export function FableToolPart({ part }: { part: ToolPartLike }) {
   return (

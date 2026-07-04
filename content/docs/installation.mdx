@@ -7,11 +7,23 @@ Fable UI ships as a public shadcn registry. Install items into a Next.js + shadc
 
 ## Quickstart
 
-Install the host-safe demo chat. It creates `/fable-chat` and `/api/fable-chat`; it does not overwrite `/chat` or `/api/chat`.
+Install the production quickstart chat. It creates `/fable-chat` and `/api/fable-chat`; it does not overwrite `/chat` or `/api/chat`.
 
 <RegistryInstallCommand itemName="quickstart" />
 
-The quickstart includes mock mode, so it works without provider keys. Provider mode is intentionally minimal and uses the Vercel AI SDK route shape.
+If your app already has shadcn primitives such as `button`, `input`, `card`, `badge`, or `skeleton`, answer `no` when the CLI asks whether to overwrite them.
+
+Add the model configuration to `.env.local`:
+
+```env
+FABLE_AI_PROVIDER=google
+FABLE_AI_MODEL=gemini-3-flash-preview
+FABLE_AI_API_KEY=your-provider-api-key
+```
+
+Supported providers are `google`, `anthropic`, `openai`, `openrouter`, `mistral`, and `deepseek`. The quickstart uses one API key variable no matter which provider you choose. Restart your dev server, open `/fable-chat`, and start chatting.
+
+When the variables are missing, the chat responds with a setup message that lists the exact variables to add.
 
 ## Individual Components
 
@@ -54,10 +66,24 @@ Quickstart routes install to:
 app/fable-chat/page.tsx
 app/api/fable-chat/route.ts
 components/fable-ui/chat/*
-lib/fable-ui/demo/*
+lib/fable-ui/quickstart/*
 ```
 
-Driver routes, auth, API keys, databases, and permissions stay in the host app. Registry items install UI, tool contracts, manifests, and optional driver adapters.
+The quickstart includes `metric-card` and `suggested-actions` tool rendering. Driver routes, auth, API keys, databases, and permissions stay in the host app. Registry items install UI, tool contracts, manifests, and optional driver adapters.
+
+## Next Steps
+
+Add more Fable UI surfaces as the assistant needs them:
+
+<RegistryInstallCommand itemName="confirmation-card" />
+
+<RegistryInstallCommand itemName="form-card" />
+
+Configure a data source when tool calls need to browse host-owned data:
+
+<RegistryInstallCommand itemName="data-browser" />
+
+<RegistryInstallCommand itemName="rest-driver" />
 
 ## Inspect First
 

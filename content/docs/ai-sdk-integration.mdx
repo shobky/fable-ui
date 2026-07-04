@@ -70,6 +70,6 @@ The model can select a resource id from that manifest. It must not pass raw SQL,
 
 ## Quickstart
 
-The quickstart installs a working example at `/fable-chat` and `/api/fable-chat`. It uses mock mode by default so a clean app can render Fable tool parts without provider keys.
+The quickstart installs a working example at `/fable-chat` and `/api/fable-chat`. Configure `FABLE_AI_PROVIDER`, `FABLE_AI_MODEL`, and `FABLE_AI_API_KEY` in `.env.local`; when those variables are missing, the chat responds with setup guidance instead of rendering placeholder data.
 
 Provider mode is opt-in. Keep provider keys, data access, authorization, writes, and validation in your host app.

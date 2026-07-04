@@ -140,11 +140,28 @@
       "name": "quickstart",
       "type": "registry:block",
       "title": "Fable UI Quickstart",
-      "description": "Install a collision-safe AI SDK chat demo at /fable-chat with mock mode enabled.",
-      "dependencies": ["ai", "@ai-sdk/react", "@ai-sdk/openai"],
+      "description": "Install a production-ready AI SDK chat at /fable-chat with env-driven provider configuration.",
+      "dependencies": [
+        "ai",
+        "@ai-sdk/react",
+        "@ai-sdk/anthropic",
+        "@ai-sdk/deepseek",
+        "@ai-sdk/google",
+        "@ai-sdk/mistral",
+        "@ai-sdk/openai",
+        "@openrouter/ai-sdk-provider",
+        "lucide-react",
+        "react-markdown",
+        "remark-gfm"
+      ],
       "registryDependencies": [
         "button",
-        "input",
+        "input-group",
+        "textarea",
+        "message-scroller",
+        "message",
+        "bubble",
+        "marker",
         "shobky/fable-ui/core",
         "shobky/fable-ui/metric-card",
         "shobky/fable-ui/suggested-actions"
@@ -155,8 +172,8 @@
         { "path": "examples/quickstart/components/fable-chat.tsx", "type": "registry:component", "target": "components/fable-ui/chat/fable-chat.tsx" },
         { "path": "examples/quickstart/components/fable-message.tsx", "type": "registry:component", "target": "components/fable-ui/chat/fable-message.tsx" },
         { "path": "examples/quickstart/components/fable-tool-part.tsx", "type": "registry:component", "target": "components/fable-ui/chat/fable-tool-part.tsx" },
-        { "path": "examples/quickstart/lib/tools.ts", "type": "registry:lib", "target": "lib/fable-ui/demo/tools.ts" },
-        { "path": "examples/quickstart/lib/mock-tools.ts", "type": "registry:lib", "target": "lib/fable-ui/demo/mock-tools.ts" },
+        { "path": "examples/quickstart/lib/tools.ts", "type": "registry:lib", "target": "lib/fable-ui/quickstart/tools.ts" },
+        { "path": "examples/quickstart/lib/provider-config.ts", "type": "registry:lib", "target": "lib/fable-ui/quickstart/provider-config.ts" },
         { "path": "examples/quickstart/README.md", "type": "registry:file", "target": "docs/fable-ui/quickstart.md" }
       ]
     }
