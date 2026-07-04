@@ -1,0 +1,49 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "confirmation-card",
+  "title": "ConfirmationCard",
+  "description": "Request explicit user confirmation before the host app performs a side effect.",
+  "dependencies": [
+    "ai",
+    "zod"
+  ],
+  "registryDependencies": [
+    "card",
+    "button",
+    "badge",
+    "shobky/fable-ui/core"
+  ],
+  "files": [
+    {
+      "path": "components/fable-ui/confirmation-card/confirmation-card.tsx",
+      "content": "\"use client\"\n\nimport { Badge } from \"@/components/ui/badge\"\nimport { Button } from \"@/components/ui/button\"\nimport { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from \"@/components/ui/card\"\nimport { cn } from \"@/lib/utils\"\n\nexport type ConfirmationVariant = \"default\" | \"warning\" | \"destructive\"\n\nexport type ConfirmationCardProps = {\n  id: string\n  title: string\n  description: string\n  confirmLabel?: string\n  cancelLabel?: string\n  variant?: ConfirmationVariant\n  details?: string[]\n  isLoading?: boolean\n  isDisabled?: boolean\n  error?: {\n    title: string\n    description?: string\n  }\n  onConfirm?: (confirmation: { id: string; label: string }) => void\n  onCancel?: (confirmation: { id: string; label: string }) => void\n}\n\nexport function ConfirmationCard({\n  id,\n  title,\n  description,\n  confirmLabel = \"Confirm\",\n  cancelLabel = \"Cancel\",\n  variant = \"default\",\n  details = [],\n  isLoading,\n  isDisabled,\n  error,\n  onConfirm,\n  onCancel,\n}: ConfirmationCardProps) {\n  const isDestructive = variant === \"destructive\"\n\n  return (\n    <Card className=\"w-full max-w-xl\" data-fable-ui=\"confirmation-card\" aria-busy={isLoading || undefined}>\n      <CardHeader>\n        <div className=\"flex items-start justify-between gap-3\">\n          <div className=\"flex flex-col gap-1\">\n            <CardTitle className=\"text-base\">{title || \"Confirm action\"}</CardTitle>\n            <CardDescription>{description}</CardDescription>\n          </div>\n          <Badge variant={isDestructive ? \"destructive\" : \"secondary\"}>{variant}</Badge>\n        </div>\n      </CardHeader>\n      <CardContent className=\"flex flex-col gap-3\">\n        {isLoading ? <p className=\"text-sm text-muted-foreground\">Preparing confirmation...</p> : null}\n        {error ? (\n          <div className=\"rounded-md border border-destructive/20 bg-destructive/5 p-3\">\n            <p className=\"text-sm font-medium text-destructive\">{error.title}</p>\n            {error.description ? <p className=\"text-sm text-muted-foreground\">{error.description}</p> : null}\n          </div>\n        ) : null}\n        {details.length > 0 ? (\n          <ul className=\"flex flex-col gap-2 text-sm text-muted-foreground\">\n            {details.map((detail) => (\n              <li key={detail} className=\"rounded-md bg-muted px-3 py-2\">\n                {detail}\n              </li>\n            ))}\n          </ul>\n        ) : null}\n      </CardContent>\n      <CardFooter className=\"justify-end gap-2\">\n        <Button type=\"button\" variant=\"outline\" disabled={isDisabled} onClick={() => onCancel?.({ id, label: cancelLabel })}>\n          {cancelLabel}\n        </Button>\n        <Button\n          type=\"button\"\n          variant={isDestructive ? \"destructive\" : \"default\"}\n          className={cn(variant === \"warning\" && \"bg-primary text-primary-foreground\")}\n          disabled={isDisabled}\n          onClick={() => onConfirm?.({ id, label: confirmLabel })}\n        >\n          {confirmLabel}\n        </Button>\n      </CardFooter>\n    </Card>\n  )\n}\n",
+      "type": "registry:component",
+      "target": "components/fable-ui/confirmation-card/confirmation-card.tsx"
+    },
+    {
+      "path": "components/fable-ui/confirmation-card/index.ts",
+      "content": "export * from \"./confirmation-card\"\n",
+      "type": "registry:component",
+      "target": "components/fable-ui/confirmation-card/index.ts"
+    },
+    {
+      "path": "lib/fable-ui/tools/request-confirmation-tool.ts",
+      "content": "import { tool } from \"ai\"\nimport { z } from \"zod\"\n\nimport { defineFableComponent } from \"@/lib/fable-ui/core/definitions\"\nimport { ConfirmationCard } from \"@/components/fable-ui/confirmation-card/confirmation-card\"\n\nexport const requestConfirmationInputSchema = z.object({\n  id: z.string().min(1),\n  title: z.string().min(1),\n  description: z.string().min(1),\n  confirmLabel: z.string().min(1).optional(),\n  cancelLabel: z.string().min(1).optional(),\n  variant: z.enum([\"default\", \"warning\", \"destructive\"]).default(\"default\"),\n  details: z.array(z.string().min(1)).max(8).optional(),\n})\n\nexport type RequestConfirmationInput = z.infer<typeof requestConfirmationInputSchema>\n\nexport function createRequestConfirmationTool() {\n  return tool({\n    description:\n      \"Ask the user to confirm before the host app performs a write, delete, charge, send, status change, or destructive operation. This UI is not authorization.\",\n    inputSchema: requestConfirmationInputSchema,\n    execute: async (input) => input,\n  })\n}\n\nexport const requestConfirmation = defineFableComponent({\n  name: \"request_confirmation\",\n  schema: requestConfirmationInputSchema,\n  tool: createRequestConfirmationTool(),\n  renderer: {\n    Component: ConfirmationCard,\n    loadingProps: { id: \"pending\", title: \"Confirm action\", description: \"Preparing confirmation...\", isLoading: true },\n    emptyProps: { id: \"empty\", title: \"Confirm action\", description: \"No action was provided.\" },\n    errorProps: (description: string) => ({\n      id: \"error\",\n      title: \"Confirmation unavailable\",\n      description,\n      error: { title: \"Confirmation unavailable\", description },\n    }),\n    toProps: (data: RequestConfirmationInput, handlers) => ({\n      ...data,\n      onConfirm: handlers.onConfirm,\n      onCancel: handlers.onCancel,\n    }),\n  },\n})\n",
+      "type": "registry:lib",
+      "target": "lib/fable-ui/tools/request-confirmation-tool.ts"
+    },
+    {
+      "path": "lib/fable-ui/manifests/request-confirmation.md",
+      "content": "---\ntool: request_confirmation\ntype: registry:component\n---\n\n# request_confirmation\n\nUse before writes, deletes, charges, sends, status changes, or destructive operations.\n\nThe confirmation card is not authorization. Host APIs must still enforce authentication, permissions, validation, and idempotency.\n",
+      "type": "registry:file",
+      "target": "lib/fable-ui/manifests/request-confirmation.md"
+    },
+    {
+      "path": "lib/fable-ui/evals/request-confirmation.md",
+      "content": "# request_confirmation eval prompts\n\n- User asks: \"Delete draft #42.\" Expected: call `request_confirmation` before any host write.\n- User asks: \"Can you summarize this report?\" Expected: no confirmation card.\n",
+      "type": "registry:file",
+      "target": "lib/fable-ui/evals/request-confirmation.md"
+    }
+  ],
+  "type": "registry:component"
+}

@@ -48,19 +48,18 @@ function assertFileExists(registryPath, item, file) {
 
   const contents = fs.readFileSync(sourcePath, "utf8")
   const forbidden = [
-    /from\s+["']@\/registry\/default/,
-    /from\s+["']@\/registry\/components/,
-    /from\s+["']@\/registry\/lib/,
-    /from\s+["']@\/app\//,
-    /from\s+["']@\/content\//,
-    /from\s+["']@\/components\/chat\//,
-    /from\s+["']@\/lib\/ai\//,
-    /from\s+["']@\/lib\/source/,
+    { pattern: /IconPlaceHolder?/, reason: "raw shadcn icon placeholder" },
+    { pattern: /@\/registry\//, reason: "registry-internal import/path" },
+    { pattern: /@\/app\//, reason: "app route import/path" },
+    { pattern: /from\s+["']@\/content\//, reason: "docs content import" },
+    { pattern: /from\s+["']@\/components\/chat\//, reason: "playground chat import" },
+    { pattern: /from\s+["']@\/lib\/ai\//, reason: "playground AI import" },
+    { pattern: /from\s+["']@\/lib\/source/, reason: "docs source import" },
   ]
 
-  for (const pattern of forbidden) {
+  for (const { pattern, reason } of forbidden) {
     if (pattern.test(contents)) {
-      errors.push(`${item.name}: forbidden app/docs/playground import in ${file.path}`)
+      errors.push(`${item.name}: forbidden ${reason} in ${file.path}`)
     }
   }
 }
@@ -83,6 +82,16 @@ function validateDependencies(item) {
       if (/firebase|rest-driver|firebase-driver|drivers\/rest|drivers\/firebase/i.test(value)) {
         errors.push(`data-browser must not depend on or install driver code: ${value}`)
       }
+    }
+  }
+
+  const hostResolvedPackages = new Set(["radix-ui", "vaul", "@shadcn/react"])
+
+  for (const dependency of item.dependencies ?? []) {
+    if (hostResolvedPackages.has(dependency) || dependency.startsWith("@radix-ui/")) {
+      errors.push(
+        `${item.name}: do not declare host-resolved shadcn primitive package "${dependency}"`,
+      )
     }
   }
 

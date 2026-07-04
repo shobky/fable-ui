@@ -1,0 +1,50 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "metric-card",
+  "title": "MetricCard",
+  "description": "Display one trusted metric from a validated AI tool payload.",
+  "dependencies": [
+    "ai",
+    "zod",
+    "class-variance-authority"
+  ],
+  "registryDependencies": [
+    "card",
+    "badge",
+    "skeleton",
+    "shobky/fable-ui/core"
+  ],
+  "files": [
+    {
+      "path": "components/fable-ui/metric-card/metric-card.tsx",
+      "content": "import { cva, type VariantProps } from \"class-variance-authority\"\n\nimport { Badge } from \"@/components/ui/badge\"\nimport { Card, CardContent, CardHeader, CardTitle } from \"@/components/ui/card\"\nimport { Skeleton } from \"@/components/ui/skeleton\"\nimport { cn } from \"@/lib/utils\"\n\nexport type MetricTrendDirection = \"up\" | \"down\" | \"neutral\"\n\nconst metricCardVariants = cva(\"w-full max-w-md overflow-hidden transition-opacity\", {\n  variants: {\n    variant: {\n      default: \"bg-card shadow-sm\",\n      elevated: \"bg-card shadow-lg shadow-foreground/5\",\n      subtle: \"bg-muted/40 shadow-none\",\n    },\n    size: {\n      sm: \"\",\n      md: \"\",\n      lg: \"\",\n    },\n  },\n  defaultVariants: {\n    variant: \"default\",\n    size: \"md\",\n  },\n})\n\nconst metricContentSize = {\n  sm: { header: \"p-4 pb-2\", content: \"p-4 pt-0\", value: \"text-3xl\" },\n  md: { header: \"p-5 pb-2\", content: \"p-5 pt-0\", value: \"text-4xl\" },\n  lg: { header: \"p-6 pb-3\", content: \"p-6 pt-0\", value: \"text-5xl\" },\n} as const\n\nexport interface MetricCardProps extends VariantProps<typeof metricCardVariants> {\n  label: string\n  value: string\n  trend?: {\n    direction: MetricTrendDirection\n    delta: string\n  }\n  context?: string\n  isLoading?: boolean\n  isDisabled?: boolean\n  error?: {\n    title: string\n    description?: string\n  }\n  className?: string\n}\n\nconst trendClassName: Record<MetricTrendDirection, string> = {\n  up: \"border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/30 dark:text-emerald-400\",\n  down: \"border-red-200 bg-red-100 text-red-700 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-400\",\n  neutral: \"border-border bg-muted text-muted-foreground\",\n}\n\nexport function MetricCard({\n  label,\n  value,\n  trend,\n  context,\n  isLoading,\n  isDisabled,\n  error,\n  variant,\n  size,\n  className,\n}: MetricCardProps) {\n  const resolvedSize = size ?? \"md\"\n  const sizeClasses = metricContentSize[resolvedSize]\n  const hasMetric = label.trim().length > 0 && value.trim().length > 0\n\n  return (\n    <Card\n      className={cn(\n        metricCardVariants({ variant, size }),\n        isDisabled && \"pointer-events-none opacity-50\",\n        className,\n      )}\n      data-fable-ui=\"metric-card\"\n      aria-busy={isLoading || undefined}\n    >\n      <CardHeader className={sizeClasses.header}>\n        <CardTitle className=\"break-words text-sm font-medium leading-none text-muted-foreground\">\n          {isLoading ? <Skeleton className=\"h-4 w-28\" /> : label || \"Metric\"}\n        </CardTitle>\n      </CardHeader>\n      <CardContent className={cn(\"flex flex-col gap-4\", sizeClasses.content)}>\n        {isLoading ? (\n          <div className=\"flex flex-col gap-4\">\n            <Skeleton className=\"h-10 w-40\" />\n            <div className=\"flex items-center justify-between gap-3\">\n              <Skeleton className=\"h-7 w-24 rounded-full\" />\n              <Skeleton className=\"h-4 w-32\" />\n            </div>\n          </div>\n        ) : error ? (\n          <div className=\"rounded-md border border-destructive/20 bg-destructive/5 p-4\">\n            <p className=\"text-sm font-medium text-destructive\">{error.title}</p>\n            {error.description ? (\n              <p className=\"mt-1 text-xs leading-5 text-muted-foreground\">{error.description}</p>\n            ) : null}\n          </div>\n        ) : !hasMetric ? (\n          <div className=\"flex flex-col items-center gap-2 py-8 text-center\">\n            <p className=\"text-sm font-medium text-foreground\">Metric unavailable</p>\n            <p className=\"max-w-60 text-xs leading-5 text-muted-foreground\">\n              A label and value are required before this metric can be displayed.\n            </p>\n          </div>\n        ) : (\n          <>\n            <p\n              className={cn(\n                \"break-words font-mono font-semibold leading-tight text-foreground tabular-nums\",\n                sizeClasses.value,\n              )}\n            >\n              {value}\n            </p>\n            <div className=\"flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between\">\n              {trend ? (\n                <Badge className={cn(\"w-fit\", trendClassName[trend.direction])}>\n                  {trend.delta}\n                </Badge>\n              ) : (\n                <span className=\"text-sm leading-6 text-muted-foreground\">No trend provided</span>\n              )}\n              {context ? (\n                <p className=\"text-sm leading-6 text-muted-foreground sm:text-right\">{context}</p>\n              ) : null}\n            </div>\n          </>\n        )}\n      </CardContent>\n    </Card>\n  )\n}\n\nexport default MetricCard\n",
+      "type": "registry:component",
+      "target": "components/fable-ui/metric-card/metric-card.tsx"
+    },
+    {
+      "path": "components/fable-ui/metric-card/index.ts",
+      "content": "export * from \"./metric-card\"\n",
+      "type": "registry:component",
+      "target": "components/fable-ui/metric-card/index.ts"
+    },
+    {
+      "path": "lib/fable-ui/tools/show-metric-tool.ts",
+      "content": "import { tool } from \"ai\"\nimport { z } from \"zod\"\n\nimport { defineFableComponent } from \"@/lib/fable-ui/core/definitions\"\nimport { MetricCard } from \"@/components/fable-ui/metric-card/metric-card\"\n\nexport const showMetricInputSchema = z.object({\n  label: z.string().min(1).describe(\"Short label for the metric.\"),\n  value: z.string().min(1).describe(\"Formatted metric value, including units or currency.\"),\n  trend: z\n    .object({\n      direction: z.enum([\"up\", \"down\", \"neutral\"]),\n      delta: z.string().min(1).describe(\"Short trend text, such as '+18% vs yesterday'.\"),\n    })\n    .optional(),\n  context: z.string().min(1).optional().describe(\"One short line that helps interpret the metric.\"),\n})\n\nexport type ShowMetricInput = z.infer<typeof showMetricInputSchema>\n\nexport function createShowMetricTool() {\n  return tool({\n    description:\n      \"Display one trusted numeric metric with a label, formatted value, optional trend, and short context. Do not use for lists, tables, browsing, forms, suggestions, or actions.\",\n    inputSchema: showMetricInputSchema,\n    execute: async (input) => input,\n  })\n}\n\nexport const showMetric = defineFableComponent({\n  name: \"show_metric\",\n  schema: showMetricInputSchema,\n  tool: createShowMetricTool(),\n  renderer: {\n    Component: MetricCard,\n    loadingProps: { label: \"Metric\", value: \"0\", isLoading: true },\n    emptyProps: { label: \"\", value: \"\" },\n    errorProps: (description: string) => ({\n      label: \"Metric\",\n      value: \"\",\n      error: { title: \"Metric unavailable\", description },\n    }),\n    toProps: (data: ShowMetricInput) => ({ ...data, variant: \"elevated\" as const }),\n  },\n})\n",
+      "type": "registry:lib",
+      "target": "lib/fable-ui/tools/show-metric-tool.ts"
+    },
+    {
+      "path": "lib/fable-ui/manifests/show-metric.md",
+      "content": "---\ntool: show_metric\ntype: registry:component\n---\n\n# show_metric\n\nUse `show_metric` when the assistant has one trusted, display-ready number that benefits from visual emphasis.\n\nUse it for totals, counts, amounts, percentages, balances, SLA values, or another KPI that has already been computed by host logic.\n\nAvoid it for lists, browsing, tables, forms, confirmations, destructive operations, or long explanations.\n\nThe payload must include `label` and `value`. Optional `trend` and `context` should clarify the number without inventing data.\n",
+      "type": "registry:file",
+      "target": "lib/fable-ui/manifests/show-metric.md"
+    },
+    {
+      "path": "lib/fable-ui/evals/show-metric.md",
+      "content": "# show_metric eval prompts\n\n- User asks: \"Show today's revenue as a card: EGP 4,200, up 18% from yesterday.\" Expected: call `show_metric` with the provided value and trend.\n- User asks: \"What were sales last week?\" with no trusted value in context. Expected: ask a follow-up or answer in text, do not invent a metric payload.\n- User asks: \"List the last 20 orders.\" Expected: do not call `show_metric`; use a table or data browser surface when available.\n",
+      "type": "registry:file",
+      "target": "lib/fable-ui/evals/show-metric.md"
+    }
+  ],
+  "type": "registry:component"
+}

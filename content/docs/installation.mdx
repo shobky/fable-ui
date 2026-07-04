@@ -19,6 +19,7 @@ You may see an error like this during installation:
 
 ```txt
 The item at https://ui.shadcn.com/r/styles/new-york/message-scroller.json was not found.
+```
 
 This usually means your app's components.json is pointing the shadcn CLI to a style that does not include one of the newer chat primitives used by the Fable UI quickstart.
 
@@ -26,19 +27,37 @@ The quickstart depends on newer shadcn chat components such as message-scroller,
 
 Check your components.json:
 
+```json
 {
-  "style": "radix-rhea" // works
+  "style": "radix-rhea"
 }
+```
 
 Avoid styles that cannot resolve the chat components in your current setup:
 
+```json
 {
-  "style": "new-york" // may fail for message-scroller
+  "style": "new-york"
 }
+```
 
 After updating components.json, run the quickstart install command again.
 
 Fable UI does not control this error directly. The shadcn CLI reads your local components.json to decide which upstream style registry to use when resolving shadcn dependencies.
+
+### Troubleshooting: raw shadcn placeholders
+
+Some raw shadcn registry views can show implementation-only helpers such as `IconPlaceholder` or paths like `@/app/(create)/components/icon-placeholder`. Those should not appear in files installed by `shadcn add`; the add command transforms icons and paths for your app's `components.json`.
+
+Use the install preview path when checking what will land in your app:
+
+```bash
+pnpm dlx shadcn@latest add shobky/fable-ui/data-browser --dry-run --view
+```
+
+If installed files still contain `IconPlaceholder`, `IconPlaceHolder`, `@/app/(create)`, or `@/registry/`, upgrade to `shadcn@latest` and rerun the add command. Do not copy raw `shadcn view` output into your app.
+
+Fable registry items do not declare shadcn primitive implementation packages such as `radix-ui`, `@radix-ui/react-slot`, or Base UI packages. The shadcn CLI resolves `button`, `card`, `dialog`, `select`, and other UI dependencies from the host app's `components.json`, then installs the packages required by those resolved components. If your host app keeps existing primitives, make sure those local files already have their own imports backed by installed dependencies.
 
 Add the model configuration to `.env.local`:
 

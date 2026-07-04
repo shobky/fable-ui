@@ -113,7 +113,7 @@ export function LandingPlaygroundDemo() {
 
   return (
     <section className="mx-auto max-w-6xl flex w-full flex-col gap-4 px-4 pb-16 sm:px-6 lg:px-8">
-      <div className="overflow-hidden rounded-[2rem] bg-secondary/10">
+      <div className="overflow-hidden rounded-[2rem] bg-secondary/20">
         <div className="grid sm:min-h-[620px]">
           <div className="flex min-w-0 flex-col">
             <div className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3 sm:px-6">

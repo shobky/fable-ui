@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "registry:validate": "node scripts/validate-registry.mjs && shadcn registry validate registry.json",
     "registry:build": "shadcn build registry.json --output public/r",
-    "registry:check": "pnpm registry:validate && pnpm typecheck"
+    "registry:smoke": "node scripts/smoke-shadcn-install.mjs",
+    "registry:check": "pnpm registry:validate && pnpm registry:smoke && pnpm typecheck"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.7",
