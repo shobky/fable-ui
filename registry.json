@@ -89,11 +89,14 @@
       "dependencies": ["ai", "zod", "class-variance-authority", "lucide-react"],
       "registryDependencies": ["card", "button", "badge", "input", "dialog", "drawer", "select", "shobky/fable-ui/core"],
       "files": [
+        { "path": "components/fable-ui/data-browser/index.ts", "type": "registry:block", "target": "components/fable-ui/data-browser/index.ts" },
+        { "path": "components/fable-ui/data-browser/tool-definition.ts", "type": "registry:block", "target": "lib/fable-ui/tools/data-browser-tool.ts" },
+        { "path": "lib/fable-ui/manifests/show-table.md", "type": "registry:file", "target": "lib/fable-ui/manifests/show-table.md" },
+
         { "path": "components/fable-ui/data-browser/data-browser.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/data-browser.tsx" },
         { "path": "components/fable-ui/data-browser/data-browser.types.ts", "type": "registry:block", "target": "components/fable-ui/data-browser/data-browser.types.ts" },
         { "path": "components/fable-ui/data-browser/show-table.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/show-table.tsx" },
         { "path": "components/fable-ui/data-browser/resolve-intent.ts", "type": "registry:block", "target": "components/fable-ui/data-browser/resolve-intent.ts" },
-        { "path": "components/fable-ui/data-browser/tool-definition.ts", "type": "registry:block", "target": "components/fable-ui/data-browser/tool-definition.ts" },
         { "path": "components/fable-ui/data-browser/hooks/use-data-browser-query.ts", "type": "registry:hook", "target": "components/fable-ui/data-browser/hooks/use-data-browser-query.ts" },
         { "path": "components/fable-ui/data-browser/hooks/use-data-browser-actions.ts", "type": "registry:hook", "target": "components/fable-ui/data-browser/hooks/use-data-browser-actions.ts" },
         { "path": "components/fable-ui/data-browser/hooks/use-row-detail-surface.ts", "type": "registry:hook", "target": "components/fable-ui/data-browser/hooks/use-row-detail-surface.ts" },
@@ -105,9 +108,7 @@
         { "path": "components/fable-ui/data-browser/internal/toolbar.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/internal/toolbar.tsx" },
         { "path": "components/fable-ui/data-browser/lib/fallback-filters.ts", "type": "registry:lib", "target": "components/fable-ui/data-browser/lib/fallback-filters.ts" },
         { "path": "components/fable-ui/data-browser/lib/get-row-id.ts", "type": "registry:lib", "target": "components/fable-ui/data-browser/lib/get-row-id.ts" },
-        { "path": "components/fable-ui/data-browser/index.ts", "type": "registry:block", "target": "components/fable-ui/data-browser/index.ts" },
         { "path": "lib/fable-ui/manifests/show-data-browser.md", "type": "registry:file", "target": "lib/fable-ui/manifests/show-data-browser.md" },
-        { "path": "lib/fable-ui/manifests/show-table.md", "type": "registry:file", "target": "lib/fable-ui/manifests/show-table.md" },
         { "path": "lib/fable-ui/evals/data-browser.md", "type": "registry:file", "target": "lib/fable-ui/evals/data-browser.md" }
       ]
     },
