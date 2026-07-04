@@ -15,51 +15,32 @@ The Firebase dependency is declared only by `firebase-driver`; core and DataBrow
 
 Register Firebase in client-side host code because the Firestore Web SDK uses the browser Firebase Auth client.
 
-```ts title="lib/fable-ui/data/client-registry.ts"
-"use client"
+```ts title="lib/fable-ui/data/registr.ts"
 
-import { defineResource, fableRegistry } from "@/lib/fable-ui/core"
+// lib/fable-ui/register.ts
+import { fableRegistry } from "@/lib/fable-ui/core"
 import { createFirebaseDriver } from "@/lib/fable-ui/drivers/firebase"
-import { auth, db } from "@/lib/firebase"
+import { ordersResource } from "@/lib/fable-ui/data/recources"
+import { auth, db } from "@/firebase/config"
 
 fableRegistry.registerDriver("firebase", createFirebaseDriver({ db, auth }))
-
-fableRegistry.registerResource(
-  defineResource({
-    id: "orders",
-    label: "Orders",
-    entityLabel: "orders",
-    driver: "firebase",
-    source: { collection: "orgs/{orgId}/orders", requireAuth: true },
-    columns: [
-      { key: "orderNumber", label: "Order #" },
-      { key: "customer.name", label: "Customer" },
-      { key: "status", label: "Status" },
-      { key: "subtotal", label: "Total" },
-    ],
-    filters: [
-      { key: "status", label: "Status", type: "select", options: ["new", "paid", "canceled"] },
-      { key: "createdAt", label: "Date", type: "date" },
-    ],
-    sort: [
-      { key: "createdAt", label: "Created At", directions: ["desc", "asc"] },
-    ],
-    search: {
-      mode: "client",
-      fields: ["customer.name", "orderNumber"],
-    },
-    agent: {
-      description: "Orders for the active organization.",
-      aliases: ["sales", "tickets", "bills"],
-      useWhen: ["The user wants to browse or search orders."],
-    },
-  })
-)
+fableRegistry.registerResource(ordersResource)
 
 export { fableRegistry }
 ```
+The same `auth` object passed to `createFirebaseDriver({ db, auth })` must be the app's live Firebase Auth client. Fable does not read Firebase Auth from `FableDataProvider` context and does not use `ctx.auth.userId` when using firebase.
 
-The same `auth` object passed to `createFirebaseDriver({ db, auth })` must be the app's live Firebase Auth client. Fable does not read Firebase Auth from `FableDataProvider` context and does not use `ctx.auth.userId` as a Firebase fallback.
+
+Then import this module at the top of your route file:
+```ts title="api/fable-chat/route.ts"
+import { fableRegistry } from "@/lib/fable-ui/data/register"
+
+export async function POST(req: Request) {
+// existing route logic..
+}
+```
+
+
 
 ## Sync Firebase Auth in the host app
 
@@ -71,8 +52,9 @@ The host app owns sign-in. If your app receives a custom Firebase token from its
 import * as React from "react"
 import { signInWithCustomToken } from "firebase/auth"
 import { auth } from "@/lib/firebase"
+import type { Session } from "next-auth";
 
-export function FirebaseSessionSync({ session }: { session: any }) {
+export function FirebaseSessionSync({ session }: { session: Session }) {
   const signedTokenRef = React.useRef<string | null>(null)
 
   React.useEffect(() => {
