@@ -48,6 +48,8 @@ export function ToolPart({ part }: { part: unknown }) {
 
 Unknown tool parts render a small fallback. Invalid payloads are parsed with the item schema and render the component error state.
 
+`collect_input` is a UI handoff: it renders from the tool input and waits for the host app to handle user submission. The playground mock mode can stream valid and invalid form tool parts without calling a provider, which is useful for verifying renderer safety.
+
 ## DataBrowser Resources
 
 `show_data_browser` should receive a `resourceId`, not database details. Register resources in host code, then add the safe manifest to your system prompt:

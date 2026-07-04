@@ -3,8 +3,17 @@ import { z } from "zod"
 
 import { DataBrowser } from "@/components/fable-ui/data-browser/data-browser"
 import { ShowTable } from "@/components/fable-ui/data-browser/show-table"
-import { defineFableComponent, fableRegistry, type DataSourceRegistry } from "@/lib/fable-ui/core"
-import { dataColumnSchema, dataFilterSchema, dataSortSchema, sortStateSchema } from "@/lib/fable-ui/core/schemas"
+import {
+  defineFableComponent,
+  fableRegistry,
+  type DataSourceRegistry,
+} from "@/lib/fable-ui/core"
+import {
+  dataColumnSchema,
+  dataFilterSchema,
+  dataSortSchema,
+  sortStateSchema,
+} from "@/lib/fable-ui/core/schemas"
 import { resolveDataBrowserIntent } from "./resolve-intent"
 
 const rowSchema = z.record(z.string(), z.unknown())
@@ -13,7 +22,8 @@ export const showTableInputSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   columns: z.array(dataColumnSchema).min(1).max(12),
-  rows: z.array(rowSchema).max(50),
+  rows: z.array(rowSchema).max(200),
+  pageSize: z.number().int().positive().max(100).optional(),
 })
 
 export type ShowTableInput = z.infer<typeof showTableInputSchema>
@@ -27,11 +37,11 @@ export const showDataBrowserInputSchema = z.object({
     .min(1)
     .optional()
     .describe(
-      "Use only a resource id from fableRegistry.getAgentResourceManifest(). Never invent resource ids.",
+      "Use only a resource id from fableRegistry.getAgentResourceManifest(). Never invent resource ids."
     ),
   searchPlaceholder: z.string().optional(),
   columns: z.array(dataColumnSchema).optional(),
-  rows: z.array(rowSchema).max(50).optional(),
+  rows: z.array(rowSchema).max(200).optional(),
   filters: z.array(dataFilterSchema).optional(),
   sortOptions: z.array(dataSortSchema).optional(),
   initialFilters: z.record(z.string(), z.unknown()).optional(),
@@ -50,7 +60,7 @@ export const showDataBrowserInputSchema = z.object({
       z.object({
         actionId: z.string().min(1),
         rowId: z.string().optional(),
-      }),
+      })
     )
     .optional(),
   pageSize: z.number().int().positive().max(100).optional(),
@@ -58,14 +68,16 @@ export const showDataBrowserInputSchema = z.object({
 
 export type ShowDataBrowserInput = z.infer<typeof showDataBrowserInputSchema>
 
-export function describeAvailableResources(registry: DataSourceRegistry = fableRegistry) {
+export function describeAvailableResources(
+  registry: DataSourceRegistry = fableRegistry
+) {
   return JSON.stringify(registry.getAgentResourceManifest(), null, 2)
 }
 
 export function createShowTableTool() {
   return tool({
     description:
-      "Show a small static table snapshot when display-ready rows are already available. Limit rows to about 50. Do not use for raw SQL, raw Firestore paths, secrets, or authorization decisions.",
+      "Show a static table snapshot when display-ready rows are already available. Supports up to 200 rows with pagination. Do not use for raw SQL, raw Firestore paths, secrets, or authorization decisions.",
     inputSchema: showTableInputSchema,
     execute: async (input) => input,
   })
@@ -120,7 +132,12 @@ export const showDataBrowser = defineFableComponent({
       rows: [],
       isLoading: true,
     },
-    emptyProps: { title: "Data browser", entityLabel: "rows", columns: [], rows: [] },
+    emptyProps: {
+      title: "Data browser",
+      entityLabel: "rows",
+      columns: [],
+      rows: [],
+    },
     errorProps: (description: string) => ({
       title: "Data browser unavailable",
       entityLabel: "rows",

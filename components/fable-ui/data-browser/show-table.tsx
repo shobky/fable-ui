@@ -6,6 +6,7 @@ export function ShowTable({
   description,
   columns,
   rows,
+  pageSize = 10,
   isLoading,
   isDisabled,
   error,
@@ -14,6 +15,7 @@ export function ShowTable({
   description?: string
   columns: DataColumn[]
   rows: DataRow[]
+  pageSize?: number
   isLoading?: boolean
   isDisabled?: boolean
   error?: {
@@ -28,7 +30,7 @@ export function ShowTable({
       entityLabel="rows"
       columns={columns}
       rows={rows}
-      pageSize={Math.max(rows.length, 10)}
+      pageSize={pageSize}
       isLoading={isLoading}
       isDisabled={isDisabled}
       error={error}

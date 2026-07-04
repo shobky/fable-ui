@@ -16,6 +16,7 @@ export const formCardExamples = {
           { label: "Urgent", value: "urgent" },
         ],
       },
+      { name: "notify", label: "Notify customer", type: "toggle" },
     ],
   },
 } satisfies Record<string, CollectInput>

@@ -45,17 +45,21 @@ export function DataBrowserToolbar({
   onSortChange: (sort?: SortState) => void
   onClearFilters: () => void
 }) {
-  const hasFilters = Object.values(filterValues).some((value) => value != null && value !== "")
+  const hasFilters = Object.values(filterValues).some(
+    (value) => value != null && value !== ""
+  )
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-2 sm:flex-row">
         <label className="relative flex-1">
-          <SearchIcon size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <span className="sr-only">{searchPlaceholder}</span>
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
             placeholder={searchPlaceholder}
             disabled={isDisabled}
+            aria-label={searchPlaceholder}
             className="pl-9"
             onChange={(event) => onSearchChange(event.target.value)}
           />
@@ -71,20 +75,26 @@ export function DataBrowserToolbar({
               }
 
               const [key, direction] = value.split(":")
-              onSortChange({ key, direction: direction === "desc" ? "desc" : "asc" })
+              onSortChange({
+                key,
+                direction: direction === "desc" ? "desc" : "asc",
+              })
             }}
           >
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-full sm:w-48" aria-label="Sort rows">
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {sortOptions.flatMap((option) =>
                   (option.directions ?? ["asc", "desc"]).map((direction) => (
-                    <SelectItem key={`${option.key}:${direction}`} value={`${option.key}:${direction}`}>
+                    <SelectItem
+                      key={`${option.key}:${direction}`}
+                      value={`${option.key}:${direction}`}
+                    >
                       {option.label} {direction === "asc" ? "asc" : "desc"}
                     </SelectItem>
-                  )),
+                  ))
                 )}
               </SelectGroup>
             </SelectContent>
@@ -102,13 +112,19 @@ export function DataBrowserToolbar({
                   disabled={isDisabled}
                   onValueChange={(value) => onFilterChange(filter.key, value)}
                 >
-                  <SelectTrigger className="w-44">
+                  <SelectTrigger
+                    className="w-full sm:w-44"
+                    aria-label={filter.label}
+                  >
                     <SelectValue placeholder={filter.label} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       {filter.options.map((option) => (
-                        <SelectItem key={getOptionValue(option)} value={getOptionValue(option)}>
+                        <SelectItem
+                          key={getOptionValue(option)}
+                          value={getOptionValue(option)}
+                        >
                           {getOptionLabel(option)}
                         </SelectItem>
                       ))}
@@ -124,13 +140,22 @@ export function DataBrowserToolbar({
                 value={String(filterValues[filter.key] ?? "")}
                 placeholder={filter.label}
                 disabled={isDisabled}
-                className="w-44"
-                onChange={(event) => onFilterChange(filter.key, event.target.value)}
+                aria-label={filter.label}
+                className="w-full sm:w-44"
+                onChange={(event) =>
+                  onFilterChange(filter.key, event.target.value)
+                }
               />
             )
           })}
           {hasFilters ? (
-            <Button type="button" variant="ghost" size="sm" disabled={isDisabled} onClick={onClearFilters}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={isDisabled}
+              onClick={onClearFilters}
+            >
               Clear
             </Button>
           ) : null}

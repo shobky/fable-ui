@@ -63,7 +63,7 @@ Current registry items include:
 - `suggested-actions`: renders safe follow-up prompts from `show_next_actions`.
 - `confirmation-card`: asks for explicit user confirmation before host-owned side effects through `request_confirmation`.
 - `form-card`: collects a few structured fields mid-conversation through `collect_input`.
-- `data-browser`: renders static row snapshots or host-backed browsing surfaces with search, filters, sort, pagination, details, and row actions.
+- `data-browser`: renders static row snapshots or host-backed browsing surfaces with search, filters, sort, fullscreen review, pagination, details, and row actions.
 - `rest-driver`: optional driver for host-owned HTTP endpoints.
 - `firebase-driver`: optional driver for Firestore-backed resources.
 - `quickstart`: installs a production-ready chat at `/fable-chat` and `/api/fable-chat`.
@@ -207,11 +207,15 @@ Supported field types include `text`, `number`, `select`, `date`, `textarea`, an
 
 Tool name: `collect_input`
 
+In the playground, "None / mock only" credential mode can render mock `collect_input` calls without a live provider, including invalid payloads that exercise the component error state.
+
 ### DataBrowser
 
 `DataBrowser` renders table snapshots or host-backed browsing surfaces.
 
-Use `show_table` when rows are already available in the tool payload. Use `show_data_browser` when the model should select an allowlisted host-owned resource by `resourceId`.
+Use `show_table` when rows are already available in the tool payload. Static table/browser payloads support up to 200 rows with pagination. Use `show_data_browser` when the model should select an allowlisted host-owned resource by `resourceId`.
+
+Rows with avatar-like fields such as `avatar`, `avatarUrl`, `image`, `imageUrl`, `picture`, `pictureUrl`, `photo`, or `photoUrl` render an avatar image or initials in the first column.
 
 The model must not pass raw SQL, raw Firestore query code, secrets, authorization decisions, private endpoints, or collection paths. The host supplies data access, allowed filters, allowed sort fields, permissions, and row actions.
 

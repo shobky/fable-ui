@@ -3,13 +3,25 @@
 import * as React from "react"
 
 import { ComponentPreviewTabs } from "@/components/component-preview-tabs"
-import { ConfirmationCard, type ConfirmationCardProps } from "@/components/fable-ui/confirmation-card/confirmation-card"
+import {
+  ConfirmationCard,
+  type ConfirmationCardProps,
+} from "@/components/fable-ui/confirmation-card/confirmation-card"
 import { DataBrowser } from "@/components/fable-ui/data-browser/data-browser"
 import type { DataBrowserProps } from "@/components/fable-ui/data-browser/data-browser.types"
 import { ShowTable } from "@/components/fable-ui/data-browser/show-table"
-import { FormCard, type FormCardProps } from "@/components/fable-ui/form-card/form-card"
-import { MetricCard, type MetricCardProps } from "@/components/fable-ui/metric-card/metric-card"
-import { SuggestedActions, type SuggestedActionsProps } from "@/components/fable-ui/suggested-actions/suggested-actions"
+import {
+  FormCard,
+  type FormCardProps,
+} from "@/components/fable-ui/form-card/form-card"
+import {
+  MetricCard,
+  type MetricCardProps,
+} from "@/components/fable-ui/metric-card/metric-card"
+import {
+  SuggestedActions,
+  type SuggestedActionsProps,
+} from "@/components/fable-ui/suggested-actions/suggested-actions"
 import { HighlightedSourceBlock } from "@/components/highlighted-source-block"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { DataColumn, DataRow } from "@/lib/fable-ui/core"
@@ -32,7 +44,10 @@ function PreviewStateTabs({
   onValueChange: (value: PreviewState) => void
 }) {
   return (
-    <Tabs value={value} onValueChange={(next) => onValueChange(next as PreviewState)}>
+    <Tabs
+      value={value}
+      onValueChange={(next) => onValueChange(next as PreviewState)}
+    >
       <TabsList className="flex-wrap">
         {previewStates.map((state) => (
           <TabsTrigger key={state.value} value={state.value}>
@@ -44,7 +59,13 @@ function PreviewStateTabs({
   )
 }
 
-function SourceBlock({ children, preview = false }: { children: string; preview?: boolean }) {
+function SourceBlock({
+  children,
+  preview = false,
+}: {
+  children: string
+  preview?: boolean
+}) {
   return (
     <HighlightedSourceBlock
       code={children}
@@ -63,13 +84,11 @@ function PreviewFrame({
   onStateChange: (state: PreviewState) => void
 }) {
   return (
-    <div className=" flex w-full flex-col items-center gap-4">
+    <div className="flex w-full flex-col items-center gap-4">
       <div className="absolute top-4">
         <PreviewStateTabs value={state} onValueChange={onStateChange} />
       </div>
-      <div className="w-full h-full pt-10 flex justify-center">
-        {children}
-      </div>
+      <div className="flex h-full w-full justify-center pt-10">{children}</div>
     </div>
   )
 }
@@ -159,7 +178,10 @@ export function FollowUps() {
   )
 }`
 
-const suggestedActionsPropsByState: Record<PreviewState, SuggestedActionsProps> = {
+const suggestedActionsPropsByState: Record<
+  PreviewState,
+  SuggestedActionsProps
+> = {
   ready: {
     title: "Next safe actions",
     description: "Prompt-only follow ups for the current answer.",
@@ -188,7 +210,9 @@ const suggestedActionsPropsByState: Record<PreviewState, SuggestedActionsProps> 
   disabled: {
     title: "Next safe actions",
     description: "Buttons are visible but cannot be sent yet.",
-    actions: [{ label: "Compare to yesterday", prompt: "Compare this to yesterday." }],
+    actions: [
+      { label: "Compare to yesterday", prompt: "Compare this to yesterday." },
+    ],
     isDisabled: true,
   },
 }
@@ -204,7 +228,9 @@ export function SuggestedActionsPreview() {
         </PreviewFrame>
       }
       source={<SourceBlock>{suggestedActionsSource}</SourceBlock>}
-      sourcePreview={<SourceBlock preview>{suggestedActionsSource}</SourceBlock>}
+      sourcePreview={
+        <SourceBlock preview>{suggestedActionsSource}</SourceBlock>
+      }
       previewClassName="h-auto min-h-96 p-6"
       align="center"
     />
@@ -298,7 +324,13 @@ export function CollectRefundReason() {
 }`
 
 const readyFormFields: FormCardProps["fields"] = [
-  { name: "reason", label: "Reason", type: "textarea", required: true, placeholder: "Why is this needed?" },
+  {
+    name: "reason",
+    label: "Reason",
+    type: "textarea",
+    required: true,
+    placeholder: "Why is this needed?",
+  },
   { name: "notify", label: "Notify customer", type: "toggle" },
 ]
 
@@ -353,17 +385,53 @@ export function FormCardPreview() {
 }
 
 const orderColumns: DataColumn[] = [
-  { key: "orderNumber", label: "Order #" },
-  { key: "customer", label: "Customer" },
-  { key: "status", label: "Status" },
-  { key: "total", label: "Total", type: "currency", align: "right" },
+  { key: "customer", label: "Customer", sortable: true },
+  { key: "orderNumber", label: "Order #", width: 132 },
+  {
+    key: "status",
+    label: "Status",
+    type: "badge",
+    filterable: true,
+    width: 128,
+  },
+  { key: "region", label: "Region", filterable: true, width: 128 },
+  {
+    key: "total",
+    label: "Total",
+    type: "currency",
+    align: "right",
+    width: 136,
+  },
 ]
 
-const orderRows: DataRow[] = [
-  { id: "ord_1001", orderNumber: "1001", customer: "Nadia Ali", status: "paid", total: 420 },
-  { id: "ord_1002", orderNumber: "1002", customer: "Mina Fahmy", status: "new", total: 180 },
-  { id: "ord_1003", orderNumber: "1003", customer: "Sarah Adel", status: "canceled", total: 75 },
+const orderNames = [
+  "Nadia Ali",
+  "Mina Fahmy",
+  "Sarah Adel",
+  "Omar Saleh",
+  "Lina Nasser",
+  "Youssef Mansour",
 ]
+const orderStatuses = ["paid", "new", "review", "canceled"]
+const orderRegions = ["Cairo", "Giza", "Alexandria", "Mansoura"]
+
+function createPreviewAvatar(name: string) {
+  return `https://api.dicebear.com/10.x/stripes/svg?seed=${encodeURIComponent(name)}`
+}
+
+const orderRows: DataRow[] = Array.from({ length: 50 }, (_, index) => {
+  const customer = orderNames[index % orderNames.length]
+
+  return {
+    id: `ord_${1001 + index}`,
+    orderNumber: String(1001 + index),
+    customer,
+    avatarUrl: customer && createPreviewAvatar(customer),
+    status: orderStatuses[index % orderStatuses.length],
+    region: orderRegions[index % orderRegions.length],
+    total: 75 + ((index * 37) % 850),
+  }
+})
 
 const dataBrowserSource = `import { DataBrowser } from "@/components/fable-ui/data-browser/data-browser"
 
@@ -374,7 +442,7 @@ export function OrdersBrowser() {
       entityLabel="orders"
       columns={columns}
       rows={rows}
-      pageSize={5}
+      pageSize={10}
       searchPlaceholder="Search orders"
     />
   )
@@ -384,10 +452,11 @@ const dataBrowserPropsByState: Record<PreviewState, DataBrowserProps> = {
   ready: {
     title: "Orders",
     entityLabel: "orders",
-    description: "Static local rows use the same surface as registered resources.",
+    description:
+      "Static local rows use the same surface as registered resources.",
     columns: orderColumns,
     rows: orderRows,
-    pageSize: 5,
+    pageSize: 10,
     searchPlaceholder: "Search orders",
   },
   loading: {
@@ -446,9 +515,10 @@ export function RecentOrdersTable() {
   return (
     <ShowTable
       title="Recent orders"
-      description="A small static snapshot."
+      description="A paginated static snapshot."
       columns={columns}
       rows={rows}
+      pageSize={10}
     />
   )
 }`
@@ -461,15 +531,18 @@ export function ShowTablePreview() {
     columns: orderColumns,
   }
   const propsByState = {
-    ready: { ...common, rows: orderRows },
+    ready: { ...common, rows: orderRows, pageSize: 10 },
     loading: { ...common, rows: [], isLoading: true },
     empty: { ...common, rows: [] },
     error: {
       ...common,
       rows: [],
-      error: { title: "Table unavailable", description: "Rows failed validation." },
+      error: {
+        title: "Table unavailable",
+        description: "Rows failed validation.",
+      },
     },
-    disabled: { ...common, rows: orderRows, isDisabled: true },
+    disabled: { ...common, rows: orderRows, pageSize: 10, isDisabled: true },
   } satisfies Record<PreviewState, React.ComponentProps<typeof ShowTable>>
 
   return (

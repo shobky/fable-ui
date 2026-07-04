@@ -10,15 +10,51 @@
       "description": "Shared tool rendering, data-source types, schemas, registry, local querying, and provider utilities.",
       "dependencies": ["ai", "zod"],
       "files": [
-        { "path": "lib/fable-ui/core/definitions.ts", "type": "registry:lib", "target": "lib/fable-ui/core/definitions.ts" },
-        { "path": "lib/fable-ui/core/tool-renderer.tsx", "type": "registry:lib", "target": "lib/fable-ui/core/tool-renderer.tsx" },
-        { "path": "lib/fable-ui/core/types.ts", "type": "registry:lib", "target": "lib/fable-ui/core/types.ts" },
-        { "path": "lib/fable-ui/core/schemas.ts", "type": "registry:lib", "target": "lib/fable-ui/core/schemas.ts" },
-        { "path": "lib/fable-ui/core/format.ts", "type": "registry:lib", "target": "lib/fable-ui/core/format.ts" },
-        { "path": "lib/fable-ui/core/local-query.ts", "type": "registry:lib", "target": "lib/fable-ui/core/local-query.ts" },
-        { "path": "lib/fable-ui/core/registry.ts", "type": "registry:lib", "target": "lib/fable-ui/core/registry.ts" },
-        { "path": "lib/fable-ui/core/provider.tsx", "type": "registry:lib", "target": "lib/fable-ui/core/provider.tsx" },
-        { "path": "lib/fable-ui/core/index.ts", "type": "registry:lib", "target": "lib/fable-ui/core/index.ts" }
+        {
+          "path": "lib/fable-ui/core/definitions.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/core/definitions.ts"
+        },
+        {
+          "path": "lib/fable-ui/core/tool-renderer.tsx",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/core/tool-renderer.tsx"
+        },
+        {
+          "path": "lib/fable-ui/core/types.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/core/types.ts"
+        },
+        {
+          "path": "lib/fable-ui/core/schemas.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/core/schemas.ts"
+        },
+        {
+          "path": "lib/fable-ui/core/format.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/core/format.ts"
+        },
+        {
+          "path": "lib/fable-ui/core/local-query.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/core/local-query.ts"
+        },
+        {
+          "path": "lib/fable-ui/core/registry.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/core/registry.ts"
+        },
+        {
+          "path": "lib/fable-ui/core/provider.tsx",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/core/provider.tsx"
+        },
+        {
+          "path": "lib/fable-ui/core/index.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/core/index.ts"
+        }
       ]
     },
     {
@@ -27,13 +63,38 @@
       "title": "MetricCard",
       "description": "Display one trusted metric from a validated AI tool payload.",
       "dependencies": ["ai", "zod", "class-variance-authority"],
-      "registryDependencies": ["card", "badge", "skeleton", "shobky/fable-ui/core"],
+      "registryDependencies": [
+        "card",
+        "badge",
+        "skeleton",
+        "shobky/fable-ui/core"
+      ],
       "files": [
-        { "path": "components/fable-ui/metric-card/metric-card.tsx", "type": "registry:component", "target": "components/fable-ui/metric-card/metric-card.tsx" },
-        { "path": "components/fable-ui/metric-card/index.ts", "type": "registry:component", "target": "components/fable-ui/metric-card/index.ts" },
-        { "path": "lib/fable-ui/tools/show-metric-tool.ts", "type": "registry:lib", "target": "lib/fable-ui/tools/show-metric-tool.ts" },
-        { "path": "lib/fable-ui/manifests/show-metric.md", "type": "registry:file", "target": "lib/fable-ui/manifests/show-metric.md" },
-        { "path": "lib/fable-ui/evals/show-metric.md", "type": "registry:file", "target": "lib/fable-ui/evals/show-metric.md" }
+        {
+          "path": "components/fable-ui/metric-card/metric-card.tsx",
+          "type": "registry:component",
+          "target": "components/fable-ui/metric-card/metric-card.tsx"
+        },
+        {
+          "path": "components/fable-ui/metric-card/index.ts",
+          "type": "registry:component",
+          "target": "components/fable-ui/metric-card/index.ts"
+        },
+        {
+          "path": "lib/fable-ui/tools/show-metric-tool.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/tools/show-metric-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/show-metric.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/manifests/show-metric.md"
+        },
+        {
+          "path": "lib/fable-ui/evals/show-metric.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/evals/show-metric.md"
+        }
       ]
     },
     {
@@ -42,13 +103,38 @@
       "title": "SuggestedActions",
       "description": "Render safe follow-up prompts from a validated AI tool payload.",
       "dependencies": ["ai", "zod"],
-      "registryDependencies": ["card", "button", "badge", "shobky/fable-ui/core"],
+      "registryDependencies": [
+        "card",
+        "button",
+        "badge",
+        "shobky/fable-ui/core"
+      ],
       "files": [
-        { "path": "components/fable-ui/suggested-actions/suggested-actions.tsx", "type": "registry:component", "target": "components/fable-ui/suggested-actions/suggested-actions.tsx" },
-        { "path": "components/fable-ui/suggested-actions/index.ts", "type": "registry:component", "target": "components/fable-ui/suggested-actions/index.ts" },
-        { "path": "lib/fable-ui/tools/show-next-actions-tool.ts", "type": "registry:lib", "target": "lib/fable-ui/tools/show-next-actions-tool.ts" },
-        { "path": "lib/fable-ui/manifests/show-next-actions.md", "type": "registry:file", "target": "lib/fable-ui/manifests/show-next-actions.md" },
-        { "path": "lib/fable-ui/evals/show-next-actions.md", "type": "registry:file", "target": "lib/fable-ui/evals/show-next-actions.md" }
+        {
+          "path": "components/fable-ui/suggested-actions/suggested-actions.tsx",
+          "type": "registry:component",
+          "target": "components/fable-ui/suggested-actions/suggested-actions.tsx"
+        },
+        {
+          "path": "components/fable-ui/suggested-actions/index.ts",
+          "type": "registry:component",
+          "target": "components/fable-ui/suggested-actions/index.ts"
+        },
+        {
+          "path": "lib/fable-ui/tools/show-next-actions-tool.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/tools/show-next-actions-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/show-next-actions.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/manifests/show-next-actions.md"
+        },
+        {
+          "path": "lib/fable-ui/evals/show-next-actions.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/evals/show-next-actions.md"
+        }
       ]
     },
     {
@@ -57,13 +143,38 @@
       "title": "ConfirmationCard",
       "description": "Request explicit user confirmation before the host app performs a side effect.",
       "dependencies": ["ai", "zod"],
-      "registryDependencies": ["card", "button", "badge", "shobky/fable-ui/core"],
+      "registryDependencies": [
+        "card",
+        "button",
+        "badge",
+        "shobky/fable-ui/core"
+      ],
       "files": [
-        { "path": "components/fable-ui/confirmation-card/confirmation-card.tsx", "type": "registry:component", "target": "components/fable-ui/confirmation-card/confirmation-card.tsx" },
-        { "path": "components/fable-ui/confirmation-card/index.ts", "type": "registry:component", "target": "components/fable-ui/confirmation-card/index.ts" },
-        { "path": "lib/fable-ui/tools/request-confirmation-tool.ts", "type": "registry:lib", "target": "lib/fable-ui/tools/request-confirmation-tool.ts" },
-        { "path": "lib/fable-ui/manifests/request-confirmation.md", "type": "registry:file", "target": "lib/fable-ui/manifests/request-confirmation.md" },
-        { "path": "lib/fable-ui/evals/request-confirmation.md", "type": "registry:file", "target": "lib/fable-ui/evals/request-confirmation.md" }
+        {
+          "path": "components/fable-ui/confirmation-card/confirmation-card.tsx",
+          "type": "registry:component",
+          "target": "components/fable-ui/confirmation-card/confirmation-card.tsx"
+        },
+        {
+          "path": "components/fable-ui/confirmation-card/index.ts",
+          "type": "registry:component",
+          "target": "components/fable-ui/confirmation-card/index.ts"
+        },
+        {
+          "path": "lib/fable-ui/tools/request-confirmation-tool.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/tools/request-confirmation-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/request-confirmation.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/manifests/request-confirmation.md"
+        },
+        {
+          "path": "lib/fable-ui/evals/request-confirmation.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/evals/request-confirmation.md"
+        }
       ]
     },
     {
@@ -72,44 +183,164 @@
       "title": "FormCard",
       "description": "Collect a few structured fields mid-conversation.",
       "dependencies": ["ai", "zod"],
-      "registryDependencies": ["card", "button", "input", "textarea", "shobky/fable-ui/core"],
+      "registryDependencies": [
+        "card",
+        "button",
+        "input",
+        "textarea",
+        "shobky/fable-ui/core"
+      ],
       "files": [
-        { "path": "components/fable-ui/form-card/form-card.tsx", "type": "registry:component", "target": "components/fable-ui/form-card/form-card.tsx" },
-        { "path": "components/fable-ui/form-card/index.ts", "type": "registry:component", "target": "components/fable-ui/form-card/index.ts" },
-        { "path": "lib/fable-ui/tools/collect-input-tool.ts", "type": "registry:lib", "target": "lib/fable-ui/tools/collect-input-tool.ts" },
-        { "path": "lib/fable-ui/manifests/collect-input.md", "type": "registry:file", "target": "lib/fable-ui/manifests/collect-input.md" },
-        { "path": "lib/fable-ui/evals/collect-input.md", "type": "registry:file", "target": "lib/fable-ui/evals/collect-input.md" }
+        {
+          "path": "components/fable-ui/form-card/form-card.tsx",
+          "type": "registry:component",
+          "target": "components/fable-ui/form-card/form-card.tsx"
+        },
+        {
+          "path": "components/fable-ui/form-card/index.ts",
+          "type": "registry:component",
+          "target": "components/fable-ui/form-card/index.ts"
+        },
+        {
+          "path": "lib/fable-ui/tools/collect-input-tool.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/tools/collect-input-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/collect-input.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/manifests/collect-input.md"
+        },
+        {
+          "path": "lib/fable-ui/evals/collect-input.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/evals/collect-input.md"
+        }
       ]
     },
     {
       "name": "data-browser",
       "type": "registry:block",
       "title": "DataBrowser",
-      "description": "Render static row snapshots or host-backed data browsing with local search, filters, sort, pagination, details, and row actions.",
+      "description": "Render static row snapshots or host-backed data browsing with local search, filters, sort, fullscreen review, pagination, details, and row actions.",
       "dependencies": ["ai", "zod", "class-variance-authority", "lucide-react"],
-      "registryDependencies": ["card", "button", "badge", "input", "dialog", "drawer", "select", "shobky/fable-ui/core"],
+      "registryDependencies": [
+        "card",
+        "button",
+        "badge",
+        "input",
+        "dialog",
+        "drawer",
+        "select",
+        "shobky/fable-ui/core"
+      ],
       "files": [
-        { "path": "components/fable-ui/data-browser/index.ts", "type": "registry:block", "target": "components/fable-ui/data-browser/index.ts" },
-        { "path": "components/fable-ui/data-browser/tool-definition.ts", "type": "registry:block", "target": "lib/fable-ui/tools/data-browser-tool.ts" },
-        { "path": "lib/fable-ui/manifests/show-table.md", "type": "registry:file", "target": "lib/fable-ui/manifests/show-table.md" },
+        {
+          "path": "components/fable-ui/data-browser/index.ts",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/index.ts"
+        },
+        {
+          "path": "components/fable-ui/data-browser/tool-definition.ts",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/tool-definition.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/show-table.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/manifests/show-table.md"
+        },
 
-        { "path": "components/fable-ui/data-browser/data-browser.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/data-browser.tsx" },
-        { "path": "components/fable-ui/data-browser/data-browser.types.ts", "type": "registry:block", "target": "components/fable-ui/data-browser/data-browser.types.ts" },
-        { "path": "components/fable-ui/data-browser/show-table.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/show-table.tsx" },
-        { "path": "components/fable-ui/data-browser/resolve-intent.ts", "type": "registry:block", "target": "components/fable-ui/data-browser/resolve-intent.ts" },
-        { "path": "components/fable-ui/data-browser/hooks/use-data-browser-query.ts", "type": "registry:hook", "target": "components/fable-ui/data-browser/hooks/use-data-browser-query.ts" },
-        { "path": "components/fable-ui/data-browser/hooks/use-data-browser-actions.ts", "type": "registry:hook", "target": "components/fable-ui/data-browser/hooks/use-data-browser-actions.ts" },
-        { "path": "components/fable-ui/data-browser/hooks/use-row-detail-surface.ts", "type": "registry:hook", "target": "components/fable-ui/data-browser/hooks/use-row-detail-surface.ts" },
-        { "path": "components/fable-ui/data-browser/internal/inline-error.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/internal/inline-error.tsx" },
-        { "path": "components/fable-ui/data-browser/internal/pagination-footer.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/internal/pagination-footer.tsx" },
-        { "path": "components/fable-ui/data-browser/internal/responsive-detail-surface.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/internal/responsive-detail-surface.tsx" },
-        { "path": "components/fable-ui/data-browser/internal/row-detail.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/internal/row-detail.tsx" },
-        { "path": "components/fable-ui/data-browser/internal/table-view.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/internal/table-view.tsx" },
-        { "path": "components/fable-ui/data-browser/internal/toolbar.tsx", "type": "registry:block", "target": "components/fable-ui/data-browser/internal/toolbar.tsx" },
-        { "path": "components/fable-ui/data-browser/lib/fallback-filters.ts", "type": "registry:lib", "target": "components/fable-ui/data-browser/lib/fallback-filters.ts" },
-        { "path": "components/fable-ui/data-browser/lib/get-row-id.ts", "type": "registry:lib", "target": "components/fable-ui/data-browser/lib/get-row-id.ts" },
-        { "path": "lib/fable-ui/manifests/show-data-browser.md", "type": "registry:file", "target": "lib/fable-ui/manifests/show-data-browser.md" },
-        { "path": "lib/fable-ui/evals/data-browser.md", "type": "registry:file", "target": "lib/fable-ui/evals/data-browser.md" }
+        {
+          "path": "components/fable-ui/data-browser/data-browser.tsx",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/data-browser.tsx"
+        },
+        {
+          "path": "components/fable-ui/data-browser/data-browser.types.ts",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/data-browser.types.ts"
+        },
+        {
+          "path": "components/fable-ui/data-browser/show-table.tsx",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/show-table.tsx"
+        },
+        {
+          "path": "components/fable-ui/data-browser/resolve-intent.ts",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/resolve-intent.ts"
+        },
+        {
+          "path": "components/fable-ui/data-browser/hooks/use-data-browser-query.ts",
+          "type": "registry:hook",
+          "target": "components/fable-ui/data-browser/hooks/use-data-browser-query.ts"
+        },
+        {
+          "path": "components/fable-ui/data-browser/hooks/use-data-browser-actions.ts",
+          "type": "registry:hook",
+          "target": "components/fable-ui/data-browser/hooks/use-data-browser-actions.ts"
+        },
+        {
+          "path": "components/fable-ui/data-browser/hooks/use-row-detail-surface.ts",
+          "type": "registry:hook",
+          "target": "components/fable-ui/data-browser/hooks/use-row-detail-surface.ts"
+        },
+        {
+          "path": "components/fable-ui/data-browser/internal/inline-error.tsx",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/internal/inline-error.tsx"
+        },
+        {
+          "path": "components/fable-ui/data-browser/internal/pagination-footer.tsx",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/internal/pagination-footer.tsx"
+        },
+        {
+          "path": "components/fable-ui/data-browser/internal/responsive-detail-surface.tsx",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/internal/responsive-detail-surface.tsx"
+        },
+        {
+          "path": "components/fable-ui/data-browser/internal/row-detail.tsx",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/internal/row-detail.tsx"
+        },
+        {
+          "path": "components/fable-ui/data-browser/internal/table-view.tsx",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/internal/table-view.tsx"
+        },
+        {
+          "path": "components/fable-ui/data-browser/internal/toolbar.tsx",
+          "type": "registry:block",
+          "target": "components/fable-ui/data-browser/internal/toolbar.tsx"
+        },
+        {
+          "path": "components/fable-ui/data-browser/lib/cell-avatar.tsx",
+          "type": "registry:lib",
+          "target": "components/fable-ui/data-browser/lib/cell-avatar.tsx"
+        },
+        {
+          "path": "components/fable-ui/data-browser/lib/fallback-filters.ts",
+          "type": "registry:lib",
+          "target": "components/fable-ui/data-browser/lib/fallback-filters.ts"
+        },
+        {
+          "path": "components/fable-ui/data-browser/lib/get-row-id.ts",
+          "type": "registry:lib",
+          "target": "components/fable-ui/data-browser/lib/get-row-id.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/show-data-browser.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/manifests/show-data-browser.md"
+        },
+        {
+          "path": "lib/fable-ui/evals/data-browser.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/evals/data-browser.md"
+        }
       ]
     },
     {
@@ -119,9 +350,21 @@
       "description": "Optional Fable UI data source driver for host-owned REST endpoints.",
       "registryDependencies": ["shobky/fable-ui/core"],
       "files": [
-        { "path": "lib/fable-ui/drivers/rest/rest-driver.types.ts", "type": "registry:lib", "target": "lib/fable-ui/drivers/rest/rest-driver.types.ts" },
-        { "path": "lib/fable-ui/drivers/rest/rest-driver.ts", "type": "registry:lib", "target": "lib/fable-ui/drivers/rest/rest-driver.ts" },
-        { "path": "lib/fable-ui/drivers/rest/index.ts", "type": "registry:lib", "target": "lib/fable-ui/drivers/rest/index.ts" }
+        {
+          "path": "lib/fable-ui/drivers/rest/rest-driver.types.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/drivers/rest/rest-driver.types.ts"
+        },
+        {
+          "path": "lib/fable-ui/drivers/rest/rest-driver.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/drivers/rest/rest-driver.ts"
+        },
+        {
+          "path": "lib/fable-ui/drivers/rest/index.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/drivers/rest/index.ts"
+        }
       ]
     },
     {
@@ -132,9 +375,21 @@
       "dependencies": ["firebase"],
       "registryDependencies": ["shobky/fable-ui/core"],
       "files": [
-        { "path": "lib/fable-ui/drivers/firebase/firebase-driver.types.ts", "type": "registry:lib", "target": "lib/fable-ui/drivers/firebase/firebase-driver.types.ts" },
-        { "path": "lib/fable-ui/drivers/firebase/firebase-driver.ts", "type": "registry:lib", "target": "lib/fable-ui/drivers/firebase/firebase-driver.ts" },
-        { "path": "lib/fable-ui/drivers/firebase/index.ts", "type": "registry:lib", "target": "lib/fable-ui/drivers/firebase/index.ts" }
+        {
+          "path": "lib/fable-ui/drivers/firebase/firebase-driver.types.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/drivers/firebase/firebase-driver.types.ts"
+        },
+        {
+          "path": "lib/fable-ui/drivers/firebase/firebase-driver.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/drivers/firebase/firebase-driver.ts"
+        },
+        {
+          "path": "lib/fable-ui/drivers/firebase/index.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/drivers/firebase/index.ts"
+        }
       ]
     },
     {
@@ -168,14 +423,46 @@
         "shobky/fable-ui/suggested-actions"
       ],
       "files": [
-        { "path": "examples/quickstart/app/fable-chat/page.tsx", "type": "registry:page", "target": "app/fable-chat/page.tsx" },
-        { "path": "examples/quickstart/app/api/fable-chat/route.ts", "type": "registry:file", "target": "app/api/fable-chat/route.ts" },
-        { "path": "examples/quickstart/components/fable-chat.tsx", "type": "registry:component", "target": "components/fable-ui/chat/fable-chat.tsx" },
-        { "path": "examples/quickstart/components/fable-message.tsx", "type": "registry:component", "target": "components/fable-ui/chat/fable-message.tsx" },
-        { "path": "examples/quickstart/components/fable-tool-part.tsx", "type": "registry:component", "target": "components/fable-ui/chat/fable-tool-part.tsx" },
-        { "path": "examples/quickstart/lib/tools.ts", "type": "registry:lib", "target": "lib/fable-ui/quickstart/tools.ts" },
-        { "path": "examples/quickstart/lib/provider-config.ts", "type": "registry:lib", "target": "lib/fable-ui/quickstart/provider-config.ts" },
-        { "path": "examples/quickstart/README.md", "type": "registry:file", "target": "docs/fable-ui/quickstart.md" }
+        {
+          "path": "examples/quickstart/app/fable-chat/page.tsx",
+          "type": "registry:page",
+          "target": "app/fable-chat/page.tsx"
+        },
+        {
+          "path": "examples/quickstart/app/api/fable-chat/route.ts",
+          "type": "registry:file",
+          "target": "app/api/fable-chat/route.ts"
+        },
+        {
+          "path": "examples/quickstart/components/fable-chat.tsx",
+          "type": "registry:component",
+          "target": "components/fable-ui/chat/fable-chat.tsx"
+        },
+        {
+          "path": "examples/quickstart/components/fable-message.tsx",
+          "type": "registry:component",
+          "target": "components/fable-ui/chat/fable-message.tsx"
+        },
+        {
+          "path": "examples/quickstart/components/fable-tool-part.tsx",
+          "type": "registry:component",
+          "target": "components/fable-ui/chat/fable-tool-part.tsx"
+        },
+        {
+          "path": "examples/quickstart/lib/tools.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/quickstart/tools.ts"
+        },
+        {
+          "path": "examples/quickstart/lib/provider-config.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/quickstart/provider-config.ts"
+        },
+        {
+          "path": "examples/quickstart/README.md",
+          "type": "registry:file",
+          "target": "docs/fable-ui/quickstart.md"
+        }
       ]
     }
   ]

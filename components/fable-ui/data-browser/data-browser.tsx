@@ -1,16 +1,28 @@
 "use client"
 
 import { cva } from "class-variance-authority"
+import { Maximize2Icon, Minimize2Icon } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { DataRow } from "@/lib/fable-ui/core"
 import type { DataBrowserProps } from "./data-browser.types"
 import { useDataBrowserActions } from "./hooks/use-data-browser-actions"
 import { useDataBrowserQuery } from "./hooks/use-data-browser-query"
 import { useRowDetailSurface } from "./hooks/use-row-detail-surface"
-import { getFallbackFilters, getFallbackSortOptions } from "./lib/fallback-filters"
+import {
+  getFallbackFilters,
+  getFallbackSortOptions,
+} from "./lib/fallback-filters"
 import { InlineError } from "./internal/inline-error"
 import { PaginationFooter } from "./internal/pagination-footer"
 import { ResponsiveDetailSurface } from "./internal/responsive-detail-surface"
@@ -66,6 +78,8 @@ export function DataBrowser<Row extends DataRow = DataRow>({
   variant,
   size = "md",
 }: DataBrowserProps<Row>) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const expandButtonRef = useRef<HTMLButtonElement>(null)
   const effectiveFilters = filters ?? getFallbackFilters(rows, columns)
   const effectiveSortOptions = sortOptions ?? getFallbackSortOptions(columns)
   const detail = useRowDetailSurface<Row>()
@@ -94,32 +108,100 @@ export function DataBrowser<Row extends DataRow = DataRow>({
       ? { title: "Unable to load data", description: query.error.message }
       : undefined
   const totalRows = query.totalRows
-  const hasNextPage = Boolean(query.nextCursor || query.page * query.pageSize < totalRows)
+  const hasNextPage = Boolean(
+    query.nextCursor || query.page * query.pageSize < totalRows
+  )
   const hasPreviousPage = Boolean(query.previousCursor || query.page > 1)
-  const resolvedEntityLabel = entityLabel || query.resource?.entityLabel || "rows"
+  const resolvedEntityLabel =
+    entityLabel || query.resource?.entityLabel || "rows"
+
+  useEffect(() => {
+    if (!isExpanded) {
+      return
+    }
+
+    const previousOverflow = document.body.style.overflow
+
+    document.body.style.overflow = "hidden"
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsExpanded(false)
+        window.requestAnimationFrame(() => expandButtonRef.current?.focus())
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [isExpanded])
 
   return (
     <>
       <Card
-        className={cn(dataBrowserVariants({ variant, size }), isDisabled && "opacity-60")}
+        className={cn(
+          dataBrowserVariants({ variant, size }),
+          "transition-[border-radius,box-shadow,transform,opacity] duration-200",
+          isExpanded &&
+            "fixed inset-0 z-40 flex h-[100svh] max-h-[100svh] w-screen max-w-none rounded-none border-0",
+          isDisabled && "opacity-60"
+        )}
         data-fable-ui="data-browser"
+        data-expanded={isExpanded || undefined}
         aria-busy={busy || undefined}
       >
-        <CardHeader>
+        <CardHeader className={cn(isExpanded && "shrink-0 border-b")}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-1">
-              <CardTitle className="text-base">{title || query.resource?.label || "Data browser"}</CardTitle>
-              {description ? <CardDescription>{description}</CardDescription> : null}
+              <CardTitle className="text-base">
+                {title || query.resource?.label || "Data browser"}
+              </CardTitle>
+              {description ? (
+                <CardDescription>{description}</CardDescription>
+              ) : null}
             </div>
-            <Badge variant="secondary">
-              {totalRows} {totalRows === 1 ? resolvedEntityLabel.replace(/s$/, "") : resolvedEntityLabel}
-            </Badge>
+            <div className="flex items-center gap-2 self-start">
+              <Badge variant="secondary">
+                {totalRows}{" "}
+                {totalRows === 1
+                  ? resolvedEntityLabel.replace(/s$/, "")
+                  : resolvedEntityLabel}
+              </Badge>
+              {/* <Button
+                ref={expandButtonRef}
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={
+                  isExpanded ? "Minimize data browser" : "Expand data browser"
+                }
+                aria-expanded={isExpanded}
+                onClick={() => setIsExpanded((value) => !value)}
+              >
+                {isExpanded ? (
+                  <Minimize2Icon data-icon="inline-start" aria-hidden="true" />
+                ) : (
+                  <Maximize2Icon data-icon="inline-start" aria-hidden="true" />
+                )}
+              </Button> */}
+            </div>
           </div>
         </CardHeader>
-        <CardContent className={cn("flex flex-col", contentGap[size])}>
+        <CardContent
+          className={cn(
+            "flex min-h-0 flex-col",
+            contentGap[size],
+            isExpanded && "flex-1"
+          )}
+        >
           <DataBrowserToolbar
             search={query.state.search}
-            searchPlaceholder={searchPlaceholder ?? `Search ${resolvedEntityLabel}`}
+            searchPlaceholder={
+              searchPlaceholder ?? `Search ${resolvedEntityLabel}`
+            }
             filters={effectiveFilters}
             filterValues={query.state.filters}
             sortOptions={effectiveSortOptions}
@@ -130,14 +212,26 @@ export function DataBrowser<Row extends DataRow = DataRow>({
             onSortChange={query.setSort}
             onClearFilters={query.clearFilters}
           />
-          {visibleError ? <InlineError title={visibleError.title} description={visibleError.description} /> : null}
-          {busy ? <p className="text-sm text-muted-foreground">Loading {resolvedEntityLabel}...</p> : null}
+          {visibleError ? (
+            <InlineError
+              title={visibleError.title}
+              description={visibleError.description}
+            />
+          ) : null}
+          {busy ? (
+            <p className="text-sm text-muted-foreground">
+              Loading {resolvedEntityLabel}...
+            </p>
+          ) : null}
           <TableView
             columns={columns}
             rows={query.rows}
             entityLabel={resolvedEntityLabel}
+            isExpanded={isExpanded}
             isDisabled={isDisabled}
-            onOpenRow={renderDetail || actions.length > 0 ? detail.open : undefined}
+            onOpenRow={
+              renderDetail || actions.length > 0 ? detail.open : undefined
+            }
           />
           <PaginationFooter
             page={query.page}

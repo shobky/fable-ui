@@ -1,7 +1,23 @@
 import * as React from "react"
 
-import { queryLocalRows, useOptionalFableDataContext, fableRegistry, type DataColumn, type DataFilter, type DataQueryResult, type DataRow, type DataSort, type SortState } from "@/lib/fable-ui/core"
+import {
+  queryLocalRows,
+  useOptionalFableDataContext,
+  fableRegistry,
+  type DataColumn,
+  type DataFilter,
+  type DataQueryResult,
+  type DataRow,
+  type DataSort,
+  type SortState,
+} from "@/lib/fable-ui/core"
 import type { DataBrowserQueryState } from "../data-browser.types"
+
+const emptyContext: Record<string, unknown> = {}
+
+function normalizePageSize(pageSize: number) {
+  return Math.max(1, Math.min(100, Math.floor(pageSize || 10)))
+}
 
 export function useDataBrowserQuery<Row extends DataRow>({
   resourceId,
@@ -24,15 +40,17 @@ export function useDataBrowserQuery<Row extends DataRow>({
 }) {
   const dataContext = useOptionalFableDataContext()
   const registry = dataContext?.registry ?? fableRegistry
-  const context = dataContext?.context ?? {}
+  const context = dataContext?.context ?? emptyContext
+  const normalizedPageSize = normalizePageSize(pageSize)
   const [state, setState] = React.useState<DataBrowserQueryState>({
     search: initialSearch,
     filters: initialFilters,
     sort: initialSort,
     page: 1,
-    pageSize,
+    pageSize: normalizedPageSize,
   })
-  const [remoteResult, setRemoteResult] = React.useState<DataQueryResult<Row> | null>(null)
+  const [remoteResult, setRemoteResult] =
+    React.useState<DataQueryResult<Row> | null>(null)
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<Error | undefined>()
   const [revision, setRevision] = React.useState(0)
@@ -48,7 +66,7 @@ export function useDataBrowserQuery<Row extends DataRow>({
       pageSize: state.pageSize,
       cursor: state.cursor,
     }),
-    [state],
+    [state]
   )
 
   React.useEffect(() => {
@@ -57,8 +75,13 @@ export function useDataBrowserQuery<Row extends DataRow>({
     }
 
     let isActive = true
-    setIsLoading(true)
-    setError(undefined)
+
+    queueMicrotask(() => {
+      if (isActive) {
+        setIsLoading(true)
+        setError(undefined)
+      }
+    })
 
     registry
       .list<Row>(resourceId, query, context)
@@ -69,7 +92,11 @@ export function useDataBrowserQuery<Row extends DataRow>({
       })
       .catch((nextError) => {
         if (isActive) {
-          setError(nextError instanceof Error ? nextError : new Error("Unable to load resource."))
+          setError(
+            nextError instanceof Error
+              ? nextError
+              : new Error("Unable to load resource.")
+          )
         }
       })
       .finally(() => {
@@ -93,9 +120,17 @@ export function useDataBrowserQuery<Row extends DataRow>({
 
   const result = resourceId ? remoteResult : localResult
 
-  const updateState = React.useCallback((next: Partial<DataBrowserQueryState>) => {
-    setState((current) => ({ ...current, ...next, page: next.page ?? 1, cursor: next.cursor }))
-  }, [])
+  const updateState = React.useCallback(
+    (next: Partial<DataBrowserQueryState>) => {
+      setState((current) => ({
+        ...current,
+        ...next,
+        page: next.page ?? 1,
+        cursor: next.cursor,
+      }))
+    },
+    []
+  )
 
   return {
     resource,
