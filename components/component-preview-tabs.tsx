@@ -2,24 +2,14 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { IconAlertCircle } from "@tabler/icons-react"
 
 import { cn } from "@/lib/utils"
 import {
-  LanguageProvider,
-  LanguageSelector,
-  useLanguageContext,
   useTranslation,
   type Translations,
 } from "@/components/language-selector"
 import { DirectionProvider } from "@/components/ui/direction"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 
 export function ComponentPreviewTabs({
   className,
