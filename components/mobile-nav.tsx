@@ -4,7 +4,7 @@ import * as React from "react"
 import Link, { type LinkProps } from "next/link"
 import { usePathname } from "next/navigation"
 
-import { PAGES_NEW } from "@/lib/docs"
+import { COMPONENTS_BETA, PAGES_NEW } from "@/lib/docs"
 import { getPagesFromFolder } from "@/lib/page-tree"
 import { type source } from "@/lib/source"
 import { cn } from "@/lib/utils"
@@ -14,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Badge } from "./ui/badge"
 
 const TOP_LEVEL_SECTIONS = [
   { name: "Introduction", href: "/docs/introduction" },
@@ -144,6 +145,11 @@ export function MobileNav({
                             className="flex size-2 rounded-full bg-blue-500"
                             title="New"
                           />
+                        )}
+                        {COMPONENTS_BETA.includes(item.url) && (
+                          <Badge className="scale-90 bg-yellow-500/15 text-yellow-500">
+                            Beta
+                          </Badge>
                         )}
                       </MobileLink>
                     ))}
