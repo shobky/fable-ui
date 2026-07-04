@@ -13,7 +13,7 @@ export default function ChatLayout({
         className="min-h-0 flex-1 px-0 [--top-spacing:0] lg:grid lg:grid-cols-[var(--sidebar-width)_minmax(0,1fr)] lg:[--top-spacing:calc(var(--spacing)*4)] 3xl:fixed:container 3xl:fixed:px-3"
         style={
           {
-            "--sidebar-width": "calc(var(--spacing) * 47)",
+            "--sidebar-width": "calc(var(--spacing) * 60)",
           } as React.CSSProperties
         }
       >
