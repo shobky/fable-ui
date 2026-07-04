@@ -42,7 +42,7 @@ export function ModelSelector({
                 <SelectValue>
                     <div className="flex items-center gap-2">
                         {Icon({ className: "size-3.5" })}
-                        <span className="truncate">{model}</span>
+                        <span className="truncate max-w-14 sm:max-w-none">{model}</span>
                     </div>
                 </SelectValue>
             </SelectTrigger>

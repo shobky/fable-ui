@@ -15,9 +15,12 @@ import {
 
 import {
   Attachment01Icon,
+  AttachmentIcon,
   Image01Icon,
   Loading03Icon,
+  Plus,
   SentIcon,
+  Settings,
   Settings02Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -42,6 +45,10 @@ import { HugeIcon } from "../hugeicon";
 import { ProviderSettings } from "./provider-settings";
 import { ModelSelector } from "./model-selector";
 import { ArrowLeft } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { Button } from "../ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { useProviderSettings } from "@/hooks/use-provider-settings";
 type ChatComposerProps = {
   provider: ProviderId;
   model: string;
@@ -101,7 +108,10 @@ const ChatComposer = memo(function ChatComposer({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const hasAppliedInitialPromptRef = useRef(false);
+
   const hasModelConfigured = useMemo(() => providerReadiness.some((p) => p.isConfigured), [providerReadiness]);
+  const showApiKeyWarning = () => setTimeout(() => !hasModelConfigured ? true : false, (500)) as unknown as boolean
+
   const resizeTextarea = useCallback((target = textareaRef.current) => {
     if (!target) {
       return;
@@ -225,19 +235,39 @@ const ChatComposer = memo(function ChatComposer({
 
           <InputGroupAddon align="block-end" className="justify-between gap-3 pt-2">
             <div className="flex items-center gap-1">
-              <input ref={fileInputRef} type="file" multiple className="sr-only" onChange={handleFileChange} />
-              <InputGroupButton aria-label="Attach files" size="icon-sm" onClick={() => fileInputRef.current?.click()}>
-                <HugeIcon icon={Attachment01Icon} aria-hidden="true" />
-              </InputGroupButton>
-              <InputGroupButton aria-label="Attach images" size="icon-sm" onClick={() => fileInputRef.current?.click()}>
-                <HugeIcon icon={Image01Icon} aria-hidden="true" />
-              </InputGroupButton>
+              {/* <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <InputGroupButton variant={"ghost"} size={"icon-sm"}>
+                    <HugeIcon className="size-5" icon={Plus} aria-hidden="true" />
+                  </InputGroupButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="min-w-48 ">
+                  <DropdownMenuItem className="w-full">
+                    <HugeIcon icon={AttachmentIcon} className="size-5 text-muted-foreground" aria-hidden="true" />
+                    Add photos & files
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu> */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InputGroupButton size={"icon-sm"} onClick={() => fileInputRef.current?.click()}>
+                      <input ref={fileInputRef} type="file" multiple className="sr-only" onChange={handleFileChange} />
+                      <HugeIcon icon={AttachmentIcon} className="size-5 text-muted-foreground" aria-hidden="true" />
+                    </InputGroupButton>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Add photos & files
+                  </TooltipContent>
+                </Tooltip>
+
+              </TooltipProvider>
               <Dialog>
                 <DialogTrigger asChild>
-                  <InputGroupButton aria-label="Provider settings" size={hasModelConfigured ? "icon-sm" : "sm"} className="relative">
-                    <HugeIcon icon={Settings02Icon} aria-hidden="true" />
+                  <InputGroupButton aria-label="Provider settings" size={showApiKeyWarning() === true ? "icon-sm" : "sm"} className="relative">
+                    <HugeIcon icon={Settings} aria-hidden="true" />
                     {
-                      !hasModelConfigured && <span className="text-blue-500 font-medium">Add API key</span>
+                      showApiKeyWarning() === true ? <span className="text-blue-500 font-medium">Add API key</span> : null
                     }
                   </InputGroupButton>
                 </DialogTrigger>
@@ -267,7 +297,7 @@ const ChatComposer = memo(function ChatComposer({
               </Dialog>
             </div>
 
-            <div className="flex min-w-0 items-center gap-4">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-4">
               {/* <InputGroupText className="hidden truncate sm:flex font-normal">
                 {model || selectedProvider?.defaultModel}
               </InputGroupText> */}
