@@ -4,7 +4,7 @@ import * as React from "react"
 import Link, { type LinkProps } from "next/link"
 import { usePathname } from "next/navigation"
 
-import { COMPONENTS_BETA, PAGES_NEW } from "@/lib/docs"
+import { PAGES_BETA, PAGES_NEW } from "@/lib/docs"
 import { getPagesFromFolder } from "@/lib/page-tree"
 import { type source } from "@/lib/source"
 import { cn } from "@/lib/utils"
@@ -146,7 +146,7 @@ export function MobileNav({
                             title="New"
                           />
                         )}
-                        {COMPONENTS_BETA.includes(item.url) && (
+                        {PAGES_BETA.includes(item.url) && (
                           <Badge className="scale-90 bg-yellow-500/15 text-yellow-500">
                             Beta
                           </Badge>

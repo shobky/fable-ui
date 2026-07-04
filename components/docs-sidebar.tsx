@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { COMPONENTS_BETA, PAGES_NEW } from "@/lib/docs"
+import { PAGES_BETA, PAGES_NEW } from "@/lib/docs"
 import { getPagesFromFolder } from "@/lib/page-tree"
 import type { source } from "@/lib/source"
 import {
@@ -46,7 +46,7 @@ export function DocsSidebar({
 
   return (
     <Sidebar
-      className="sticky top-[calc(var(--header-height)+0.6rem)] bg-transparent z-30 hidden h-[calc(100svh-10rem)] overflow-hidden overscroll-none  [--sidebar-menu-width:--spacing(56)] lg:flex"
+      className="sticky top-[calc(var(--header-height)+0.6rem)] bg-transparent z-30 hidden h-[calc(100svh-10rem)]  overscroll-none  overflow-hidden lg:flex"
       collapsible="none"
       {...props}
     >
@@ -102,7 +102,7 @@ export function DocsSidebar({
                           <SidebarMenuButton
                             asChild
                             isActive={page.url === pathname}
-                            className="relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48"
+                            className="relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:cursor-default data-[active=true]:text-muted-foreground data-[active=true]:bg-transparent 3xl:fixed:w-full 3xl:fixed:max-w-48"
                           >
                             <Link href={page.url}>
                               <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
@@ -113,7 +113,7 @@ export function DocsSidebar({
                                   title="New"
                                 />
                               )}
-                              {COMPONENTS_BETA.includes(page.url) && (
+                              {PAGES_BETA.includes(page.url) && (
                                 <Badge className="scale-90 bg-yellow-500/15 text-yellow-500">
                                   Beta
                                 </Badge>
