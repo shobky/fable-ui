@@ -17,7 +17,7 @@ flowchart LR
   F --> G["rendered UI"]
 ```
 
-In the current app, `/api/chat` registers tools from `toolRegistry`, the model can emit `show_metric`, and the chat UI renders `tool-*` message parts through `ToolPartRenderer`.
+In the current app, `/api/chat` registers tools from `toolRegistry`, the model can emit Fable tool calls, and the chat UI renders `tool-*` message parts through the Fable tool renderer.
 
 ## Responsibilities
 
@@ -27,9 +27,9 @@ In the current app, `/api/chat` registers tools from `toolRegistry`, the model c
 - The React component receives typed props.
 - The host app owns data access, permissions, and side effects.
 
-## Planned data-backed path
+## Data-backed path
 
-The future data-backed architecture is planned. It is not required for the current `MetricCard` setup.
+`DataBrowser` can render static rows from a tool payload or fetch a host-owned resource through the data-source registry.
 
 ```txt
 resourceId
@@ -39,7 +39,7 @@ resourceId
 -> rendered component
 ```
 
-In that model, the agent would receive a safe resource catalog and choose an allowlisted `resourceId`. It would not invent SQL, Firestore queries, raw endpoints, collection paths, handler functions, or backend operations.
+In that model, the agent receives a safe resource catalog and chooses an allowlisted `resourceId`. It does not invent SQL, Firestore queries, raw endpoints, collection paths, handler functions, or backend operations.
 
 ## Failure behavior
 

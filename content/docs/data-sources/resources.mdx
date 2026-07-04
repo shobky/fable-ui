@@ -5,42 +5,97 @@ description: Register allowlisted resources for DataBrowser.
 
 Resources are the product boundary between the model and host data. The model gets labels, columns, filters, sorts, actions, and usage guidance. It does not get `source`.
 
+## Register a resource
+
+Define resources in a plain TypeScript module, then register them before rendering any `DataBrowser` that uses the resource id.
+
 ```ts
 import { defineResource, fableRegistry } from "@/lib/fable-ui/core"
-import { createRestDriver } from "@/lib/fable-ui/drivers/rest"
-
-fableRegistry.registerDriver("rest", createRestDriver())
 
 fableRegistry.registerResource(
   defineResource({
     id: "orders",
     label: "Orders",
     entityLabel: "orders",
-    driver: "rest",
-    source: { endpoint: "/api/orgs/{orgId}/orders" },
+    driver: "firebase",
+    source: { collection: "orgs/{orgId}/orders", requireAuth: true },
     columns: [
       { key: "orderNumber", label: "Order #" },
+      { key: "customer.name", label: "Customer" },
       { key: "status", label: "Status" },
-      { key: "total", label: "Total", align: "right" },
+      { key: "subtotal", label: "Total" },
     ],
     filters: [
       { key: "status", label: "Status", type: "select", options: ["new", "paid", "canceled"] },
+      { key: "createdAt", label: "Date", type: "date" },
     ],
     sort: [
       { key: "createdAt", label: "Created At", directions: ["desc", "asc"] },
     ],
+    search: {
+      mode: "client",
+      fields: ["customer.name", "orderNumber"],
+    },
     agent: {
-      description: "Orders for the current organization.",
+      description: "Orders for the active organization.",
       aliases: ["sales", "tickets", "bills"],
-      useWhen: ["The user wants to browse, search, or inspect orders."],
+      useWhen: ["The user wants to browse or search orders."],
     },
   })
 )
 ```
 
-`source` is for the driver only. `getAgentResourceManifest()` strips connection details before anything reaches the model.
+## Resource schema
 
-## Static Mode
+`id` is the stable identifier the model and UI use as `resourceId`. Keep it short and product-oriented.
+
+`label` is the human-readable name for the browser title and model manifest.
+
+`entityLabel` is the plural noun used for counts and empty states, such as `orders`.
+
+`driver` must match a registered driver id, such as `rest`, `firebase`, or your own adapter id.
+
+`source` is private driver configuration. It may contain REST endpoints, Firestore collection templates, SQL view names, or any adapter-specific settings. `getAgentResourceManifest()` strips it before prompting the model.
+
+`columns` defines visible row fields. Dot paths like `customer.name` are supported by the table and local search helpers.
+
+`filters` allowlist filter keys and UI types. Drivers should reject filter keys that are not declared here.
+
+`sort` allowlists sortable fields and directions. Drivers should reject sort keys that are not declared here.
+
+`search` controls search behavior. `client` means the driver fetches rows and Fable filters locally. `exact` and `prefix` are for drivers that can push search into the backing system.
+
+`actions` defines safe row actions. Drivers or resource runtimes still own validation and execution.
+
+`agent` is model-facing guidance. Use `description`, `aliases`, `useWhen`, and `avoidWhen` to help the model choose between similar resources.
+
+`transformRows` can normalize rows after a driver reads them, for example to rename fields or derive display values.
+
+## Registry structure
+
+`DataSourceRegistry` has three maps:
+
+- Drivers registered with `registerDriver(id, driver)`.
+- Resources registered with `registerResource(resource)`.
+- Optional runtimes registered with `registerResourceRuntime(resourceId, runtime)`.
+
+When DataBrowser asks for rows, the registry resolves the resource, finds `resource.driver`, and calls that driver. If a runtime provides `list`, `get`, or `executeAction`, the runtime overrides the driver for that operation.
+
+The exported `fableRegistry` is the default singleton for the current runtime. Registering the same id again keeps the latest registration and warns in development when the value changed.
+
+## File pattern
+
+For most apps, use this shape:
+
+```txt
+lib/fable-ui/data/resources.ts        pure resource definitions
+lib/fable-ui/data/client-registry.ts  client driver registration
+components/chat-shell.tsx             FableDataProvider with org/session context
+```
+
+Use `resources.ts` from both server and client code when you need the model manifest on the server. Keep browser-only SDKs such as Firebase out of that pure definitions file.
+
+## Static mode
 
 For small snapshots, pass rows directly:
 
@@ -53,4 +108,4 @@ For small snapshots, pass rows directly:
 />
 ```
 
-Static mode supports local search, filters, sort, pagination, loading, empty, error, disabled, and row detail states.
+Static mode supports local search, filters, sort, pagination, loading, empty, error, disabled, and row detail states without using a registered driver.

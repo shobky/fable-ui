@@ -38,3 +38,5 @@ source: {
 The driver sends `cursor`, `pageSize`, `search`, `sort`, and `filter[key]` query params. If `ctx.auth.getAccessToken()` returns a token, the driver adds a bearer `Authorization` header.
 
 Host endpoints remain responsible for authentication, authorization, validation, tenancy, rate limits, and write safety.
+
+This bearer-token behavior is specific to the REST driver. The Firebase driver does not use `ctx.auth.getAccessToken()` and does not attach an access token; it relies on the Firebase Auth client passed to `createFirebaseDriver({ db, auth })`.

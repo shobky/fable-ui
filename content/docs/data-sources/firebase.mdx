@@ -11,12 +11,18 @@ Install the browser and Firebase adapter:
 
 The Firebase dependency is declared only by `firebase-driver`; core and DataBrowser do not install it.
 
-```ts
+## Register the driver and resource
+
+Register Firebase in client-side host code because the Firestore Web SDK uses the browser Firebase Auth client.
+
+```ts title="lib/fable-ui/data/client-registry.ts"
+"use client"
+
 import { defineResource, fableRegistry } from "@/lib/fable-ui/core"
 import { createFirebaseDriver } from "@/lib/fable-ui/drivers/firebase"
-import { db } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
 
-fableRegistry.registerDriver("firebase", createFirebaseDriver({ db }))
+fableRegistry.registerDriver("firebase", createFirebaseDriver({ db, auth }))
 
 fableRegistry.registerResource(
   defineResource({
@@ -24,11 +30,12 @@ fableRegistry.registerResource(
     label: "Orders",
     entityLabel: "orders",
     driver: "firebase",
-    source: { collection: "orgs/{orgId}/orders" },
+    source: { collection: "orgs/{orgId}/orders", requireAuth: true },
     columns: [
       { key: "orderNumber", label: "Order #" },
+      { key: "customer.name", label: "Customer" },
       { key: "status", label: "Status" },
-      { key: "total", label: "Total", align: "right" },
+      { key: "subtotal", label: "Total" },
     ],
     filters: [
       { key: "status", label: "Status", type: "select", options: ["new", "paid", "canceled"] },
@@ -48,8 +55,121 @@ fableRegistry.registerResource(
     },
   })
 )
+
+export { fableRegistry }
 ```
 
-Firestore paths can use `{orgId}` and extra `pathParams`. The driver rejects unsafe path params containing `/` or `..`, requires auth by default, validates filters and sorts against the resource config, and serializes Firestore timestamps to ISO strings.
+The same `auth` object passed to `createFirebaseDriver({ db, auth })` must be the app's live Firebase Auth client. Fable does not read Firebase Auth from `FableDataProvider` context and does not use `ctx.auth.userId` as a Firebase fallback.
+
+## Sync Firebase Auth in the host app
+
+The host app owns sign-in. If your app receives a custom Firebase token from its session, sign in with Firebase before the user browses Firestore-backed resources.
+
+```tsx
+"use client"
+
+import * as React from "react"
+import { signInWithCustomToken } from "firebase/auth"
+import { auth } from "@/lib/firebase"
+
+export function FirebaseSessionSync({ session }: { session: any }) {
+  const signedTokenRef = React.useRef<string | null>(null)
+
+  React.useEffect(() => {
+    if (
+      session?.status === "authenticated" &&
+      session.firebaseToken &&
+      signedTokenRef.current !== session.firebaseToken
+    ) {
+      signedTokenRef.current = session.firebaseToken
+
+      signInWithCustomToken(auth, session.firebaseToken).catch(() => {
+        refreshFirebaseToken(session.user)
+          .then((firebaseToken) => {
+            signedTokenRef.current = firebaseToken
+            return signInWithCustomToken(auth, firebaseToken)
+          })
+          .catch((error: any) => {
+            signedTokenRef.current = null
+            console.error("Firebase session sync failed:", error.message)
+          })
+      })
+    }
+  }, [session])
+
+  return null
+}
+```
+
+Once `auth.currentUser` is set, Firestore requests made by the Firebase Web SDK use that signed-in client automatically. Fable never passes an access token to Firestore.
+
+## Provider context
+
+Use `FableDataProvider` for path and tenancy context, not Firebase credentials.
+
+```tsx
+"use client"
+
+import * as React from "react"
+import { FableDataProvider } from "@/lib/fable-ui/core"
+import "@/lib/fable-ui/data/client-registry"
+
+export function ChatShell({
+  orgId,
+  children,
+}: {
+  orgId: string
+  children: React.ReactNode
+}) {
+  const context = React.useMemo(() => ({ orgId }), [orgId])
+
+  return <FableDataProvider context={context}>{children}</FableDataProvider>
+}
+```
+
+`orgId` fills `{orgId}` in collection paths. `tenantId` works the same way for `{tenantId}`.
+
+## Source schema
+
+Firebase resources use `FirestoreResourceSource`:
+
+```ts
+type FirestoreResourceSource = {
+  collection: string
+  pathParams?: Record<string, string | ((ctx: DataSourceContext) => string | Promise<string>)>
+  idField?: string
+  requireAuth?: boolean
+}
+```
+
+`collection` is a Firestore collection path. It can include `{orgId}`, `{tenantId}`, and custom params from `pathParams`.
+
+`pathParams` can add or derive extra path values from provider context. Path params cannot be empty and cannot contain `/` or `..`.
+
+`idField` controls which row field receives the document id. The driver also ensures `row.id` is present.
+
+`requireAuth` defaults to `true`. When it is not `false`, the driver checks only the `auth.currentUser` object passed to `createFirebaseDriver`.
+
+## How fetching works
+
+When DataBrowser renders with `resourceId: "orders"`, it asks the registry to list `orders`. The registry resolves the Firebase driver, replaces path params like `orgs/{orgId}/orders`, builds Firestore query constraints from allowlisted filters, search, sort, cursor, and page size, then calls `getDocs`.
+
+Firestore timestamps are serialized to ISO strings. If `search.mode` is `client`, the driver fetches the Firestore query result first and then filters those rows locally using the configured `search.fields`.
+
+## Edge cases
+
+If `orgId`, `tenantId`, or a custom path param is missing, the driver throws before querying Firestore.
+
+If `auth.currentUser` is not ready and `requireAuth` is not `false`, the driver throws `Firestore resource requires a signed-in Firebase Auth user.` Render the browser after Firebase session sync, or show a loading state while auth initializes.
+
+If Firestore security rules reject the request, the driver reports a permission error. Fix the host app auth state or Firestore rules; do not pass bearer tokens to Fable.
+
+If Firestore requires a composite index, the driver reports an index error. Create the index suggested by Firebase.
+
+Filters and sorts are allowlisted by the resource. Unknown filter or sort keys are rejected before the query runs.
+
+Firestore `in` filters are limited to the first 10 selected values. This matches Firestore query limits.
+
+Client search is convenient for small result sets, but it only searches rows returned by the Firestore query. Use `search.mode: "exact"` or `"prefix"` for server-side Firestore constraints.
 
 The model still sees only the resource manifest. It never receives collection paths or Firestore query details.

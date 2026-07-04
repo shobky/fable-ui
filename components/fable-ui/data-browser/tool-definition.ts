@@ -3,7 +3,7 @@ import { z } from "zod"
 
 import { DataBrowser } from "@/components/fable-ui/data-browser/data-browser"
 import { ShowTable } from "@/components/fable-ui/data-browser/show-table"
-import { defineFableComponent, fableRegistry } from "@/lib/fable-ui/core"
+import { defineFableComponent, fableRegistry, type DataSourceRegistry } from "@/lib/fable-ui/core"
 import { dataColumnSchema, dataFilterSchema, dataSortSchema, sortStateSchema } from "@/lib/fable-ui/core/schemas"
 import { resolveDataBrowserIntent } from "./resolve-intent"
 
@@ -58,8 +58,8 @@ export const showDataBrowserInputSchema = z.object({
 
 export type ShowDataBrowserInput = z.infer<typeof showDataBrowserInputSchema>
 
-export function describeAvailableResources() {
-  return JSON.stringify(fableRegistry.getAgentResourceManifest(), null, 2)
+export function describeAvailableResources(registry: DataSourceRegistry = fableRegistry) {
+  return JSON.stringify(registry.getAgentResourceManifest(), null, 2)
 }
 
 export function createShowTableTool() {

@@ -11,8 +11,15 @@ export type FirestoreResourceSource = {
   requireAuth?: boolean
 }
 
+export type FirebaseAuthLike = {
+  currentUser?: {
+    uid?: string | null
+  } | null
+}
+
 export type FirebaseDriverConfig = {
   db: unknown
+  auth?: FirebaseAuthLike
 }
 
 export type FirestoreSdk = {

@@ -1,4 +1,12 @@
-import { fableRegistry, type DataColumn, type DataFilter, type DataRow, type DataSort, type SortState } from "@/lib/fable-ui/core"
+import {
+  fableRegistry,
+  type DataColumn,
+  type DataFilter,
+  type DataRow,
+  type DataSort,
+  type DataSourceRegistry,
+  type SortState,
+} from "@/lib/fable-ui/core"
 import type { DataBrowserProps } from "./data-browser.types"
 
 export type DataBrowserIntent<Row extends DataRow = DataRow> = {
@@ -20,6 +28,7 @@ export type DataBrowserIntent<Row extends DataRow = DataRow> = {
 
 export function resolveDataBrowserIntent<Row extends DataRow = DataRow>(
   intent: DataBrowserIntent<Row>,
+  registry: DataSourceRegistry = fableRegistry,
 ): DataBrowserProps<Row> {
   if (!intent.resourceId) {
     return {
@@ -38,7 +47,7 @@ export function resolveDataBrowserIntent<Row extends DataRow = DataRow>(
     }
   }
 
-  const resource = fableRegistry.getResource(intent.resourceId)
+  const resource = registry.getResource(intent.resourceId)
 
   if (!resource) {
     return {

@@ -13,6 +13,7 @@ import {
   type ResourceRuntime,
 } from "@/lib/fable-ui/core"
 import type {
+  FirebaseAuthLike,
   FirebaseDriverConfig,
   FirestorePathParam,
   FirestoreResourceSource,
@@ -268,7 +269,17 @@ function getUpdateValues(input: DataActionInput) {
   return values
 }
 
-export function createFirebaseDriver({ db }: FirebaseDriverConfig): DataSourceDriver<FirestoreResourceSource> {
+function requireFirebaseUser(source: FirestoreResourceSource, auth: FirebaseAuthLike | undefined) {
+  if (source.requireAuth === false) {
+    return
+  }
+
+  if (!auth?.currentUser?.uid) {
+    throw new Error("Firestore resource requires a signed-in Firebase Auth user.")
+  }
+}
+
+export function createFirebaseDriver({ db, auth }: FirebaseDriverConfig): DataSourceDriver<FirestoreResourceSource> {
   return {
     async list<Row extends DataRow>(
       resource: ResourceConfig<FirestoreResourceSource, Row>,
@@ -280,9 +291,7 @@ export function createFirebaseDriver({ db }: FirebaseDriverConfig): DataSourceDr
         return runtime.list(resource, query, ctx)
       }
 
-      if (resource.source.requireAuth !== false && !ctx.auth?.userId) {
-        throw new Error("Firestore resource requires an authenticated user.")
-      }
+      requireFirebaseUser(resource.source, auth)
 
       try {
         const sdk = await loadFirestoreSdk()
@@ -333,9 +342,7 @@ export function createFirebaseDriver({ db }: FirebaseDriverConfig): DataSourceDr
         return runtime.get(resource, rowId, ctx)
       }
 
-      if (resource.source.requireAuth !== false && !ctx.auth?.userId) {
-        throw new Error("Firestore resource requires an authenticated user.")
-      }
+      requireFirebaseUser(resource.source, auth)
 
       try {
         const sdk = await loadFirestoreSdk()
@@ -377,9 +384,7 @@ export function createFirebaseDriver({ db }: FirebaseDriverConfig): DataSourceDr
         throw new Error("Destructive Firestore actions require a custom resource runtime handler.")
       }
 
-      if (resource.source.requireAuth !== false && !ctx.auth?.userId) {
-        throw new Error("Firestore resource requires an authenticated user.")
-      }
+      requireFirebaseUser(resource.source, auth)
 
       try {
         const sdk = await loadFirestoreSdk()

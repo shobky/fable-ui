@@ -6,8 +6,14 @@ description: Register more than one driver or resource.
 The registry can hold many drivers and resources. Use stable driver ids and resource ids that match product language.
 
 ```ts
+import { fableRegistry } from "@/lib/fable-ui/core"
+import { createFirebaseDriver } from "@/lib/fable-ui/drivers/firebase"
+import { createRestDriver } from "@/lib/fable-ui/drivers/rest"
+import { auth, db } from "@/lib/firebase"
+import { customersResource, invoicesResource, ordersResource } from "./resources"
+
 fableRegistry.registerDriver("rest", createRestDriver())
-fableRegistry.registerDriver("firebase", createFirebaseDriver({ db }))
+fableRegistry.registerDriver("firebase", createFirebaseDriver({ db, auth }))
 
 fableRegistry.registerResource(ordersResource)
 fableRegistry.registerResource(customersResource)
@@ -27,6 +33,8 @@ defineResource({
 })
 ```
 
-`describeAvailableResources()` summarizes all registered resources for the system prompt. The model picks the best `resourceId` based on `agent.description`, `aliases`, `useWhen`, and `avoidWhen`.
+Register drivers and resources before a resource-backed DataBrowser renders. A common pattern is to import a `client-registry.ts` module from the chat shell or route segment that needs Fable data browsing.
 
-If two resources overlap, make the `agent` guidance explicit. The safer resource should say when to use it; the broader resource should say when to avoid it.
+`describeAvailableResources()` summarizes all registered resources for the system prompt. If you use a custom `DataSourceRegistry`, pass the same registry to `describeAvailableResources(registry)` and `FableDataProvider`.
+
+The model picks the best `resourceId` based on `agent.description`, `aliases`, `useWhen`, and `avoidWhen`. If two resources overlap, make the `agent` guidance explicit. The safer resource should say when to use it; the broader resource should say when to avoid it.
