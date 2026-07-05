@@ -3,6 +3,8 @@
 import * as React from "react"
 
 import { ComponentPreviewTabs } from "@/components/component-preview-tabs"
+import { Charts } from "@/components/fable-ui/charts/charts"
+import type { ChartsProps } from "@/components/fable-ui/charts/charts.types"
 import {
   ConfirmationCard,
   type ConfirmationCardProps,
@@ -384,6 +386,201 @@ export function FormCardPreview() {
   )
 }
 
+const chartsSource = `import { Charts } from "@/components/fable-ui/charts/charts"
+
+const data = [
+  { month: "Jan", direct: 120, referral: 84 },
+  { month: "Feb", direct: 148, referral: 96 },
+  { month: "Mar", direct: 172, referral: 118 },
+  { month: "Apr", direct: 196, referral: 132 },
+  { month: "May", direct: 214, referral: 151 },
+]
+
+export function RevenueCharts() {
+  return (
+    <Charts
+      title="Monthly signups"
+      description="Static AI-provided chart data."
+      data={data}
+      xKey="month"
+      series={[
+        { key: "direct", label: "Direct" },
+        { key: "referral", label: "Referral" },
+      ]}
+      availableChartTypes={["line", "bar"]}
+      defaultChartType="line"
+    />
+  )
+}`
+
+const pieChartSource = `import { Charts } from "@/components/fable-ui/charts/charts"
+
+const data = [
+  { channel: "Direct", value: 38 },
+  { channel: "Referral", value: 27 },
+  { channel: "Organic", value: 21 },
+  { channel: "Paid", value: 14 },
+]
+
+export function ChannelMixPieChart() {
+  return (
+    <Charts
+      title="Signup channel mix"
+      description="Part-to-whole breakdown for the current period."
+      data={data}
+      categoryKey="channel"
+      valueKey="value"
+      availableChartTypes={["pie", "bar"]}
+      defaultChartType="pie"
+      format={{ value: "percent" }}
+    />
+  )
+}`
+
+const chartRows = [
+  { month: "Jan", direct: 120, referral: 84 },
+  { month: "Feb", direct: 148, referral: 96 },
+  { month: "Mar", direct: 172, referral: 118 },
+  { month: "Apr", direct: 196, referral: 132 },
+  { month: "May", direct: 214, referral: 151 },
+]
+
+const chartsPropsByState: Record<PreviewState, ChartsProps> = {
+  ready: {
+    title: "Monthly signups",
+    description: "Static AI-provided chart data.",
+    data: chartRows,
+    xKey: "month",
+    series: [
+      { key: "direct", label: "Direct" },
+      { key: "referral", label: "Referral" },
+    ],
+    availableChartTypes: ["line", "bar"],
+    defaultChartType: "line",
+  },
+  loading: {
+    title: "Monthly signups",
+    data: [],
+    isLoading: true,
+  },
+  empty: {
+    title: "Monthly signups",
+    data: [],
+    emptyState: {
+      title: "No chart data",
+      description: "The tool payload did not include rows.",
+    },
+  },
+  error: {
+    title: "Monthly signups",
+    data: chartRows,
+    error: {
+      title: "Chart unavailable",
+      description: "The chart payload failed validation.",
+    },
+  },
+  disabled: {
+    title: "Monthly signups",
+    data: chartRows,
+    xKey: "month",
+    series: [
+      { key: "direct", label: "Direct" },
+      { key: "referral", label: "Referral" },
+    ],
+    availableChartTypes: ["line", "bar"],
+    defaultChartType: "bar",
+    isDisabled: true,
+  },
+}
+
+export function ChartsPreview() {
+  const [state, setState] = React.useState<PreviewState>("ready")
+
+  return (
+    <ComponentPreviewTabs
+      component={
+        <PreviewFrame state={state} onStateChange={setState}>
+          <Charts {...chartsPropsByState[state]} />
+        </PreviewFrame>
+      }
+      source={<SourceBlock>{chartsSource}</SourceBlock>}
+      sourcePreview={<SourceBlock preview>{chartsSource}</SourceBlock>}
+      previewClassName="h-auto min-h-[34rem] p-6"
+      align="center"
+    />
+  )
+}
+
+const pieChartRows = [
+  { channel: "Direct", value: 38 },
+  { channel: "Referral", value: 27 },
+  { channel: "Organic", value: 21 },
+  { channel: "Paid", value: 14 },
+]
+
+export function PieChartPreview() {
+  const [state, setState] = React.useState<PreviewState>("ready")
+
+  const propsByState = {
+    ready: {
+      title: "Signup channel mix",
+      description: "Part-to-whole breakdown for the current period.",
+      data: pieChartRows,
+      categoryKey: "channel",
+      valueKey: "value",
+      availableChartTypes: ["pie", "bar"],
+      defaultChartType: "pie",
+      format: { value: "percent" },
+    },
+    loading: {
+      title: "Signup channel mix",
+      data: [],
+      isLoading: true,
+    },
+    empty: {
+      title: "Signup channel mix",
+      data: [],
+      emptyState: {
+        title: "No channel data",
+        description: "The tool payload did not include slices.",
+      },
+    },
+    error: {
+      title: "Signup channel mix",
+      data: [],
+      error: {
+        title: "Pie chart unavailable",
+        description: "The chart payload failed validation.",
+      },
+    },
+    disabled: {
+      title: "Signup channel mix",
+      description: "Part-to-whole breakdown for the current period.",
+      data: pieChartRows,
+      categoryKey: "channel",
+      valueKey: "value",
+      availableChartTypes: ["pie", "bar"],
+      defaultChartType: "pie",
+      format: { value: "percent" },
+      isDisabled: true,
+    },
+  } satisfies Record<PreviewState, ChartsProps>
+
+  return (
+    <ComponentPreviewTabs
+      component={
+        <PreviewFrame state={state} onStateChange={setState}>
+          <Charts {...propsByState[state]} />
+        </PreviewFrame>
+      }
+      source={<SourceBlock>{pieChartSource}</SourceBlock>}
+      sourcePreview={<SourceBlock preview>{pieChartSource}</SourceBlock>}
+      previewClassName="h-auto min-h-[34rem] p-6"
+      align="center"
+    />
+  )
+}
+
 const orderColumns: DataColumn[] = [
   { key: "customer", label: "Customer", sortable: true },
   { key: "orderNumber", label: "Order #", width: 132 },
@@ -435,6 +632,49 @@ const orderRows: DataRow[] = Array.from({ length: 50 }, (_, index) => {
 
 const dataBrowserSource = `import { DataBrowser } from "@/components/fable-ui/data-browser/data-browser"
 
+const columns = [
+  { key: "customer", label: "Customer", sortable: true },
+  { key: "orderNumber", label: "Order #", width: 132 },
+  { key: "status", label: "Status", type: "badge", filterable: true },
+  { key: "region", label: "Region", filterable: true },
+  { key: "total", label: "Total", type: "currency", align: "right" },
+]
+
+const rows = [
+  {
+    id: "ord_1001",
+    customer: "Nadia Ali",
+    orderNumber: "1001",
+    status: "paid",
+    region: "Cairo",
+    total: 420,
+  },
+  {
+    id: "ord_1002",
+    customer: "Mina Fahmy",
+    orderNumber: "1002",
+    status: "review",
+    region: "Giza",
+    total: 185,
+  },
+  {
+    id: "ord_1003",
+    customer: "Sarah Adel",
+    orderNumber: "1003",
+    status: "new",
+    region: "Alexandria",
+    total: 268,
+  },
+  {
+    id: "ord_1004",
+    customer: "Omar Saleh",
+    orderNumber: "1004",
+    status: "paid",
+    region: "Mansoura",
+    total: 512,
+  },
+]
+
 export function OrdersBrowser() {
   return (
     <DataBrowser
@@ -442,7 +682,7 @@ export function OrdersBrowser() {
       entityLabel="orders"
       columns={columns}
       rows={rows}
-      pageSize={10}
+      pageSize={6}
       searchPlaceholder="Search orders"
     />
   )
@@ -456,7 +696,7 @@ const dataBrowserPropsByState: Record<PreviewState, DataBrowserProps> = {
       "Static local rows use the same surface as registered resources.",
     columns: orderColumns,
     rows: orderRows,
-    pageSize: 10,
+    pageSize: 6,
     searchPlaceholder: "Search orders",
   },
   loading: {
@@ -518,7 +758,7 @@ export function RecentOrdersTable() {
       description="A paginated static snapshot."
       columns={columns}
       rows={rows}
-      pageSize={10}
+      pageSize={6}
     />
   )
 }`
@@ -531,7 +771,7 @@ export function ShowTablePreview() {
     columns: orderColumns,
   }
   const propsByState = {
-    ready: { ...common, rows: orderRows, pageSize: 10 },
+    ready: { ...common, rows: orderRows, pageSize: 6 },
     loading: { ...common, rows: [], isLoading: true },
     empty: { ...common, rows: [] },
     error: {
@@ -542,7 +782,7 @@ export function ShowTablePreview() {
         description: "Rows failed validation.",
       },
     },
-    disabled: { ...common, rows: orderRows, pageSize: 10, isDisabled: true },
+    disabled: { ...common, rows: orderRows, pageSize: 8, isDisabled: true },
   } satisfies Record<PreviewState, React.ComponentProps<typeof ShowTable>>
 
   return (

@@ -67,7 +67,7 @@ export function DataBrowser<Row extends DataRow = DataRow>({
   initialFilters,
   initialSearch,
   initialSort,
-  pageSize = 10,
+  pageSize = 8,
   rowActions,
   onRowAction,
   onRowActionSuccess,

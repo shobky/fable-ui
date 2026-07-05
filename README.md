@@ -18,6 +18,7 @@ Fable UI is for product interfaces where the assistant should be able to show a 
 - [ConfirmationCard](https://fable-ui.vercel.app/docs/components/confirmation-card)
 - [FormCard](https://fable-ui.vercel.app/docs/components/form-card)
 - [DataBrowser](https://fable-ui.vercel.app/docs/components/data-browser)
+- [Charts](https://fable-ui.vercel.app/docs/components/charts)
 - [Data Sources](https://fable-ui.vercel.app/docs/data-sources/overview)
 - [System Flow](https://fable-ui.vercel.app/docs/architecture/system-flow)
 - [Agent Routing](https://fable-ui.vercel.app/docs/architecture/agent-routing)
@@ -64,6 +65,7 @@ Current registry items include:
 - `confirmation-card`: asks for explicit user confirmation before host-owned side effects through `request_confirmation`.
 - `form-card`: collects a few structured fields mid-conversation through `collect_input`.
 - `data-browser`: renders static row snapshots or host-backed browsing surfaces with search, filters, sort, fullscreen review, pagination, details, and row actions.
+- `charts`: renders static line, bar, and pie chart payloads through `show_chart`.
 - `rest-driver`: optional driver for host-owned HTTP endpoints.
 - `firebase-driver`: optional driver for Firestore-backed resources.
 - `quickstart`: installs a production-ready chat at `/fable-chat` and `/api/fable-chat`.
@@ -220,6 +222,14 @@ Rows with avatar-like fields such as `avatar`, `avatarUrl`, `image`, `imageUrl`,
 The model must not pass raw SQL, raw Firestore query code, secrets, authorization decisions, private endpoints, or collection paths. The host supplies data access, allowed filters, allowed sort fields, permissions, and row actions.
 
 Tool names: `show_table`, `show_data_browser`
+
+### Charts
+
+`Charts` renders static, display-ready chart payloads as line, bar, or pie charts.
+
+Use `show_chart` when the assistant already has safe rows in the conversation or from host-owned logic. The model must not fetch chart data from arbitrary URLs, query databases, run SQL, or decide authorization.
+
+Tool name: `show_chart`
 
 ## Data Sources
 

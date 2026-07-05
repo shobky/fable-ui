@@ -1,0 +1,152 @@
+---
+title: Charts
+description: Render static chart payloads from validated AI tool calls.
+---
+
+`Charts` renders static, display-ready chart data as line, bar, or pie charts using shadcn chart conventions and Recharts. It is meant for AI answers where the data is already known, validated, and safe to display.
+
+The model should use `show_chart` when the response would be clearer as a visual comparison, trend, or part-to-whole breakdown. The host app still owns live data access. If the chart is based on private orders, billing, analytics, or database rows, fetch and authorize that data in your backend first, then pass a small display-ready payload into the tool.
+
+<ChartsPreview />
+
+## Pie chart preview
+
+Pie charts use `categoryKey` and `valueKey` instead of `xKey` and multi-series values. Use them for part-to-whole slices where every row is one category.
+
+<PieChartPreview />
+
+## Installation
+
+<RegistryInstallCommand itemName="charts" />
+
+The `charts` registry item installs the component, the tool definition, the tool re-export, and its routing docs:
+
+```txt
+components/fable-ui/charts/index.ts
+components/fable-ui/charts/charts.tsx
+components/fable-ui/charts/charts.types.ts
+components/fable-ui/charts/tool-definition.ts
+lib/fable-ui/tools/show-chart-tool.ts
+lib/fable-ui/manifests/show-chart.md
+lib/fable-ui/evals/show-chart.md
+```
+
+It also installs or expects the shared `core` registry dependency, plus shadcn UI pieces used by the chart surface.
+
+## Usage
+
+Use line or bar charts with `xKey` and `series`:
+
+```tsx
+import { Charts } from "@/components/fable-ui/charts/charts"
+
+const data = [
+  { month: "Jan", direct: 120, referral: 84 },
+  { month: "Feb", direct: 148, referral: 96 },
+  { month: "Mar", direct: 172, referral: 118 },
+]
+
+export function RevenueCharts() {
+  return (
+    <Charts
+      title="Monthly signups"
+      description="Static AI-provided chart data."
+      data={data}
+      xKey="month"
+      series={[
+        { key: "direct", label: "Direct" },
+        { key: "referral", label: "Referral" },
+      ]}
+      availableChartTypes={["line", "bar"]}
+      defaultChartType="line"
+    />
+  )
+}
+```
+
+Use pie charts with `categoryKey` and `valueKey`:
+
+```tsx
+import { Charts } from "@/components/fable-ui/charts/charts"
+
+const data = [
+  { channel: "Direct", value: 38 },
+  { channel: "Referral", value: 27 },
+  { channel: "Organic", value: 21 },
+  { channel: "Paid", value: 14 },
+]
+
+export function ChannelMixPieChart() {
+  return (
+    <Charts
+      title="Signup channel mix"
+      description="Part-to-whole breakdown for the current period."
+      data={data}
+      categoryKey="channel"
+      valueKey="value"
+      availableChartTypes={["pie", "bar"]}
+      defaultChartType="pie"
+      format={{ value: "percent" }}
+    />
+  )
+}
+```
+
+## Tool definition
+
+The AI SDK tool name is `show_chart`.
+
+`components/fable-ui/charts/tool-definition.ts` defines the Zod schema, the Vercel AI SDK tool, and the renderer contract that turns a tool part into props for `<Charts />`.
+
+<ComponentSource src="components/fable-ui/charts/tool-definition.ts" title="components/fable-ui/charts/tool-definition.ts" />
+
+## Payload
+
+```ts
+{
+  title: string
+  description?: string
+  context?: string
+  data: Record<string, string | number | boolean | null>[]
+  xKey?: string
+  categoryKey?: string
+  valueKey?: string
+  series?: { key: string; label?: string; color?: string }[]
+  availableChartTypes?: ("line" | "bar" | "pie")[]
+  defaultChartType?: "line" | "bar" | "pie"
+  format?: {
+    value?: "number" | "currency" | "percent"
+    locale?: string
+    currency?: string
+    compact?: boolean
+  }
+}
+```
+
+The schema validates that the model returned a chart title, an array of rows, supported chart types, and valid formatting options. `series` is used for line and bar charts. `categoryKey` and `valueKey` are used for pie charts.
+
+## States
+
+The renderer maps tool part states to component props:
+
+| State | How it renders |
+| --- | --- |
+| Ready | Parses the tool input or output and passes it through `toProps`. |
+| Loading | Uses `loadingProps` while the AI SDK part is still input-streaming or the host sets `toolMetadata.fableState` to `loading`. |
+| Empty | Uses `emptyProps` when the host sets `toolMetadata.fableState` to `empty`. |
+| Error | Uses `errorProps` when the AI SDK part errors or when the payload fails schema validation. |
+| Disabled | Renders parsed props with `isDisabled` when the host sets `toolMetadata.fableState` to `disabled`. |
+
+## Manifest
+
+The manifest is the model-routing contract for `show_chart`. It explains when to select charts, when to avoid them, and which neighboring component should win instead. Read the [Manifests guide](/docs/manifests) for the full convention.
+
+<ComponentSource src="lib/fable-ui/manifests/show-chart.md" title="lib/fable-ui/manifests/show-chart.md" language="md" />
+
+## When to use
+
+Use `show_chart` when the assistant already has static, display-ready data that is best read visually.
+
+Use line charts for trends, bar charts for comparisons, and pie charts for part-to-whole slices. Set `availableChartTypes` when the same payload can be explored in more than one view.
+
+The model must not fetch URLs, query databases, run SQL, or decide authorization. For live or private data, the host app should fetch and validate rows first, then pass safe static data into the chart payload.

@@ -14,10 +14,12 @@ import { ComponentsList } from "@/components/components-list"
 import { CopyButton } from "@/components/copy-button"
 import { getIconForLanguageExtension } from "@/components/icons"
 import {
+  ChartsPreview,
   ConfirmationCardPreview,
   DataBrowserPreview,
   FormCardPreview,
   MetricCardPreview,
+  PieChartPreview,
   ShowTablePreview,
   SuggestedActionsPreview,
 } from "@/components/fable-ui-previews"
@@ -28,20 +30,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 function getComponentsFolder() {
   const componentsFolder = source.pageTree.children.find(
@@ -64,10 +57,7 @@ function ComponentsListWrapper({ variant }: { variant?: "all" | "new" }) {
   }
 
   return (
-    <ComponentsList
-      componentsFolder={componentsFolder}
-      variant={variant}
-    />
+    <ComponentsList componentsFolder={componentsFolder} variant={variant} />
   )
 }
 
@@ -251,9 +241,10 @@ export const mdxComponents = {
       {...props}
     />
   ),
-  img: ({ className, alt, ...props }: React.ComponentProps<"img">) => (
-    <img className={cn("rounded-md", className)} alt={alt} {...props} />
-  ),
+  img: ({ className, alt, ...props }: React.ComponentProps<"img">) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img className={cn("rounded-md", className)} alt={alt} {...props} />
+  },
   hr: ({ ...props }: React.ComponentProps<"hr">) => (
     <hr className="my-4 md:my-8" {...props} />
   ),
@@ -391,7 +382,7 @@ export const mdxComponents = {
   Steps: ({ className, ...props }: React.ComponentProps<"div">) => (
     <div
       className={cn(
-        "steps mb-12 [counter-reset:step] md:ml-4 md:border-l md:pl-8 [&>h3]:step",
+        "steps [&>h3]:step mb-12 [counter-reset:step] md:ml-4 md:border-l md:pl-8",
         className
       )}
       {...props}
@@ -468,6 +459,8 @@ export const mdxComponents = {
   AspectRatio,
   CodeTabs,
   ComponentPreview,
+  ChartsPreview,
+  PieChartPreview,
   MetricCardPreview,
   SuggestedActionsPreview,
   ConfirmationCardPreview,

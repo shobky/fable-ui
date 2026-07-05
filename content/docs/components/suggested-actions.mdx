@@ -11,10 +11,49 @@ description: Render safe follow-up prompts from a validated AI tool payload.
 
 <RegistryInstallCommand itemName="suggested-actions" />
 
+Installed files include:
+
+```txt
+components/fable-ui/suggested-actions/suggested-actions.tsx
+components/fable-ui/suggested-actions/index.ts
+lib/fable-ui/tools/show-next-actions-tool.ts
+lib/fable-ui/manifests/show-next-actions.md
+lib/fable-ui/evals/show-next-actions.md
+```
+
+The component depends on shared Fable `core` plus shadcn card, button, and badge primitives.
+
+## Usage
+
+```tsx
+import { SuggestedActions } from "@/components/fable-ui/suggested-actions/suggested-actions"
+
+export function FollowUps() {
+  return (
+    <SuggestedActions
+      title="Next safe actions"
+      description="Prompt-only follow ups for the current answer."
+      actions={[
+        { label: "Compare to yesterday", prompt: "Compare this to yesterday." },
+        { label: "Show source rows", prompt: "Show the source rows." },
+      ]}
+    />
+  )
+}
+```
+
 ## Tool
 
 The AI SDK tool name is `show_next_actions`.
 
 Use it for prompt-only follow-ups such as "Compare to yesterday" or "Show the source rows". Do not use it to perform writes, deletes, charges, sends, or status changes.
 
-Installed files include `components/fable-ui/suggested-actions/*`, `lib/fable-ui/tools/show-next-actions-tool.ts`, the manifest, and eval guidance.
+## States
+
+The preview shows ready, loading, empty, error, and disabled states. Disabled suggested actions are visible but cannot be sent until the host app allows interaction.
+
+## Manifest
+
+The manifest is the copyable routing contract for prompt-only next actions. Read the [Manifests guide](/docs/manifests) for the shared format.
+
+<ComponentSource src="lib/fable-ui/manifests/show-next-actions.md" title="lib/fable-ui/manifests/show-next-actions.md" language="md" />

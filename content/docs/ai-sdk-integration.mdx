@@ -11,6 +11,8 @@ export function createShowMetricTool() { ... }
 export const showMetric = defineFableComponent({ ... })
 ```
 
+For the full schema, AI SDK tool, renderer, state, and props contract, read [Tool Definitions](/docs/tool-definitions).
+
 ## Register Tools
 
 ```ts
@@ -53,6 +55,8 @@ Unknown tool parts render a small fallback. Invalid payloads are parsed with the
 ## DataBrowser Resources
 
 `show_data_browser` should receive a `resourceId`, not database details. Register resources in host code, then add the safe manifest to your system prompt:
+
+`show_chart` renders static model-provided chart data only. Fetch private or live data in host code, validate the rows, then pass display-ready data into the chart payload.
 
 ```ts
 import { describeAvailableResources } from "@/components/fable-ui/data-browser/tool-definition"

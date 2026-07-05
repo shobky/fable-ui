@@ -26,7 +26,7 @@ export function useDataBrowserQuery<Row extends DataRow>({
   initialFilters = {},
   initialSearch = "",
   initialSort,
-  pageSize = 10,
+  pageSize = 8,
 }: {
   resourceId?: string
   rows?: Row[]

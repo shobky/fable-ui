@@ -5,6 +5,7 @@
     "installation",
     "registry",
     "manifests",
+    "tool-definitions",
     "ai-sdk-integration",
     "data-sources",
     "components",

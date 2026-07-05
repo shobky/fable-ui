@@ -25,6 +25,26 @@ lib/fable-ui/manifests/show-metric.md
 lib/fable-ui/evals/show-metric.md
 ```
 
+`MetricCard` also depends on the shared Fable `core` renderer and shadcn card, badge, and skeleton primitives.
+
+## Usage
+
+```tsx
+import { MetricCard } from "@/components/fable-ui/metric-card/metric-card"
+
+export function RevenueMetric() {
+  return (
+    <MetricCard
+      label="Revenue today"
+      value="EGP 4,200"
+      trend={{ direction: "up", delta: "+18% vs yesterday" }}
+      context="Best Monday this month"
+      variant="elevated"
+    />
+  )
+}
+```
+
 ## Payload
 
 ```ts
@@ -39,7 +59,17 @@ lib/fable-ui/evals/show-metric.md
 }
 ```
 
-## Use
+## States
+
+The preview shows ready, loading, empty, error, and disabled states. At runtime those come from the AI SDK tool part state, schema validation, or `toolMetadata.fableState`.
+
+## Manifest
+
+The manifest explains that `show_metric` is for one primary number, not tables, browsing, forms, or confirmations. Read the [Manifests guide](/docs/manifests) for the shared format.
+
+<ComponentSource src="lib/fable-ui/manifests/show-metric.md" title="lib/fable-ui/manifests/show-metric.md" language="md" />
+
+## When to use
 
 Use for totals, counts, amounts, percentages, balances, SLA values, or another KPI already computed by trusted host logic.
 

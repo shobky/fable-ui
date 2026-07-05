@@ -47,11 +47,11 @@ export const tableExample: ShowTableInput = {
     },
   ],
   rows,
-  pageSize: 10,
+  pageSize: 8,
 }
 
 export const dataBrowserExample: ShowDataBrowserInput = {
   ...tableExample,
   entityLabel: "people",
-  pageSize: 10,
+  pageSize: 8,
 }

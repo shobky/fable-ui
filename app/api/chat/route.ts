@@ -270,7 +270,10 @@ function getMockToolCall(messages: UIMessage[]) {
     }
   }
 
-  if (/metric|kpi|revenue|total/.test(prompt)) {
+  if (
+    !/chart|graph|line|bar|pie/.test(prompt) &&
+    /metric|kpi|revenue|total/.test(prompt)
+  ) {
     const input = {
       label: "Revenue today",
       value: "EGP 4,200",
@@ -282,6 +285,61 @@ function getMockToolCall(messages: UIMessage[]) {
       toolName: "show_metric",
       toolCallId: "mock-metric",
       text: "Mock mode is rendering a `show_metric` tool call.",
+      input,
+      output: input,
+    }
+  }
+
+  if (/chart|graph|line|bar|pie/.test(prompt)) {
+    const isPie = /pie|share|mix|split/.test(prompt)
+    const isBar = /bar|region|compare/.test(prompt)
+    const input = isPie
+      ? {
+          title: "Mock ticket mix",
+          description: "Static mock rows from the playground route.",
+          data: [
+            { type: "Bug", count: 42 },
+            { type: "Question", count: 28 },
+            { type: "Request", count: 18 },
+          ],
+          categoryKey: "type",
+          valueKey: "count",
+          availableChartTypes: ["pie"],
+          defaultChartType: "pie",
+        }
+      : {
+          title: isBar ? "Mock revenue by region" : "Mock monthly signups",
+          description: "Static mock rows from the playground route.",
+          data: isBar
+            ? [
+                { region: "North", revenue: 4200 },
+                { region: "South", revenue: 3700 },
+                { region: "West", revenue: 3150 },
+              ]
+            : [
+                { month: "Jan", direct: 120, referral: 84 },
+                { month: "Feb", direct: 148, referral: 96 },
+                { month: "Mar", direct: 172, referral: 118 },
+                { month: "Apr", direct: 196, referral: 132 },
+              ],
+          xKey: isBar ? "region" : "month",
+          series: isBar
+            ? [{ key: "revenue", label: "Revenue" }]
+            : [
+                { key: "direct", label: "Direct" },
+                { key: "referral", label: "Referral" },
+              ],
+          availableChartTypes: isBar ? ["bar"] : ["line", "bar"],
+          defaultChartType: isBar ? "bar" : "line",
+          format: isBar
+            ? { value: "currency", currency: "USD", compact: true }
+            : undefined,
+        }
+
+    return {
+      toolName: "show_chart",
+      toolCallId: "mock-chart",
+      text: "Mock mode is rendering a `show_chart` tool call.",
       input,
       output: input,
     }
@@ -306,7 +364,7 @@ function getMockToolCall(messages: UIMessage[]) {
     }
   }
 
-  const rows = createMockRows(150)
+  const rows = createMockRows(40)
   const input = {
     title: /table/.test(prompt) ? "Mock people table" : "Mock people browser",
     entityLabel: "people",

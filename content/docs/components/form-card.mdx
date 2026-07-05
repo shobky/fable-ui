@@ -11,6 +11,37 @@ description: Collect a few structured fields mid-conversation.
 
 <RegistryInstallCommand itemName="form-card" />
 
+Installed files include:
+
+```txt
+components/fable-ui/form-card/form-card.tsx
+components/fable-ui/form-card/index.ts
+lib/fable-ui/tools/collect-input-tool.ts
+lib/fable-ui/manifests/collect-input.md
+lib/fable-ui/evals/collect-input.md
+```
+
+The component depends on shared Fable `core` plus shadcn card, button, input, and textarea primitives.
+
+## Usage
+
+```tsx
+import { FormCard } from "@/components/fable-ui/form-card/form-card"
+
+export function CollectRefundReason() {
+  return (
+    <FormCard
+      title="Collect refund reason"
+      description="The host validates submitted values before writing."
+      fields={[
+        { name: "reason", label: "Reason", type: "textarea", required: true },
+        { name: "notify", label: "Notify customer", type: "toggle" },
+      ]}
+    />
+  )
+}
+```
+
 ## Tool
 
 The AI SDK tool name is `collect_input`.
@@ -20,3 +51,13 @@ Supported field types are `text`, `number`, `select`, `date`, `textarea`, and `t
 Use this for missing structured values, not for long multi-step workflows. The host receives submitted values and validates them before any side effect.
 
 The playground's mock credential mode can render a valid `collect_input` tool call without a live provider. Ask for a form, or ask for an invalid form payload to verify the component-level error state.
+
+## States
+
+The preview shows ready, loading, empty, error, and disabled states. Disabled form fields are useful when submitted values are being checked or when the host app needs to prevent duplicate submissions.
+
+## Manifest
+
+The manifest tells the model when to ask for a small structured input handoff. Read the [Manifests guide](/docs/manifests) for the shared format.
+
+<ComponentSource src="lib/fable-ui/manifests/collect-input.md" title="lib/fable-ui/manifests/collect-input.md" language="md" />

@@ -5,6 +5,7 @@
     "suggested-actions",
     "confirmation-card",
     "form-card",
-    "data-browser"
+    "data-browser",
+    "charts"
   ]
 }

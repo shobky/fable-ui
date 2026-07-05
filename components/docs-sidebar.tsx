@@ -33,6 +33,10 @@ const TOP_LEVEL_SECTIONS = [
     href: "/docs/manifests",
   },
   {
+    name: "Tool Definitions",
+    href: "/docs/tool-definitions",
+  },
+  {
     name: "AI SDK Integration",
     href: "/docs/ai-sdk-integration",
   },

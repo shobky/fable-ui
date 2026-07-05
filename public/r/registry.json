@@ -344,6 +344,60 @@
       ]
     },
     {
+      "name": "charts",
+      "type": "registry:block",
+      "title": "Charts",
+      "description": "Render static AI-provided chart payloads using shadcn chart conventions and Recharts.",
+      "dependencies": ["ai", "zod", "recharts"],
+      "registryDependencies": [
+        "alert",
+        "card",
+        "badge",
+        "chart",
+        "empty",
+        "skeleton",
+        "tabs",
+        "shobky/fable-ui/core"
+      ],
+      "files": [
+        {
+          "path": "components/fable-ui/charts/index.ts",
+          "type": "registry:block",
+          "target": "components/fable-ui/charts/index.ts"
+        },
+        {
+          "path": "components/fable-ui/charts/charts.tsx",
+          "type": "registry:block",
+          "target": "components/fable-ui/charts/charts.tsx"
+        },
+        {
+          "path": "components/fable-ui/charts/charts.types.ts",
+          "type": "registry:block",
+          "target": "components/fable-ui/charts/charts.types.ts"
+        },
+        {
+          "path": "components/fable-ui/charts/tool-definition.ts",
+          "type": "registry:block",
+          "target": "components/fable-ui/charts/tool-definition.ts"
+        },
+        {
+          "path": "lib/fable-ui/tools/show-chart-tool.ts",
+          "type": "registry:lib",
+          "target": "lib/fable-ui/tools/show-chart-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/show-chart.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/manifests/show-chart.md"
+        },
+        {
+          "path": "lib/fable-ui/evals/show-chart.md",
+          "type": "registry:file",
+          "target": "lib/fable-ui/evals/show-chart.md"
+        }
+      ]
+    },
+    {
       "name": "rest-driver",
       "type": "registry:lib",
       "title": "REST Data Source Driver",

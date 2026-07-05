@@ -11,6 +11,36 @@ description: Ask for explicit confirmation before host side effects.
 
 <RegistryInstallCommand itemName="confirmation-card" />
 
+Installed files include:
+
+```txt
+components/fable-ui/confirmation-card/confirmation-card.tsx
+components/fable-ui/confirmation-card/index.ts
+lib/fable-ui/tools/request-confirmation-tool.ts
+lib/fable-ui/manifests/request-confirmation.md
+lib/fable-ui/evals/request-confirmation.md
+```
+
+The component depends on shared Fable `core` plus shadcn card, button, and badge primitives.
+
+## Usage
+
+```tsx
+import { ConfirmationCard } from "@/components/fable-ui/confirmation-card/confirmation-card"
+
+export function RefundConfirmation() {
+  return (
+    <ConfirmationCard
+      id="refund-1007"
+      title="Refund order 1007?"
+      description="The host app will run the refund after confirmation."
+      variant="warning"
+      details={["Amount: EGP 420", "Reason: duplicate charge"]}
+    />
+  )
+}
+```
+
 ## Tool
 
 The AI SDK tool name is `request_confirmation`.
@@ -18,3 +48,13 @@ The AI SDK tool name is `request_confirmation`.
 Confirmation UI is not authorization. Host APIs must still enforce authentication, permissions, validation, and idempotency.
 
 The component only captures an explicit user decision. The host decides whether the requested action is allowed and how it is executed.
+
+## States
+
+The preview shows ready, loading, empty, error, and disabled states. The disabled state is useful when the host app is still checking permissions or when a previous decision is being processed.
+
+## Manifest
+
+The manifest tells the model to use `request_confirmation` before host side effects, not as proof of authorization. Read the [Manifests guide](/docs/manifests) for the shared format.
+
+<ComponentSource src="lib/fable-ui/manifests/request-confirmation.md" title="lib/fable-ui/manifests/request-confirmation.md" language="md" />

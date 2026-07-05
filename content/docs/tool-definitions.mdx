@@ -1,0 +1,150 @@
+---
+title: Tool Definitions
+description: Understand Fable UI schemas, AI SDK tools, renderer contracts, and tool part states.
+---
+
+Tool definitions connect three things that need to agree with each other:
+
+- The Vercel AI SDK tool the model is allowed to call.
+- The Zod schema that validates the tool payload.
+- The React component renderer that turns a streamed tool part into UI props.
+
+Every Fable component exports a `defineFableComponent(...)` object. That object is the bridge between model output and rendered UI.
+
+## Example
+
+This is the `show_chart` definition shape:
+
+```ts
+export const showChart = defineFableComponent({
+  name: "show_chart",
+  schema: showChartInputSchema,
+  tool: showChartTool,
+  renderer: {
+    Component: Charts,
+    loadingProps: { title: "Charts", data: [], isLoading: true },
+    emptyProps: { title: "Charts", data: [] },
+    errorProps: (description: string) => ({
+      title: "Charts unavailable",
+      data: [],
+      error: { title: "Charts unavailable", description },
+    }),
+    toProps: (data: ShowChartInput) => ({ ...data }),
+  },
+})
+```
+
+## `name`
+
+`name` is the stable tool name. It should match the key you register with the AI SDK and the tool part name you expect to render later.
+
+```ts
+const tools = {
+  show_chart: showChart.tool,
+}
+```
+
+The renderer also uses this name to look up the right Fable component when it receives a tool part.
+
+## `schema`
+
+`schema` is a Zod schema for the component payload. It does two jobs:
+
+- It becomes the AI SDK tool input schema, which tells the model what shape it can call.
+- It validates streamed tool parts before React props are created.
+
+If validation fails, Fable does not render the happy-path component props. It calls `renderer.errorProps(...)` and shows the component error state instead.
+
+## `tool`
+
+`tool` is the Vercel AI SDK tool object. Fable tools are usually created with `tool({ inputSchema, description, execute })` from `ai`.
+
+```ts
+import { tool } from "ai"
+
+export function createShowChartTool() {
+  return tool({
+    description:
+      "Show a chart from static, display-ready data already available in the conversation.",
+    inputSchema: showChartInputSchema,
+    execute: async (input) => input,
+  })
+}
+```
+
+Fable UI tools generally echo validated input from `execute`. The host app is responsible for real data access, permission checks, writes, and side effects. For example, a chart tool should not query a private database directly from model-supplied SQL. Your backend fetches the data, validates it, and passes a safe chart payload to the UI.
+
+## `renderer`
+
+`renderer` tells Fable how to render each tool state.
+
+| Field | Purpose |
+| --- | --- |
+| `Component` | The React component to render for this tool. |
+| `loadingProps` | Props used while the AI SDK tool part is still streaming. |
+| `emptyProps` | Props used when the host marks the tool part as empty. |
+| `errorProps` | A function that receives an error description and returns component error props. |
+| `toProps` | Converts validated schema data into the component props. |
+
+`toProps` is where component-specific adaptation belongs. `show_chart` can pass data through directly. `show_data_browser` uses `resolveDataBrowserIntent(...)` because it may need to resolve a `resourceId`, static rows, filters, sort state, and action intents into a single browser surface.
+
+## Rendering tool parts
+
+Register tools when calling `streamText`:
+
+```ts
+import { streamText } from "ai"
+import { showChart } from "@/lib/fable-ui/tools/show-chart-tool"
+
+const result = streamText({
+  model,
+  messages,
+  tools: {
+    show_chart: showChart.tool,
+  },
+  toolChoice: "auto",
+})
+```
+
+Render tool parts with `FableToolPart`:
+
+```tsx
+import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
+import { showChart } from "@/lib/fable-ui/tools/show-chart-tool"
+
+const registry = {
+  show_chart: showChart,
+}
+
+export function ToolPart({ part }: { part: unknown }) {
+  return <FableToolPart part={part} registry={registry} />
+}
+```
+
+`FableToolPart` finds the tool name from `part.toolName` or from a `tool-*` part type, looks up the matching definition, validates `part.output ?? part.input`, and renders the configured component.
+
+## States and props
+
+The renderer supports normal AI SDK states and Fable-specific metadata:
+
+| State source | Result |
+| --- | --- |
+| `part.state === "input-streaming"` | Render `loadingProps`. |
+| `part.state === "output-error"` | Render `errorProps(part.errorText)`. |
+| `toolMetadata.fableState === "loading"` | Render `loadingProps`. |
+| `toolMetadata.fableState === "empty"` | Render `emptyProps`. |
+| `toolMetadata.fableState === "error"` | Render `errorProps(...)`. |
+| `toolMetadata.fableState === "disabled"` | Render parsed props with `isDisabled`. |
+| Schema parse failure | Render `errorProps("The tool result did not match the expected data contract.")`. |
+
+This is why component previews show ready, loading, empty, error, and disabled states. Those states are not just visual examples. They mirror how the AI SDK stream and host app metadata are handled at runtime.
+
+## Manifests
+
+Tool definitions are runtime code. Manifests are routing guidance for the model. Keep them aligned:
+
+- The tool definition says what payload is valid.
+- The manifest says when the model should choose that tool.
+- The component docs show how humans install, render, and safely operate it.
+
+Read [Manifests](/docs/manifests) for manifest conventions and examples.
