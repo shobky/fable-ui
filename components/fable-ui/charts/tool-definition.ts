@@ -1,9 +1,13 @@
+import { lazy } from "react"
 import { tool } from "ai"
 import { z } from "zod"
 
-import { Charts } from "@/components/fable-ui/charts/charts"
 import { defineFableComponent } from "@/lib/fable-ui/core"
 import { chartTypes } from "./charts.types"
+
+const Charts = lazy(() =>
+  import("./charts").then((module) => ({ default: module.Charts })),
+)
 
 const chartTypeSchema = z.enum(chartTypes)
 const chartValueSchema = z.union([

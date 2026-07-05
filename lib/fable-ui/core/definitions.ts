@@ -1,4 +1,4 @@
-import type { ComponentType } from "react"
+import type { ComponentType, LazyExoticComponent } from "react"
 import type { Tool } from "ai"
 import type { z } from "zod"
 
@@ -30,12 +30,16 @@ export type ToolPartLike = {
   }
 }
 
+export type FableRenderableComponent<TProps extends object> =
+  | ComponentType<TProps>
+  | LazyExoticComponent<ComponentType<TProps>>
+
 export interface FableComponent<TSchema extends z.ZodType = z.ZodType, TProps extends object = Record<string, unknown>> {
   name: string
   schema: TSchema
   tool: Tool
   renderer: {
-    Component: ComponentType<TProps>
+    Component: FableRenderableComponent<TProps>
     loadingProps: TProps
     emptyProps: TProps
     errorProps: (description: string) => TProps

@@ -1,3 +1,4 @@
+import * as React from "react"
 import type { ReactNode } from "react"
 
 import {
@@ -13,6 +14,17 @@ function UnknownToolPart({ name }: { name: string }) {
     <div className="rounded-md border bg-muted/40 p-4 text-sm text-muted-foreground">
       Unknown Fable tool part: <code>{name}</code>
     </div>
+  )
+}
+
+function renderComponent(
+  Component: FableToolRegistry[string]["renderer"]["Component"],
+  props: Record<string, unknown>,
+) {
+  return (
+    <React.Suspense fallback={null}>
+      <Component {...props} />
+    </React.Suspense>
   )
 }
 
@@ -36,43 +48,42 @@ export function renderFableToolPart({
   const isDisabled = fableState === "disabled"
 
   if (part.state === "input-streaming" || fableState === "loading") {
-    return <def.renderer.Component {...def.renderer.loadingProps} />
+    return renderComponent(def.renderer.Component, def.renderer.loadingProps)
   }
 
   if (part.state === "output-error" || fableState === "error") {
-    return (
-      <def.renderer.Component
-        {...def.renderer.errorProps(part.errorText || "The tool result could not be rendered.")}
-      />
+    return renderComponent(
+      def.renderer.Component,
+      def.renderer.errorProps(part.errorText || "The tool result could not be rendered."),
     )
   }
 
   if (fableState === "empty") {
-    return <def.renderer.Component {...def.renderer.emptyProps} />
+    return renderComponent(def.renderer.Component, def.renderer.emptyProps)
   }
 
   const parsed = def.schema.safeParse(part.output ?? part.input)
 
   if (!parsed.success) {
-    return (
-      <def.renderer.Component
-        {...def.renderer.errorProps("The tool result did not match the expected data contract.")}
-      />
+    return renderComponent(
+      def.renderer.Component,
+      def.renderer.errorProps("The tool result did not match the expected data contract."),
     )
   }
 
   try {
-    return (
-      <def.renderer.Component
-        {...def.renderer.toProps(parsed.data, handlers)}
-        {...({ isDisabled } as object)}
-      />
+    return renderComponent(
+      def.renderer.Component,
+      {
+        ...def.renderer.toProps(parsed.data, handlers),
+        isDisabled,
+      },
     )
   } catch (error) {
     const description =
       error instanceof ToolPayloadError ? error.message : "Unexpected error rendering component."
 
-    return <def.renderer.Component {...def.renderer.errorProps(description)} />
+    return renderComponent(def.renderer.Component, def.renderer.errorProps(description))
   }
 }
 
