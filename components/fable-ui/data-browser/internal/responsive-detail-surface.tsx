@@ -14,7 +14,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 import * as React from "react"
-import type { DataBrowserRowAction } from "../data-browser.types"
+import type { DataBrowserDetail, DataBrowserRowAction } from "../data-browser.types"
 import { RowDetail } from "./row-detail"
 
 function useIsMobile() {
@@ -38,6 +38,7 @@ export function ResponsiveDetailSurface<Row extends DataRow>({
   title,
   description,
   columns,
+  detail,
   actions,
   actionError,
   pendingActionId,
@@ -49,6 +50,7 @@ export function ResponsiveDetailSurface<Row extends DataRow>({
   title: string
   description?: string
   columns: DataColumn[]
+  detail?: DataBrowserDetail<Row>
   actions: DataBrowserRowAction<Row>[]
   actionError?: string | null
   pendingActionId?: string | null
@@ -58,20 +60,23 @@ export function ResponsiveDetailSurface<Row extends DataRow>({
 }) {
   const isMobile = useIsMobile()
   const isOpen = Boolean(row)
+  const resolvedTitle = detail?.title ?? title
+  const resolvedDescription = detail?.description ?? description
 
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={(open) => (!open ? onClose() : undefined)}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>{title}</DrawerTitle>
-            {description ? <DrawerDescription>{description}</DrawerDescription> : null}
+            <DrawerTitle>{resolvedTitle}</DrawerTitle>
+            {resolvedDescription ? <DrawerDescription>{resolvedDescription}</DrawerDescription> : null}
           </DrawerHeader>
           <div className="max-h-[70vh] overflow-y-auto px-4 pb-4">
             {row ? (
               <RowDetail
                 row={row}
                 columns={columns}
+                detail={detail}
                 actions={actions}
                 actionError={actionError}
                 pendingActionId={pendingActionId}
@@ -89,13 +94,14 @@ export function ResponsiveDetailSurface<Row extends DataRow>({
     <Dialog open={isOpen} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description ? <DialogDescription>{description}</DialogDescription> : null}
+          <DialogTitle>{resolvedTitle}</DialogTitle>
+          {resolvedDescription ? <DialogDescription>{resolvedDescription}</DialogDescription> : null}
         </DialogHeader>
         {row ? (
           <RowDetail
             row={row}
             columns={columns}
+            detail={detail}
             actions={actions}
             actionError={actionError}
             pendingActionId={pendingActionId}

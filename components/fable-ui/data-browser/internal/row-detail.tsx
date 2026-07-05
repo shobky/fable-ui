@@ -3,11 +3,12 @@ import * as React from "react"
 import { formatDataCell, type DataColumn, type DataRow } from "@/lib/fable-ui/core"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { DataBrowserRowAction } from "../data-browser.types"
+import type { DataBrowserDetail, DataBrowserRowAction } from "../data-browser.types"
 
 export function RowDetail<Row extends DataRow>({
   row,
   columns,
+  detail,
   actions,
   actionError,
   pendingActionId,
@@ -16,6 +17,7 @@ export function RowDetail<Row extends DataRow>({
 }: {
   row: Row
   columns: DataColumn[]
+  detail?: DataBrowserDetail<Row>
   actions: DataBrowserRowAction<Row>[]
   actionError?: string | null
   pendingActionId?: string | null
@@ -28,17 +30,28 @@ export function RowDetail<Row extends DataRow>({
     return <>{renderDetail(row)}</>
   }
 
+  const detailFields = new Set(detail?.fields ?? [])
+  const visibleColumns = columns.filter(
+    (column) =>
+      !column.hidden &&
+      (detailFields.size === 0 || detailFields.has(column.key))
+  )
+
   return (
     <div className="flex flex-col gap-4">
       <dl className="grid gap-3 sm:grid-cols-2">
-        {columns
-          .filter((column) => !column.hidden)
-          .map((column) => (
-            <div key={column.key} className="rounded-md bg-muted/50 p-3">
-              <dt className="text-xs text-muted-foreground">{column.label}</dt>
-              <dd className="mt-1 text-sm font-medium">{formatDataCell(row, column)}</dd>
+        {visibleColumns.map((column) => {
+          const formattedValue = formatDataCell(row, column)
+
+          return (
+            <div key={column.key} className="rounded-md border bg-muted/30 p-3">
+              <dt className="text-xs font-medium text-muted-foreground">{column.label}</dt>
+              <dd className="mt-1 break-words text-sm font-medium leading-6">
+                {formattedValue === "" ? "-" : formattedValue}
+              </dd>
             </div>
-          ))}
+          )
+        })}
       </dl>
       {actionError ? (
         <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">

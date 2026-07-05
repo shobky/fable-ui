@@ -24,6 +24,7 @@ export type DataBrowserIntent<Row extends DataRow = DataRow> = {
   initialSearch?: string
   pageSize?: number
   visibleColumns?: string[]
+  detail?: DataBrowserProps<Row>["detail"]
 }
 
 export function resolveDataBrowserIntent<Row extends DataRow = DataRow>(
@@ -44,6 +45,7 @@ export function resolveDataBrowserIntent<Row extends DataRow = DataRow>(
       initialSort: intent.initialSort,
       initialSearch: intent.initialSearch,
       pageSize: intent.pageSize,
+      detail: intent.detail,
     }
   }
 
@@ -84,5 +86,6 @@ export function resolveDataBrowserIntent<Row extends DataRow = DataRow>(
     initialSort: intent.initialSort,
     initialSearch: intent.initialSearch,
     pageSize: intent.pageSize,
+    detail: intent.detail,
   }
 }

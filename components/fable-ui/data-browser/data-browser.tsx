@@ -1,11 +1,8 @@
 "use client"
 
 import { cva } from "class-variance-authority"
-import { Maximize2Icon, Minimize2Icon } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -68,7 +65,9 @@ export function DataBrowser<Row extends DataRow = DataRow>({
   initialSearch,
   initialSort,
   pageSize = 8,
+  detail: detailConfig,
   rowActions,
+  onViewRow,
   onRowAction,
   onRowActionSuccess,
   renderDetail,
@@ -78,8 +77,6 @@ export function DataBrowser<Row extends DataRow = DataRow>({
   variant,
   size = "md",
 }: DataBrowserProps<Row>) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const expandButtonRef = useRef<HTMLButtonElement>(null)
   const effectiveFilters = filters ?? getFallbackFilters(rows, columns)
   const effectiveSortOptions = sortOptions ?? getFallbackSortOptions(columns)
   const detail = useRowDetailSurface<Row>()
@@ -114,46 +111,34 @@ export function DataBrowser<Row extends DataRow = DataRow>({
   const hasPreviousPage = Boolean(query.previousCursor || query.page > 1)
   const resolvedEntityLabel =
     entityLabel || query.resource?.entityLabel || "rows"
+  const shouldShowDetails = Boolean(
+    detailConfig ||
+      renderDetail ||
+      onViewRow ||
+      actions.length > 0
+  )
 
-  useEffect(() => {
-    if (!isExpanded) {
+  function viewRow(row: Row) {
+    if (onViewRow) {
+      onViewRow(row)
       return
     }
 
-    const previousOverflow = document.body.style.overflow
-
-    document.body.style.overflow = "hidden"
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsExpanded(false)
-        window.requestAnimationFrame(() => expandButtonRef.current?.focus())
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [isExpanded])
+    detail.open(row)
+  }
 
   return (
     <>
       <Card
         className={cn(
           dataBrowserVariants({ variant, size }),
-          "transition-[border-radius,box-shadow,transform,opacity] duration-200",
-          isExpanded &&
-            "fixed inset-0 z-40 flex h-[100svh] max-h-[100svh] w-screen max-w-none rounded-none border-0",
+          "transition-[box-shadow,opacity] duration-200",
           isDisabled && "opacity-60"
         )}
         data-fable-ui="data-browser"
-        data-expanded={isExpanded || undefined}
         aria-busy={busy || undefined}
       >
-        <CardHeader className={cn(isExpanded && "shrink-0 border-b")}>
+        <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-1">
               <CardTitle className="text-base">
@@ -170,31 +155,13 @@ export function DataBrowser<Row extends DataRow = DataRow>({
                   ? resolvedEntityLabel.replace(/s$/, "")
                   : resolvedEntityLabel}
               </Badge>
-              {/* <Button
-                ref={expandButtonRef}
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={
-                  isExpanded ? "Minimize data browser" : "Expand data browser"
-                }
-                aria-expanded={isExpanded}
-                onClick={() => setIsExpanded((value) => !value)}
-              >
-                {isExpanded ? (
-                  <Minimize2Icon data-icon="inline-start" aria-hidden="true" />
-                ) : (
-                  <Maximize2Icon data-icon="inline-start" aria-hidden="true" />
-                )}
-              </Button> */}
             </div>
           </div>
         </CardHeader>
         <CardContent
           className={cn(
             "flex min-h-0 flex-col",
-            contentGap[size],
-            isExpanded && "flex-1"
+            contentGap[size]
           )}
         >
           <DataBrowserToolbar
@@ -227,11 +194,8 @@ export function DataBrowser<Row extends DataRow = DataRow>({
             columns={columns}
             rows={query.rows}
             entityLabel={resolvedEntityLabel}
-            isExpanded={isExpanded}
             isDisabled={isDisabled}
-            onOpenRow={
-              renderDetail || actions.length > 0 ? detail.open : undefined
-            }
+            onViewRow={shouldShowDetails ? viewRow : undefined}
           />
           <PaginationFooter
             page={query.page}
@@ -249,6 +213,7 @@ export function DataBrowser<Row extends DataRow = DataRow>({
         title={`${title || "Detail"} detail`}
         description={description}
         columns={columns}
+        detail={detailConfig}
         actions={actions}
         actionError={browserActions.actionError}
         pendingActionId={browserActions.pendingActionId}

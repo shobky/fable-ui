@@ -37,7 +37,9 @@ export type DataBrowserProps<Row extends DataRow = DataRow> = {
   initialSearch?: string
   initialSort?: SortState
   pageSize?: number
+  detail?: DataBrowserDetail<Row>
   rowActions?: DataBrowserRowAction<Row>[]
+  onViewRow?: (row: Row) => void
   onRowAction?: (
     action: DataBrowserRowAction<Row>,
     row: Row,

@@ -67,36 +67,31 @@ export function TableView<Row extends DataRow>({
   columns,
   rows,
   entityLabel,
-  isExpanded,
   isDisabled,
-  onOpenRow,
+  onViewRow,
 }: {
   columns: DataColumn[]
   rows: Row[]
   entityLabel: string
-  isExpanded?: boolean
   isDisabled?: boolean
-  onOpenRow?: (row: Row) => void
+  onViewRow?: (row: Row) => void
 }) {
   const visibleColumns = columns.filter((column) => !column.hidden)
   const columnWidths = visibleColumns.map((column, index) =>
     getColumnMinWidth(column, index === 0)
   )
-  const actionColumnWidth = onOpenRow ? 112 : 0
+  const actionColumnWidth = onViewRow ? 112 : 0
   const tableMinWidth = Math.max(
     visibleColumns.length
       ? columnWidths.reduce((total, width) => total + width, actionColumnWidth)
       : 320,
     640
   )
-  const colSpan = Math.max(1, visibleColumns.length + (onOpenRow ? 1 : 0))
+  const colSpan = Math.max(1, visibleColumns.length + (onViewRow ? 1 : 0))
 
   return (
     <div
-      className={cn(
-        "min-h-0 overflow-auto rounded-md border scrollbar-pretty",
-        isExpanded ? "flex-1" : "max-h-[min(60vh,36rem)]"
-      )}
+      className="min-h-0 overflow-auto rounded-md border scrollbar-pretty max-h-[min(60vh,36rem)]"
     >
       <table
         className="w-full table-auto text-sm"
@@ -120,8 +115,8 @@ export function TableView<Row extends DataRow>({
                 {column.label}
               </th>
             ))}
-            {onOpenRow ? (
-              <th className="w-28 px-3 py-2 text-right font-medium">Detail</th>
+            {onViewRow ? (
+              <th className="w-28 px-3 py-2 text-right font-medium">View</th>
             ) : null}
           </tr>
         </thead>
@@ -174,16 +169,16 @@ export function TableView<Row extends DataRow>({
                     </td>
                   )
                 })}
-                {onOpenRow ? (
+                {onViewRow ? (
                   <td className="px-3 py-2 text-right">
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       disabled={isDisabled}
-                      onClick={() => onOpenRow(row)}
+                      onClick={() => onViewRow(row)}
                     >
-                      Open
+                      View
                     </Button>
                   </td>
                 ) : null}
