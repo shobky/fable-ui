@@ -113,7 +113,7 @@ export function LandingPlaygroundDemo() {
 
   return (
     <section className="mx-auto max-w-6xl flex w-full flex-col gap-4 px-4 pb-16 sm:px-6 lg:px-8">
-      <div className="overflow-hidden rounded-[2rem] bg-secondary/20">
+      <div className="overflow-hidden rounded-[2rem] bg-secondary/20 pb-4">
         <div className="grid sm:min-h-[620px]">
           <div className="flex min-w-0 flex-col">
             <div className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3 sm:px-6">
@@ -546,7 +546,7 @@ function DemoComposer({
       className="sticky bottom-0 z-10  px-4 pb-4 pt-3 backdrop-blur-xl sm:px-6"
     >
       <div className="mx-auto max-w-3xl">
-        <div className="min-h-20 rounded-[2rem] bg-card/90 p-2  ring-1 ring-foreground/5">
+        <div className="min-h-10 rounded-[2rem] bg-card/90 p-2  ring-1 ring-foreground/5">
           <textarea
             value={value}
             onChange={(event) => onChange(event.target.value)}
@@ -563,9 +563,6 @@ function DemoComposer({
             className="min-h-10 w-full resize-none rounded-[1.5rem] bg-transparent px-3 py-3 text-base outline-none placeholder:text-muted-foreground disabled:opacity-75"
           />
           <div className="flex items-center justify-end gap-3 p-4">
-            <span className="hidden truncate text-sm text-muted-foreground sm:inline-flex gap-2 items-center ">
-              {Icons.gemini({ className: "size-3.5" })}
-              gemini-3.5-flash</span>
             <button
               type="button"
               disabled={disabled || value.trim().length === 0}

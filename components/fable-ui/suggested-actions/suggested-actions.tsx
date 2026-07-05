@@ -59,7 +59,7 @@ export function SuggestedActions({
               key={`${action.label}-${action.prompt}`}
               type="button"
               variant="outline"
-              className="h-auto justify-start whitespace-normal rounded-md px-3 py-2 text-left"
+              className="h-auto justify-start whitespace-normal px-3 py-2 text-left "
               disabled={isDisabled}
               onClick={() => onAction?.(action)}
             >

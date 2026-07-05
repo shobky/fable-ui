@@ -48,8 +48,8 @@ export const metadata: Metadata = {
 
 export default function IndexPage() {
   return (
-    <div className="flex flex-1 flex-col">
-      <PageHeader className="md:**:[.container]:pb-8 lg:**:[.container]:pb-12">
+    <div className="flex flex-1 flex-col ">
+      <PageHeader className="md:**:[.container]:pb-8  lg:**:[.container]:pb-12">
         <Announcement />
         <PageHeaderHeading className="max-w-4xl">{title}</PageHeaderHeading>
         <PageHeaderDescription>{description}</PageHeaderDescription>
