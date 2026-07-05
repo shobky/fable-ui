@@ -6,6 +6,8 @@ import {
   Ban,
   Check,
   ChevronDown,
+  Edit,
+  Edit2,
   Eye,
   EyeOff,
   KeyRound,
@@ -150,9 +152,7 @@ export function ProviderSettings({
     <div className="flex max-h-[75svh] flex-col gap-5 overflow-y-auto px-4 pb-6 pt-1 sm:px-6">
       {/* ── Status summary ─────────────────────────────────────────── */}
       <div
-        className={`flex items-start gap-3 rounded-lg border px-3 py-3 text-sm ${
-          isReady ? "border-green-500/25 bg-green-500/5" : "border-destructive/25 bg-destructive/5"
-        }`}
+        className={`flex items-start gap-3 rounded-lg text-sm`}
       >
         <span
           className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full ${
@@ -162,7 +162,9 @@ export function ProviderSettings({
           {isReady ? <Check className="size-3.5" /> : <Ban className="size-3.5" />}
         </span>
         <div className="min-w-0">
-          <p className="font-medium">
+          <p className={`font-medium ${
+          isReady ? "text-green-500" : "text-red-500"
+        }`}>
             {selectedProvider.label} · {model || selectedProvider.defaultModel}
           </p>
           <p className="text-xs text-muted-foreground">
@@ -239,20 +241,15 @@ export function ProviderSettings({
                 type="button"
                 disabled={disabled}
                 onClick={() => onCredentialSourceChange(source)}
-                className={`flex flex-col gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                className={`flex flex-col gap-1  rounded-xl border px-3 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                   active
-                    ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                    ? "bg-secondary"
                     : "border-border/60 hover:border-border"
                 }`}
               >
                 <span className="flex items-center gap-1.5 font-medium">
                   <Icon className="size-3.5" />
                   {meta.label}
-                  {source === "browser-key" && eligibleKeys.length > 0 ? (
-                    <Badge variant="secondary" className="ml-auto px-1.5 py-0 text-[10px]">
-                      {eligibleKeys.length}
-                    </Badge>
-                  ) : null}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {disabled
@@ -301,7 +298,7 @@ export function ProviderSettings({
 
       {/* ── Manage keys (collapsed by default) ─────────────────────── */}
       <details
-        className="group rounded-lg border border-border/60"
+        className="group rounded-xl border border-border/60"
         open={manageOpen}
         onToggle={(event) => setManageOpen(event.currentTarget.open)}
       >
@@ -414,14 +411,14 @@ export function ProviderSettings({
                     </div>
 
                     <div className="flex shrink-0 gap-1 self-end sm:self-auto">
-                      <Button type="button" size="icon-sm" variant="ghost" title="Test key" onClick={() => handleTestKey(key.id)}>
-                        <TestTube2 className="size-4" />
+                      <Button type="button" size="sm" variant="ghost" title="Test key" onClick={() => handleTestKey(key.id)}>
+                       Test
                       </Button>
                       <Button type="button" size="icon-sm" variant="ghost" title="Rename" onClick={() => handleRenameKey(key)}>
-                        <Pencil className="size-4" />
+                        <Edit className="size-4" />
                       </Button>
                       <Button type="button" size="icon-sm" variant="ghost" title="Delete" onClick={() => onDeleteKey(key.id)}>
-                        <Trash2 className="size-4 text-destructive" />
+                        <Trash2 className="size-4" />
                       </Button>
                     </div>
                   </div>
