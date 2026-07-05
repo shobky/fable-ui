@@ -1,11 +1,21 @@
+// components/provider-settings.tsx
 "use client";
 
-import {
-  AlertCircleIcon,
-  CheckmarkCircle02Icon,
-  Settings02Icon,
-} from "@hugeicons/core-free-icons";
 import { useMemo, useState } from "react";
+import {
+  Ban,
+  Check,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Loader,
+  Pencil,
+  Plus,
+  Server,
+  TestTube2,
+  Trash2,
+} from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HugeIcon } from "@/components/hugeicon";
 import {
   type ProviderCredentialSource,
   modelCatalog,
@@ -28,7 +37,6 @@ import {
   ProviderReadiness,
 } from "@/lib/ai/provider-config";
 import { type StoredProviderKey, isKeyEligibleForModel } from "@/lib/ai/client-provider-key-store";
-import { Eye, EyeOff, Loader } from "lucide-react";
 
 export type ProviderSettingsProps = {
   providerReadiness: ProviderReadiness[];
@@ -53,6 +61,13 @@ export type ProviderSettingsProps = {
   onTestKey: (keyId: string) => Promise<void>;
 };
 
+const sourceMeta: Record<ProviderCredentialSource,
+  { icon: typeof Server; label: string; blurb: string }> = {
+  "server-env": { icon: Server, label: "Server key", blurb: "Uses the key configured in the deployment env." },
+  "browser-key": { icon: KeyRound, label: "Browser key", blurb: "Uses a key you saved, encrypted, in this browser." },
+  "session-key": { icon: KeyRound, label: "Session key", blurb: "Uses a key provided for this session only." },
+  none: { icon: Ban, label: "None", blurb: "Requests run in mock mode, no provider is called." },
+};
 
 export function ProviderSettings({
   provider,
@@ -78,6 +93,8 @@ export function ProviderSettings({
   const [scope, setScope] = useState<"*" | "model">("*");
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [manageOpen, setManageOpen] = useState(false);
+
   const selectedProvider =
     providerReadiness.find((candidate) => candidate.id === provider) || providerReadiness[0]!;
   const modelOptions = modelCatalog[provider] || [selectedProvider.defaultModel];
@@ -85,16 +102,13 @@ export function ProviderSettings({
     () => localKeys.filter((key) => isKeyEligibleForModel(key, provider, model)),
     [localKeys, model, provider],
   );
+  const providerKeys = useMemo(
+    () => localKeys.filter((key) => key.provider === provider),
+    [localKeys, provider],
+  );
   const readiness = selectedProvider.modelReadiness?.[model];
   const selectedKey = localKeys.find((key) => key.id === selectedKeyId);
-  const sourceLabel =
-    credentialSource === "server-env"
-      ? "server environment"
-      : credentialSource === "browser-key"
-        ? `local key${selectedKey ? ` "${selectedKey.label}"` : ""}`
-        : credentialSource === "session-key"
-          ? "session key"
-          : "no credentials";
+  const isReady = Boolean(readiness?.isConfigured);
 
   async function handleSaveKey() {
     setIsSaving(true);
@@ -119,65 +133,52 @@ export function ProviderSettings({
 
   async function handleRenameKey(key: StoredProviderKey) {
     const nextLabel = window.prompt("Rename key", key.label);
-
-    if (!nextLabel || nextLabel === key.label) {
-      return;
-    }
-
+    if (!nextLabel || nextLabel === key.label) return;
     await onRenameKey(key.id, nextLabel);
   }
 
-  const handleTestKey = async (id: string) => {
+  async function handleTestKey(id: string) {
     try {
       setLoadingKeyTest(id);
-      await onTestKey(id)
-      setLoadingKeyTest(null)
-    } catch (e: any) {
+      await onTestKey(id);
+    } finally {
       setLoadingKeyTest(null);
     }
   }
 
   return (
-    <div className="flex max-h-[75svh] flex-col gap-5 overflow-y-auto pr-7 pb-6 px-6">
-      <label className="flex flex-col gap-2 text-sm">
-        <span className="font-medium text-muted-foreground">Key source</span>
-        <Select value={credentialSource} onValueChange={(value) => onCredentialSourceChange(value as ProviderCredentialSource)}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose key source" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="server-env" disabled={!selectedProvider?.serverConfigured}>
-              Server env key {selectedProvider?.serverConfigured ? "" : "(not configured)"}
-            </SelectItem>
-            <SelectItem value="browser-key" disabled={eligibleKeys.length === 0}>
-              Local browser key {eligibleKeys.length > 0 ? `(${eligibleKeys.length})` : "(none eligible)"}
-            </SelectItem>
-            <SelectItem value="none">None / mock only</SelectItem>
-          </SelectContent>
-        </Select>
-      </label>
+    <div className="flex max-h-[75svh] flex-col gap-5 overflow-y-auto px-4 pb-6 pt-1 sm:px-6">
+      {/* ── Status summary ─────────────────────────────────────────── */}
+      <div
+        className={`flex items-start gap-3 rounded-lg border px-3 py-3 text-sm ${
+          isReady ? "border-green-500/25 bg-green-500/5" : "border-destructive/25 bg-destructive/5"
+        }`}
+      >
+        <span
+          className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full ${
+            isReady ? "bg-green-500/15 text-green-600" : "bg-destructive/15 text-destructive"
+          }`}
+        >
+          {isReady ? <Check className="size-3.5" /> : <Ban className="size-3.5" />}
+        </span>
+        <div className="min-w-0">
+          <p className="font-medium">
+            {selectedProvider.label} · {model || selectedProvider.defaultModel}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {isReady
+              ? `Ready via ${sourceMeta[credentialSource].label.toLowerCase()}${
+                  selectedKey ? ` "${selectedKey.label}"` : ""
+                }.`
+              : "Not configured yet — pick a key source below."}
+          </p>
+        </div>
+      </div>
 
-       {credentialSource === "browser-key" ? (
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-muted-foreground">Selected local key</span>
-            <Select value={selectedKeyId || ""} onValueChange={(value) => onSelectedKeyChange(value || undefined)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose saved key" />
-              </SelectTrigger>
-              <SelectContent>
-                {eligibleKeys.map((key) => (
-                  <SelectItem key={key.id} value={key.id}>
-                    {key.label} ({key.maskedPreview})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </label>
-        ) : null}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-2 text-sm">
-          <span className="font-medium text-muted-foreground">Provider</span>
+      {/* ── Provider / Model ───────────────────────────────────────── */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Provider</span>
           <Select value={provider} onValueChange={(value) => onProviderChange(value as ProviderId)}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Choose provider" />
@@ -187,15 +188,21 @@ export function ProviderSettings({
                 <SelectLabel>Providers</SelectLabel>
                 {providerReadiness.map((option) => (
                   <SelectItem key={option.id} value={option.id}>
-                    {option.label}
+                    <span className="flex items-center gap-2">
+                      {option.label}
+                      {option.isConfigured ? (
+                        <span className="size-1.5 rounded-full bg-green-500" />
+                      ) : null}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectGroup>
             </SelectContent>
           </Select>
         </label>
-        <label className="flex flex-col gap-2 text-sm">
-          <span className="font-medium text-muted-foreground">Model</span>
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Model</span>
           <Select value={model || selectedProvider?.defaultModel} onValueChange={onModelChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Choose model" />
@@ -214,153 +221,216 @@ export function ProviderSettings({
         </label>
       </div>
 
-      {readiness?.isConfigured ? (
-        <Alert className="border-green-500/15">
-          <AlertTitle className="text-green-500">
-            {selectedProvider.label} / {model || selectedProvider.defaultModel} is ready
-          </AlertTitle>
-          <AlertDescription>
-            Requests will use {sourceLabel}. For production apps, prefer server-managed env, KMS, secrets, or provider OAuth where available.
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Alert variant="destructive">
-          <HugeIcon icon={AlertCircleIcon} aria-hidden="true" />
-          <AlertTitle>This model needs a provider API key</AlertTitle>
-          <AlertDescription>
-            Choose a server environment key or save a local browser key for {selectedProvider?.label || "this provider"}.
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* ── Key source ─────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Key source</span>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {(["server-env", "browser-key", "none"] as ProviderCredentialSource[]).map((source) => {
+            const meta = sourceMeta[source];
+            const Icon = meta.icon;
+            const disabled =
+              (source === "server-env" && !selectedProvider?.serverConfigured) ||
+              (source === "browser-key" && eligibleKeys.length === 0);
+            const active = credentialSource === source;
 
-      <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-        <HugeIcon icon={Settings02Icon} aria-hidden="true" />
-        Playground/dev BYOK is for this open-source demo. It is not a recommended production credential system.
+            return (
+              <button
+                key={source}
+                type="button"
+                disabled={disabled}
+                onClick={() => onCredentialSourceChange(source)}
+                className={`flex flex-col gap-1 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                  active
+                    ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                    : "border-border/60 hover:border-border"
+                }`}
+              >
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Icon className="size-3.5" />
+                  {meta.label}
+                  {source === "browser-key" && eligibleKeys.length > 0 ? (
+                    <Badge variant="secondary" className="ml-auto px-1.5 py-0 text-[10px]">
+                      {eligibleKeys.length}
+                    </Badge>
+                  ) : null}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {disabled
+                    ? source === "server-env"
+                      ? "Not configured on the server"
+                      : "No saved key fits this model"
+                    : meta.blurb}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {credentialSource === "browser-key" && eligibleKeys.length > 1 ? (
+          <Select value={selectedKeyId || ""} onValueChange={(value) => onSelectedKeyChange(value || undefined)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Choose which saved key" />
+            </SelectTrigger>
+            <SelectContent>
+              {eligibleKeys.map((key) => (
+                <SelectItem key={key.id} value={key.id}>
+                  {key.label} ({key.maskedPreview})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
       </div>
 
-      <section className="flex flex-col gap-4">
-        <div>
-          <h3 className="text-sm font-medium">Credentials</h3>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Local API keys are encrypted in this browser and stored on this device. They are sent to this app&apos;s API route only when you send a request so the server can call the selected AI provider. They are not stored in a database by Fable UI. Browser storage cannot protect secrets from malicious scripts running on this same site. Use restricted, low-limit keys.
+      {!isReady ? (
+        <Alert variant="destructive">
+          <AlertTitle>This model needs a provider API key</AlertTitle>
+          <AlertDescription>
+            Choose a server environment key above, or add a local browser key below for{" "}
+            {selectedProvider?.label || "this provider"}.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {storeError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Browser key storage unavailable</AlertTitle>
+          <AlertDescription>{storeError}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {/* ── Manage keys (collapsed by default) ─────────────────────── */}
+      <details
+        className="group rounded-lg border border-border/60"
+        open={manageOpen}
+        onToggle={(event) => setManageOpen(event.currentTarget.open)}
+      >
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 text-sm font-medium [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-2">
+            <KeyRound className="size-4 text-muted-foreground" />
+            Manage saved keys
+            {providerKeys.length > 0 ? (
+              <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+                {providerKeys.length}
+              </Badge>
+            ) : null}
+          </span>
+          <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+        </summary>
+
+        <div className="flex flex-col gap-4 border-t border-border/60 p-3">
+          <p className="text-xs leading-5 text-muted-foreground">
+            Keys are encrypted in this browser and only sent to this app&apos;s API route when you send a
+            request. They&apos;re never stored in a database. Use restricted, low-limit keys — browser storage
+            can&apos;t protect secrets from malicious scripts on this site.
           </p>
-        </div>
 
-        {storeError ? (
-          <Alert variant="destructive">
-            <HugeIcon icon={AlertCircleIcon} aria-hidden="true" />
-            <AlertTitle>Browser key storage unavailable</AlertTitle>
-            <AlertDescription>{storeError}</AlertDescription>
-          </Alert>
-        ) : null}
+          <div className="grid gap-3 rounded-lg border border-border/60 p-3">
+            <div className="grid gap-3 sm:grid-cols-[1fr_1.4fr]">
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="text-xs font-medium text-muted-foreground">Label</span>
+                <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Personal Google key" />
+              </label>
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="text-xs font-medium text-muted-foreground">API key</span>
+                <div className="relative flex items-center gap-2">
+                  <Input
+                    value={apiKey}
+                    type={showKey ? "text" : "password"}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="Paste provider key"
+                    autoComplete="off"
+                    className="pr-9"
+                  />
+                  <Button
+                    className="absolute right-1"
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setShowKey((v) => !v)}
+                  >
+                    {showKey ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                  </Button>
+                </div>
+              </label>
+            </div>
 
-
-
-       
-
-        <div className="grid gap-3 rounded-lg border border-border/60 p-3">
-          <div className="grid gap-3 sm:grid-cols-[1fr_1.4fr]">
-            <label className="flex flex-col gap-2 text-sm">
-              <span className="font-medium text-muted-foreground">Label</span>
-              <Input value={label} onChange={(event) => setLabel(event.target.value)} placeholder="Personal Google key" />
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="text-xs font-medium text-muted-foreground">Use key for</span>
+              <Select value={scope} onValueChange={(value) => setScope(value as "*" | "model")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="*">All {selectedProvider?.label || "provider"} models</SelectItem>
+                  <SelectItem value="model">Only {model}</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
-            <label className="flex flex-col gap-2 text-sm">
-              <span className="font-medium text-muted-foreground">API key</span>
-              <div className="flex items-center gap-2 relative">
-                <Input
-                  value={apiKey}
-                  type={showKey ? "text" : "password"}
-                  onChange={(event) => setApiKey(event.target.value)}
-                  placeholder="Paste provider key"
-                  autoComplete="off"
-                  className="pr-6"
-                />
-                <Button className="absolute right-1" type="button" variant="ghost" size={"icon-sm"} onClick={() => setShowKey((value) => !value)}>
-                  {!showKey ? <EyeOff /> : <Eye />}
-                </Button>
-              </div>
-            </label>
-          </div>
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-muted-foreground">Use key for</span>
-            <Select value={scope} onValueChange={(value) => setScope(value as "*" | "model")}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="*">All {selectedProvider?.label || "provider"} models</SelectItem>
-                <SelectItem value="model">Only {model}</SelectItem>
-              </SelectContent>
-            </Select>
-          </label>
-          {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
-          <div className="flex justify-end">
-            <Button type="button" className="w-fit" disabled={!apiKey.trim() || isSaving} onClick={handleSaveKey}>
-              {isSaving ? "Saving..." : "Save encrypted on this device"}
-            </Button>
-          </div>
-        </div>
 
-        <div className="flex flex-col gap-2">
-          <h4 className="text-xs font-medium uppercase text-muted-foreground">Saved keys</h4>
-          {localKeys.filter((key) => key.provider === provider).length === 0 ? (
-            <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
-              No local keys saved for {selectedProvider?.label || "this provider"}.
+            {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
+
+            <div className="flex justify-end">
+              <Button type="button" disabled={!apiKey.trim() || isSaving} onClick={handleSaveKey}>
+                <Plus className="size-4" />
+                {isSaving ? "Saving…" : "Save encrypted key"}
+              </Button>
+            </div>
+          </div>
+
+          {providerKeys.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground">
+              No local keys saved for {selectedProvider?.label || "this provider"} yet.
             </p>
           ) : (
-            localKeys
-              .filter((key) => key.provider === provider)
-              .map((key) => {
+            <div className="flex flex-col gap-2">
+              {providerKeys.map((key) => {
                 const isEligible = isKeyEligibleForModel(key, provider, model);
+                const isTesting = loadingKeyTest === key.id;
 
                 return (
-                  <div key={key.id} className="grid gap-3 rounded-lg border border-border/60 p-3 text-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div
+                    key={key.id}
+                    className="flex flex-col gap-2 rounded-lg border border-border/60 p-2.5 text-sm sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
                       <div className="min-w-0">
-                        <p className="truncate font-medium">{key.label}</p>
-                        <p className="font-mono text-xs text-muted-foreground">{key.maskedPreview}</p>
+                        <p className="truncate font-medium leading-tight">{key.label}</p>
+                        <p className="truncate font-mono text-xs text-muted-foreground">{key.maskedPreview}</p>
                       </div>
-                      <div className="flex flex-wrap gap-1">
-                        {
-                          loadingKeyTest === key.id ?
-                            <Badge className="bg-transparent border-0">
-                              <Loader className="size-5 animate-spin text-muted-foreground" />
-                            </Badge>
-                            : <Badge variant={key.status === "valid" ? "default" : key.status === "invalid" ? "destructive" : "secondary"}>
-                              {key.status}
-                            </Badge>
-                        }
-                        <Badge variant={isEligible ? "outline" : "secondary"}>
-                          {key.modelScope === "*" ? "All provider models" : key.modelScope.join(", ")}
+                      {isTesting ? (
+                        <Loader className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+                      ) : (
+                        <Badge
+                          variant={key.status === "valid" ? "default" : key.status === "invalid" ? "destructive" : "secondary"}
+                          className="shrink-0"
+                        >
+                          {key.status}
                         </Badge>
-                      </div>
+                      )}
+                      <Badge variant={isEligible ? "outline" : "secondary"} className="hidden shrink-0 sm:inline-flex">
+                        {key.modelScope === "*" ? "All models" : key.modelScope.join(", ")}
+                      </Badge>
                     </div>
-                    {key.statusMessage || key.lastTestedAt ? (
-                      <p className="text-xs text-muted-foreground">
-                        {key.statusMessage || "Last tested"}{key.lastTestedAt ? ` - ${new Date(key.lastTestedAt).toLocaleString()}` : ""}
-                      </p>
-                    ) : null}
-                    <div className="flex flex-wrap gap-2">
-                      <Button type="button" size="sm" variant="outline" onClick={() => handleTestKey(key.id)}>
-                        Test key
+
+                    <div className="flex shrink-0 gap-1 self-end sm:self-auto">
+                      <Button type="button" size="icon-sm" variant="ghost" title="Test key" onClick={() => handleTestKey(key.id)}>
+                        <TestTube2 className="size-4" />
                       </Button>
-                      <Button type="button" size="sm" variant="outline" onClick={() => handleRenameKey(key)}>
-                        Rename
+                      <Button type="button" size="icon-sm" variant="ghost" title="Rename" onClick={() => handleRenameKey(key)}>
+                        <Pencil className="size-4" />
                       </Button>
-                      <Button type="button" size="sm" variant="destructive" onClick={() => onDeleteKey(key.id)}>
-                        Delete
+                      <Button type="button" size="icon-sm" variant="ghost" title="Delete" onClick={() => onDeleteKey(key.id)}>
+                        <Trash2 className="size-4 text-destructive" />
                       </Button>
                     </div>
                   </div>
                 );
-              })
+              })}
+            </div>
           )}
         </div>
-      </section>
-
-      <div className="text-xs text-muted-foreground">
-        Server env readiness configures every model for that provider. Local keys are filtered by provider and model scope.
-      </div>
+      </details>
     </div>
   );
 }

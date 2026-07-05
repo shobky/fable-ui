@@ -1,6 +1,7 @@
+// hooks/use-provider-settings.ts
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   type ModelReadiness,
@@ -53,6 +54,18 @@ function readStoredSelection(): Partial<ProviderSelection> {
     ) as Partial<ProviderSelection>
   } catch {
     return {}
+  }
+}
+
+function hasStoredSelection() {
+  if (typeof window === "undefined") {
+    return false
+  }
+
+  try {
+    return window.localStorage.getItem(selectionStorageKey) !== null
+  } catch {
+    return false
   }
 }
 
@@ -132,6 +145,9 @@ export function useProviderSettings({
   serverReadiness,
 }: UseProviderSettingsInput) {
   const storedSelection = useMemo(() => readStoredSelection(), [])
+  const hadStoredSelectionOnMount = useMemo(() => hasStoredSelection(), [])
+  const appliedAutoKeyDefault = useRef(false)
+
   const [provider, setProviderState] = useState<ProviderId>(
     isProviderId(storedSelection.provider)
       ? storedSelection.provider
@@ -200,6 +216,29 @@ export function useProviderSettings({
     () => eligibleKeys(localKeys, provider, model),
     [localKeys, model, provider]
   )
+
+  // First-ever visit (nothing persisted yet): if a usable browser key already
+  // exists for the current provider/model, prefer it over the server-env
+  // default. Runs once; never fights a choice the user (or a prior session)
+  // already made.
+  useEffect(() => {
+    if (appliedAutoKeyDefault.current) return
+    if (hadStoredSelectionOnMount) {
+      appliedAutoKeyDefault.current = true
+      return
+    }
+    if (localKeys.length === 0) return
+
+    appliedAutoKeyDefault.current = true
+
+    if (credentialSource !== defaultCredentialSource) return
+
+    const preferredKey = currentEligibleKeys[0]
+    if (preferredKey) {
+      setCredentialSourceState("browser-key")
+      setSelectedKeyIdState(preferredKey.id)
+    }
+  }, [localKeys, currentEligibleKeys, credentialSource, hadStoredSelectionOnMount])
 
   useEffect(() => {
     const hasServerKey = Boolean(selectedProviderReadiness?.serverConfigured)
