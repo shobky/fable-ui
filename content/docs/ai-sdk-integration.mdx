@@ -56,6 +56,72 @@ Unknown tool parts render a small fallback. Invalid payloads are parsed with the
 
 `collect_input` is a UI handoff: it renders from the tool input and waits for the host app to handle user submission. The playground mock mode can stream valid and invalid form tool parts without calling a provider, which is useful for verifying renderer safety.
 
+## Wire Interactive Tool Parts
+
+Display-only tools can render without handlers. Interactive surfaces need the host chat to pass callbacks into `FableToolPart`.
+
+For `show_next_actions`, a click should become a normal user message:
+
+```tsx
+"use client"
+
+import { useCallback } from "react"
+import { useChat } from "@ai-sdk/react"
+import { DefaultChatTransport } from "ai"
+import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
+import { showNextActions } from "@/lib/fable-ui/tools/show-next-actions-tool"
+
+const registry = {
+  show_next_actions: showNextActions,
+}
+
+export function ChatToolPart({ part }: { part: unknown }) {
+  const { sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
+  })
+  const isBusy = status === "submitted" || status === "streaming"
+
+  const onSuggestedAction = useCallback(
+    (action: { prompt: string }) => {
+      if (isBusy) {
+        return
+      }
+
+      void sendMessage({ text: action.prompt })
+    },
+    [isBusy, sendMessage],
+  )
+
+  return (
+    <FableToolPart
+      part={part}
+      registry={registry}
+      handlers={{
+        onSuggestedAction: isBusy ? undefined : onSuggestedAction,
+      }}
+    />
+  )
+}
+```
+
+In a full chat shell, prefer defining this handler next to the composer and passing it down through message rendering. That keeps suggested actions and manual composer sends on the same path, including request options:
+
+```tsx
+await sendMessage(
+  { text: action.prompt },
+  {
+    body: {
+      provider,
+      model,
+      selectedKeyId,
+      apiKey,
+    },
+  },
+)
+```
+
+The selected action is user intent, not an automatic side effect. The model receives the prompt, then decides whether to answer in text or call another registered Fable tool.
+
 ## DataBrowser Resources
 
 `show_data_browser` should receive a `resourceId`, not database details. Register resources in host code, then add the safe manifest to your system prompt:

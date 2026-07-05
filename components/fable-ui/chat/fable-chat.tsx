@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import type { FormEvent, KeyboardEvent } from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport, type UIMessage } from "ai"
@@ -75,6 +75,28 @@ export function FableChat() {
   const isBusy = status === "submitted" || status === "streaming"
   const visibleError = clientError || (error ? describeClientError(error) : null)
 
+  const sendText = useCallback(
+    async (text: string) => {
+      const prompt = text.trim()
+
+      if (!prompt || isBusy) {
+        return false
+      }
+
+      setClientError(null)
+      clearError()
+
+      try {
+        await sendMessage({ text: prompt })
+        return true
+      } catch (nextError) {
+        setClientError(describeClientError(nextError))
+        return false
+      }
+    },
+    [clearError, isBusy, sendMessage],
+  )
+
   async function submitPrompt() {
     const text = input.trim()
 
@@ -82,17 +104,21 @@ export function FableChat() {
       return
     }
 
-    setClientError(null)
-    clearError()
     setInput("")
 
-    try {
-      await sendMessage({ text })
-    } catch (nextError) {
+    const wasSent = await sendText(text)
+
+    if (!wasSent) {
       setInput(text)
-      setClientError(describeClientError(nextError))
     }
   }
+
+  const handleSuggestedAction = useCallback(
+    (action: { prompt: string }) => {
+      void sendText(action.prompt)
+    },
+    [sendText],
+  )
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -141,7 +167,10 @@ export function FableChat() {
                   messageId={message.id}
                   scrollAnchor={message.role === "user"}
                 >
-                  <FableMessage message={message} />
+                  <FableMessage
+                    message={message}
+                    onSuggestedAction={isBusy ? undefined : handleSuggestedAction}
+                  />
                 </MessageScrollerItem>
               ))}
 

@@ -32,6 +32,8 @@ export function SuggestedActions({
   error,
   onAction,
 }: SuggestedActionsProps) {
+  const areActionsDisabled = isDisabled || !onAction
+
   return (
     <Card className="w-full max-w-2xl" data-fable-ui="suggested-actions" aria-busy={isLoading || undefined}>
       <CardHeader>
@@ -60,7 +62,7 @@ export function SuggestedActions({
               type="button"
               variant="outline"
               className="h-auto justify-start whitespace-normal px-3 py-2 text-left "
-              disabled={isDisabled}
+              disabled={areActionsDisabled}
               onClick={() => onAction?.(action)}
             >
               <span className="flex flex-col gap-1">

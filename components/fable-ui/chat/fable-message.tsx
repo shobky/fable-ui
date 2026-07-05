@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm"
 
 import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Message, MessageContent } from "@/components/ui/message"
+import type { ToolRenderHandlers } from "@/lib/fable-ui/core/definitions"
 import { cn } from "@/lib/utils"
 import { FableToolPart } from "@/components/fable-ui/chat/fable-tool-part"
 
@@ -23,7 +24,13 @@ function MarkdownResponse({ children }: { children: string }) {
   )
 }
 
-export function FableMessage({ message }: { message: UIMessage }) {
+export function FableMessage({
+  message,
+  onSuggestedAction,
+}: {
+  message: UIMessage
+  onSuggestedAction?: ToolRenderHandlers["onSuggestedAction"]
+}) {
   const isUser = message.role === "user"
   const align = isUser ? "end" : "start"
 
@@ -54,7 +61,7 @@ export function FableMessage({ message }: { message: UIMessage }) {
           if (part.type.startsWith("tool-")) {
             return (
               <div key={`${message.id}-tool-${index}`} className="w-full max-w-5xl">
-                <FableToolPart part={part} />
+                <FableToolPart part={part} onSuggestedAction={onSuggestedAction} />
               </div>
             )
           }

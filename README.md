@@ -95,7 +95,7 @@ FABLE_AI_MODEL=gemini-3-flash-preview
 FABLE_AI_API_KEY=your-provider-api-key
 ```
 
-The installed chat calls the configured provider directly and renders Fable tool parts when the model chooses an installed tool.
+The installed chat calls the configured provider directly and renders Fable tool parts when the model chooses an installed tool. Suggested action buttons send their prompt through the same chat route as a manually typed message.
 
 ## Install Individual Surfaces
 
@@ -193,6 +193,8 @@ Tool name: `show_metric`
 Use it for suggestions such as "Compare to yesterday" or "Show the source rows." Do not use it to perform writes, deletes, charges, sends, or status changes.
 
 Tool name: `show_next_actions`
+
+When rendered through `FableToolPart`, pass `handlers.onSuggestedAction` from your chat shell. The handler should call the same `sendMessage({ text: action.prompt }, options)` path used by your composer so provider, model, session, and credential options stay consistent.
 
 ### ConfirmationCard
 

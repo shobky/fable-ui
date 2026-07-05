@@ -24,6 +24,8 @@ The component depends on shared Fable `core` plus shadcn card, button, and badge
 
 ## Usage
 
+Use the component directly when you already own the action list:
+
 ```tsx
 import { SuggestedActions } from "@/components/fable-ui/suggested-actions/suggested-actions"
 
@@ -36,16 +38,91 @@ export function FollowUps() {
         { label: "Compare to yesterday", prompt: "Compare this to yesterday." },
         { label: "Show source rows", prompt: "Show the source rows." },
       ]}
+      onAction={(action) => {
+        console.log(action.prompt)
+      }}
     />
   )
 }
+```
+
+If no `onAction` handler is provided, buttons render disabled. This prevents copied components from showing clickable controls that do nothing.
+
+## How clicks work
+
+Clicking a suggested action sends `action.prompt` as the next user message. The `label` is display text for the button; the `prompt` is the model-facing message.
+
+```txt
+button click
+-> SuggestedActions.onAction(action)
+-> Fable renderer handlers.onSuggestedAction(action)
+-> host chat calls sendMessage({ text: action.prompt })
+-> existing chat route receives normal UI messages
+-> model decides whether to answer in text or call another Fable tool
+```
+
+The component does not call host APIs, execute writes, or bypass the model. It only gives the user a faster way to send a complete prompt into the same chat flow they already use.
+
+## AI SDK chat wiring
+
+When rendering Fable tool parts, pass an `onSuggestedAction` handler that reuses your normal `sendMessage` path:
+
+```tsx
+"use client"
+
+import { useChat } from "@ai-sdk/react"
+import { DefaultChatTransport } from "ai"
+import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
+import { showNextActions } from "@/lib/fable-ui/tools/show-next-actions-tool"
+
+const registry = {
+  show_next_actions: showNextActions,
+}
+
+export function ChatToolPart({ part }: { part: unknown }) {
+  const { sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
+  })
+  const isBusy = status === "submitted" || status === "streaming"
+
+  return (
+    <FableToolPart
+      part={part}
+      registry={registry}
+      handlers={{
+        onSuggestedAction: isBusy
+          ? undefined
+          : (action) => {
+              void sendMessage({ text: action.prompt })
+            },
+      }}
+    />
+  )
+}
+```
+
+Most apps already create `useChat` higher in the chat shell. In that case, pass the handler down through your message and tool-part components instead of creating a second `useChat` instance.
+
+If your normal composer sends request options, such as provider, model, organization id, or browser-held credentials, use the same options for suggested actions:
+
+```tsx
+await sendMessage(
+  { text: action.prompt },
+  {
+    body: {
+      provider,
+      model,
+      orgId,
+    },
+  },
+)
 ```
 
 ## Tool
 
 The AI SDK tool name is `show_next_actions`.
 
-Use it for prompt-only follow-ups such as "Compare to yesterday" or "Show the source rows". Do not use it to perform writes, deletes, charges, sends, or status changes.
+Use it for prompt-only follow-ups such as "Compare to yesterday" or "Show the source rows". Do not use it to perform writes, deletes, charges, sends, or status changes. For side effects, use a confirmation or form flow where the host app validates and executes the action.
 
 ## States
 

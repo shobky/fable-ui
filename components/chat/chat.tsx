@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from "react"
 import { useChat } from "@ai-sdk/react"
 import { describeChatError } from "@/lib/helpers/chat.helpers"
 import { SubmittedPrompt } from "@/lib/types/chat.types"
+import type { ToolRenderHandlers } from "@/lib/fable-ui/core"
 import { useProviderSettings } from "@/hooks/use-provider-settings"
 import { MessageList } from "./message-list"
 import ChatComposer from "./chat-composer"
@@ -92,6 +93,19 @@ export default function Chat({
     [clearVisibleError, providerSettings, sendMessage]
   )
 
+  const handleSuggestedAction = useCallback<NonNullable<ToolRenderHandlers["onSuggestedAction"]>>(
+    async (action) => {
+      const text = action.prompt.trim()
+
+      if (!text || isBusy) {
+        return
+      }
+
+      await sendPrompt({ text, attachments: [] })
+    },
+    [isBusy, sendPrompt]
+  )
+
   return (
     <MessageScrollerProvider
       autoScroll
@@ -113,7 +127,11 @@ export default function Chat({
               </p>
             </div>
           ) : (
-            <MessageList messages={messages} isLoading={isBusy} />
+            <MessageList
+              messages={messages}
+              isLoading={isBusy}
+              onSuggestedAction={isBusy ? undefined : handleSuggestedAction}
+            />
           )}
         </div>
 

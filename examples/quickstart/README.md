@@ -25,4 +25,4 @@ components/fable-ui/chat/*
 lib/fable-ui/quickstart/*
 ```
 
-The quickstart includes `metric-card` and `suggested-actions` tool rendering. Add more Fable UI registry items when your assistant needs more surfaces, or configure a data source driver when tool calls should read from host-owned data.
+The quickstart includes `metric-card` and `suggested-actions` tool rendering. Suggested action clicks send the action prompt through the same chat route as a manually typed message. Add more Fable UI registry items when your assistant needs more surfaces, or configure a data source driver when tool calls should read from host-owned data.

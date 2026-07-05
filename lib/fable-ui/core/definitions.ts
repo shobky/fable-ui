@@ -10,7 +10,7 @@ export class ToolPayloadError extends Error {
 }
 
 export type ToolRenderHandlers = {
-  onSuggestedAction?: (action: { label: string; prompt: string }) => void
+  onSuggestedAction?: (action: { label: string; prompt: string; description?: string }) => void
   onConfirm?: (confirmation: { id: string; label: string }) => void
   onCancel?: (confirmation: { id: string; label: string }) => void
   onFormSubmit?: (values: Record<string, string | number | boolean>) => void

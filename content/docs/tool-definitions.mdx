@@ -127,6 +127,22 @@ export function ToolPart({ part }: { part: unknown }) {
 
 `FableToolPart` finds the tool name from `part.toolName` or from a `tool-*` part type, looks up the matching definition, validates `part.output ?? part.input`, and renders the configured component.
 
+Some renderers accept host callbacks through `handlers`. `show_next_actions` uses `handlers.onSuggestedAction` to turn a clicked suggestion into the next user message:
+
+```tsx
+<FableToolPart
+  part={part}
+  registry={registry}
+  handlers={{
+    onSuggestedAction: (action) => {
+      void sendMessage({ text: action.prompt })
+    },
+  }}
+/>
+```
+
+Keep those handlers in the host chat layer. Tool definitions describe payloads and renderers; the host app owns chat submission, request options, credentials, side effects, and authorization.
+
 ## States and props
 
 The renderer supports normal AI SDK states and Fable-specific metadata:

@@ -22,10 +22,12 @@ import {
   ToolPartRenderer,
   type ToolRenderPart,
 } from "@/lib/fable-ui/tool-router";
+import type { ToolRenderHandlers } from "@/lib/fable-ui/core";
 
 type MessageListProps = {
   messages: UIMessage[];
   isLoading?: boolean;
+  onSuggestedAction?: ToolRenderHandlers["onSuggestedAction"];
 };
 
 type TimelineItem =
@@ -48,8 +50,10 @@ function toAttachmentItem(
 
 const MessageRow = memo(function MessageRow({
   message,
+  onSuggestedAction,
 }: {
   message: UIMessage;
+  onSuggestedAction?: ToolRenderHandlers["onSuggestedAction"];
 }) {
   const isUser = message.role === "user";
   const align = isUser ? "end" : "start";
@@ -105,7 +109,10 @@ const MessageRow = memo(function MessageRow({
                 key={`${message.id}-tool-${index}`}
                 className="w-full max-w-5xl"
               >
-                <ToolPartRenderer part={part as ToolRenderPart} />
+                <ToolPartRenderer
+                  part={part as ToolRenderPart}
+                  handlers={{ onSuggestedAction }}
+                />
               </div>
             );
           }
@@ -142,7 +149,7 @@ function ThinkingRow() {
   );
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps) {
+export function MessageList({ messages, isLoading, onSuggestedAction }: MessageListProps) {
   const items = useMemo<TimelineItem[]>(() => {
     const next: TimelineItem[] = []
 
@@ -173,7 +180,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
               }
             >
               {item.type === "message" ? (
-                <MessageRow message={item.message} />
+                <MessageRow message={item.message} onSuggestedAction={onSuggestedAction} />
               ) : null}
 
               {item.type === "loading" ? <ThinkingRow /> : null}
