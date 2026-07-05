@@ -5,6 +5,8 @@ const root = process.cwd()
 const sameRepoItems = new Set()
 const registries = []
 const errors = []
+const registryFileOwners = new Map()
+const importedRegistryFiles = new Set()
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"))
@@ -16,6 +18,10 @@ function resolveRegistry(filePath) {
 
   for (const item of registry.items ?? []) {
     sameRepoItems.add(item.name)
+
+    for (const file of item.files ?? []) {
+      registryFileOwners.set(normalizePath(file.path), item.name)
+    }
   }
 
   for (const includePath of registry.include ?? []) {
@@ -26,6 +32,143 @@ function resolveRegistry(filePath) {
 
     resolveRegistry(path.resolve(path.dirname(filePath), includePath))
   }
+}
+
+function normalizePath(value) {
+  return value.replaceAll(path.sep, "/")
+}
+
+function isNonRuntimeFile(file) {
+  const normalized = normalizePath(file.path)
+
+  return (
+    normalized.endsWith(".md") ||
+    normalized.includes("/manifests/") ||
+    normalized.includes("/evals/") ||
+    file.target?.startsWith("~/docs/")
+  )
+}
+
+function sameRepoDependencyNames(item) {
+  return new Set(
+    (item.registryDependencies ?? [])
+      .filter((dependency) => dependency.startsWith("shobky/fable-ui/"))
+      .map((dependency) => dependency.replace("shobky/fable-ui/", "")),
+  )
+}
+
+function assertHostAwareTarget(item, file) {
+  if (!file.target) {
+    return
+  }
+
+  const target = normalizePath(file.target)
+  const source = normalizePath(file.path)
+
+  if (source.includes("/evals/")) {
+    errors.push(`${item.name}: eval files must not be installed by default: ${file.path}`)
+  }
+
+  if (target.startsWith("components/")) {
+    errors.push(`${item.name}: use @components/... target for ${file.path}`)
+  }
+
+  if (target.startsWith("lib/")) {
+    errors.push(`${item.name}: use @lib/... target for ${file.path}`)
+  }
+
+  if (target.startsWith("hooks/")) {
+    errors.push(`${item.name}: use @hooks/... target for ${file.path}`)
+  }
+
+  const allowedPrefixes = ["@components/", "@lib/", "@hooks/", "app/", "~/docs/"]
+  const isShadcnPrimitive = file.type?.startsWith("registry:ui")
+
+  if (!isShadcnPrimitive && !allowedPrefixes.some((prefix) => target.startsWith(prefix))) {
+    errors.push(`${item.name}: target should use a host-aware alias or app/... path: ${file.target}`)
+  }
+}
+
+function resolveInternalImport(sourcePath, specifier) {
+  if (specifier.startsWith("@/components/fable-ui/")) {
+    return resolveExistingSource(specifier.replace("@/", ""))
+  }
+
+  if (specifier.startsWith("@/lib/fable-ui/")) {
+    return resolveExistingSource(specifier.replace("@/", ""))
+  }
+
+  if (specifier.startsWith("./") || specifier.startsWith("../")) {
+    const basePath = path.join(path.dirname(sourcePath), specifier)
+    const relativePath = normalizePath(path.relative(root, basePath))
+
+    return resolveExistingSource(relativePath)
+  }
+
+  return undefined
+}
+
+function resolveExistingSource(relativePath) {
+  const normalized = normalizePath(relativePath)
+  const candidates = [
+    normalized,
+    `${normalized}.ts`,
+    `${normalized}.tsx`,
+    `${normalized}.md`,
+    `${normalized}/index.ts`,
+    `${normalized}/index.tsx`,
+  ]
+
+  return candidates.find((candidate) => registryFileOwners.has(candidate))
+}
+
+function validateInternalImports(registryPath, item, file, contents) {
+  if (isNonRuntimeFile(file)) {
+    return
+  }
+
+  const sourcePath = path.resolve(path.dirname(registryPath), file.path)
+  const allowedItems = sameRepoDependencyNames(item)
+  const importPattern =
+    /(?:import|export)\s+(?:type\s+)?(?:[^"'()]+?\s+from\s+)?["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)/g
+  for (const match of contents.matchAll(importPattern)) {
+    const specifier = match[1] ?? match[2]
+    const resolved = resolveInternalImport(sourcePath, specifier)
+
+    if (!resolved) {
+      continue
+    }
+
+    const owner = registryFileOwners.get(resolved)
+
+    if (!owner) {
+      continue
+    }
+
+    importedRegistryFiles.add(resolved)
+
+    if (owner !== item.name && !allowedItems.has(owner)) {
+      errors.push(
+        `${item.name}: ${file.path} imports ${resolved} from ${owner} without registry dependency shobky/fable-ui/${owner}`,
+      )
+    }
+  }
+}
+
+function isRuntimeImplementationHelper(item, file) {
+  const normalized = normalizePath(file.path)
+  const extension = path.extname(normalized)
+  const itemBase = `components/fable-ui/${item.name}/`
+
+  if (![".ts", ".tsx"].includes(extension) || isNonRuntimeFile(file)) {
+    return false
+  }
+
+  return (
+    normalized.startsWith(`${itemBase}internal/`) ||
+    normalized.startsWith(`${itemBase}hooks/`) ||
+    normalized.startsWith(`${itemBase}lib/`)
+  )
 }
 
 function assertFileExists(registryPath, item, file) {
@@ -39,6 +182,8 @@ function assertFileExists(registryPath, item, file) {
   if ((file.type === "registry:file" || file.type === "registry:page") && !file.target) {
     errors.push(`${item.name}: ${file.path} requires files[].target`)
   }
+
+  assertHostAwareTarget(item, file)
 
   const extension = path.extname(sourcePath)
 
@@ -62,6 +207,8 @@ function assertFileExists(registryPath, item, file) {
       errors.push(`${item.name}: forbidden ${reason} in ${file.path}`)
     }
   }
+
+  validateInternalImports(registryPath, item, file, contents)
 }
 
 function validateDependencies(item) {
@@ -123,6 +270,18 @@ for (const { filePath, registry } of registries) {
 
     for (const file of item.files ?? []) {
       assertFileExists(filePath, item, file)
+    }
+  }
+}
+
+for (const { registry } of registries) {
+  for (const item of registry.items ?? []) {
+    for (const file of item.files ?? []) {
+      const normalized = normalizePath(file.path)
+
+      if (isRuntimeImplementationHelper(item, file) && !importedRegistryFiles.has(normalized)) {
+        errors.push(`${item.name}: listed implementation helper is not imported by runtime files: ${file.path}`)
+      }
     }
   }
 }
