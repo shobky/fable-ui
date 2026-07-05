@@ -28,7 +28,6 @@ components/fable-ui/charts/charts.types.ts
 components/fable-ui/charts/tool-definition.ts
 lib/fable-ui/tools/show-chart-tool.ts
 lib/fable-ui/manifests/show-chart.md
-lib/fable-ui/evals/show-chart.md
 ```
 
 It also installs or expects the shared `core` registry dependency, plus shadcn UI pieces used by the chart surface.
@@ -96,7 +95,7 @@ export function ChannelMixPieChart() {
 
 The AI SDK tool name is `show_chart`.
 
-`components/fable-ui/charts/tool-definition.ts` defines the Zod schema, the Vercel AI SDK tool, and the renderer contract that turns a tool part into props for `<Charts />`.
+`components/fable-ui/charts/tool-definition.ts` defines the Zod schema, the Vercel AI SDK tool, and the renderer contract that turns a tool part into props for `<Charts />`. The chart component is lazy-loaded from this definition so AI routes can import the definition and pass only `showChart.tool` without eagerly loading Recharts.
 
 <ComponentSource src="components/fable-ui/charts/tool-definition.ts" title="components/fable-ui/charts/tool-definition.ts" />
 

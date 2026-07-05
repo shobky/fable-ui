@@ -13,7 +13,7 @@ Each installable item can include:
 - A Zod schema for the tool payload.
 - An AI SDK-compatible tool definition using `tool({ description, inputSchema, execute })`.
 - Model-facing manifest guidance.
-- Eval prompts for tool selection.
+- Eval prompts for tool selection in this repository.
 - Examples or integration glue when useful.
 
 The root `registry.json` is the public GitHub source-registry entrypoint. Install commands resolve items from `shobky/fable-ui/<item>`.
@@ -41,6 +41,17 @@ Bare `registryDependencies` such as `card` or `button` refer to official shadcn 
 ```
 
 This prevents the CLI from treating a Fable item like `core` as a built-in shadcn item.
+
+## Files and Targets
+
+Each file entry has two paths:
+
+- `path` is the source file in this repository.
+- `target` is where shadcn writes the file in the host app.
+
+Use host-aware aliases for reusable source files: `@components/...` for UI, `@lib/...` for shared logic, and `@hooks/...` for hooks when they live outside a component folder. Keep Next route and page files explicit under `app/...`.
+
+Registry items should install the minimum runtime set needed for that item to work. Manifests are installed because they are part of the model-facing product contract. Eval prompts are kept in this repository unless an item intentionally documents them as runtime install files.
 
 ## Boundary
 

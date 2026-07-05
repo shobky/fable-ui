@@ -50,7 +50,7 @@ Each registry item can include:
 - A Zod schema for validating the tool payload.
 - An AI SDK-compatible tool definition.
 - A model-facing manifest that explains when the tool should and should not be used.
-- Eval prompts for tool-selection behavior.
+- Eval prompts for tool-selection behavior in this repository.
 - Examples or integration glue where useful.
 
 Because Fable UI is copy-and-own, installed files become part of your app. You can edit the components, styles, schemas, tool descriptions, and manifests to match your product.
@@ -64,7 +64,7 @@ Current registry items include:
 - `suggested-actions`: renders safe follow-up prompts from `show_next_actions`.
 - `confirmation-card`: asks for explicit user confirmation before host-owned side effects through `request_confirmation`.
 - `form-card`: collects a few structured fields mid-conversation through `collect_input`.
-- `data-browser`: renders static row snapshots or host-backed browsing surfaces with search, filters, sort, fullscreen review, pagination, details, and row actions.
+- `data-browser`: renders static row snapshots or host-backed browsing surfaces with search, filters, sort, pagination, row details, and row actions.
 - `charts`: renders static line, bar, and pie chart payloads through `show_chart`.
 - `rest-driver`: optional driver for host-owned HTTP endpoints.
 - `firebase-driver`: optional driver for Firestore-backed resources.
@@ -131,10 +131,9 @@ Fable registry items copy source into host-safe locations:
 components/fable-ui/<item>/*
 lib/fable-ui/tools/*
 lib/fable-ui/manifests/*
-lib/fable-ui/evals/*
 ```
 
-Registry items install UI, schemas, tool contracts, manifests, eval guidance, and optional driver adapters. They do not install your production authorization model, database permissions, provider keys, or business logic.
+Registry items install UI, schemas, tool contracts, manifests, and optional driver adapters. Eval prompts stay in this repository unless an item explicitly documents them as runtime install files. Registry `path` values point to source files in this repo; `target` values point to where shadcn places those files in the host app.
 
 ## AI SDK Integration
 
@@ -157,6 +156,8 @@ const result = streamText({
   toolChoice: "auto",
 })
 ```
+
+Pass only AI SDK tool objects to the route. For Fable definitions, that means mapping `show_metric: showMetric.tool` or `show_chart: showChart.tool`. Keep full renderer definitions in client/UI code so heavy renderers can be lazy-loaded without adding charting or table UI dependencies to the route bundle.
 
 Render tool parts in your chat UI:
 
@@ -333,7 +334,7 @@ content/docs/                Product documentation
 lib/fable-ui/core/           Shared registry, rendering, schemas, and provider utilities
 lib/fable-ui/tools/          AI SDK tool definitions
 lib/fable-ui/manifests/      Model-facing tool selection contracts
-lib/fable-ui/evals/          Eval prompts for routing behavior
+lib/fable-ui/evals/          Repository eval prompts for routing behavior
 lib/fable-ui/drivers/        Optional data-source drivers
 registry.json                Public shadcn registry entrypoint
 ```

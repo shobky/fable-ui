@@ -103,8 +103,11 @@ Fable items copy source into host-safe locations:
 components/fable-ui/<item>/*
 lib/fable-ui/tools/*
 lib/fable-ui/manifests/*
-lib/fable-ui/evals/*
 ```
+
+In `registry.json`, `path` is the source file in this repository and `target` is where the file lands in the host app. Component and library files use shadcn-aware aliases such as `@components/...`, `@lib/...`, and `@hooks/...` so the CLI can map them through the host app's `components.json`. Next routes and pages target explicit `app/...` paths.
+
+Eval prompts live in this repository for product review and routing checks. They are not installed by default unless a future item explicitly marks them as runtime files.
 
 Quickstart routes install to:
 

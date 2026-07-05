@@ -34,6 +34,8 @@ export const showChart = defineFableComponent({
 })
 ```
 
+The contract can stay in one file while keeping route imports light. Heavy renderer components can be assigned with `React.lazy(...)` inside the definition file, and AI routes should still pass only `showChart.tool` or another `.tool` value into `streamText`.
+
 ## `name`
 
 `name` is the stable tool name. It should match the key you register with the AI SDK and the tool part name you expect to render later.
@@ -86,7 +88,7 @@ Fable UI tools generally echo validated input from `execute`. The host app is re
 | `errorProps` | A function that receives an error description and returns component error props. |
 | `toProps` | Converts validated schema data into the component props. |
 
-`toProps` is where component-specific adaptation belongs. `show_chart` can pass data through directly. `show_data_browser` uses `resolveDataBrowserIntent(...)` because it may need to resolve a `resourceId`, static rows, filters, sort state, and action intents into a single browser surface.
+`toProps` is where component-specific adaptation belongs. `show_chart` can pass data through directly. `show_data_browser` uses `resolveDataBrowserIntent(...)` because it may need to resolve a `resourceId`, static rows, filters, sort state, and detail settings into a single browser surface.
 
 ## Rendering tool parts
 
@@ -105,6 +107,8 @@ const result = streamText({
   toolChoice: "auto",
 })
 ```
+
+Do not pass the whole Fable definition object to the AI SDK route. Pass only the `tool` member. The renderer definition belongs in the client/UI layer that receives tool parts.
 
 Render tool parts with `FableToolPart`:
 

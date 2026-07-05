@@ -6,7 +6,7 @@ description: Render table snapshots or host-backed data browsing surfaces.
 `DataBrowser` is the registry block for row-oriented AI answers. It covers two related tools:
 
 - `show_table` renders a static table snapshot when the rows are already available.
-- `show_data_browser` renders a richer browsing surface for search, filters, sorting, pagination, row detail, fullscreen review, and row actions.
+- `show_data_browser` renders a richer browsing surface for search, filters, sorting, pagination, row detail, and row actions.
 
 Both tools live on this page because they share the same data model, table rendering internals, and safety boundary. The difference is intent: `ShowTable` answers with a bounded snapshot, while `DataBrowser` lets the user inspect a resource or a larger local row set.
 
@@ -16,11 +16,12 @@ Both tools live on this page because they share the same data model, table rende
 
 <RegistryInstallCommand itemName="data-browser" />
 
-The `data-browser` registry item installs the browser surface, the table surface, shared hooks, internal table pieces, the tool definitions, manifests, and eval guidance:
+The `data-browser` registry item installs the browser surface, the table surface, shared hooks, internal table pieces, the tool definitions, and manifests:
 
 ```txt
 components/fable-ui/data-browser/index.ts
-components/fable-ui/data-browser/tool-definition.ts
+lib/fable-ui/tools/show-data-browser-tool.ts
+lib/fable-ui/tools/show-table-tool.ts
 components/fable-ui/data-browser/data-browser.tsx
 components/fable-ui/data-browser/data-browser.types.ts
 components/fable-ui/data-browser/show-table.tsx
@@ -39,7 +40,6 @@ components/fable-ui/data-browser/lib/fallback-filters.ts
 components/fable-ui/data-browser/lib/get-row-id.ts
 lib/fable-ui/manifests/show-table.md
 lib/fable-ui/manifests/show-data-browser.md
-lib/fable-ui/evals/data-browser.md
 ```
 
 The component depends on `ai`, `zod`, `class-variance-authority`, `lucide-react`, shared Fable `core`, and shadcn UI primitives such as card, button, badge, input, dialog, drawer, and select.
@@ -125,9 +125,44 @@ export function OrdersBrowser() {
       rows={rows}
       pageSize={6}
       searchPlaceholder="Search orders"
+      detail={{
+        title: "Order details",
+        description: "Review the selected row.",
+        fields: ["customer", "orderNumber", "status", "region", "total"],
+      }}
     />
   )
 }
+```
+
+## Row Detail
+
+When `detail`, `renderDetail`, `onViewRow`, or row actions are present, the table includes a `View` column. By default, `View` opens a dialog on desktop and a drawer on mobile. The default surface renders a key/value grid from visible columns, narrowed by `detail.fields` when provided, and includes row action controls when actions exist.
+
+```tsx
+<DataBrowser
+  title="Orders"
+  entityLabel="orders"
+  columns={columns}
+  rows={rows}
+  detail={{
+    title: "Order details",
+    description: "Selected order fields.",
+    fields: ["customer", "orderNumber", "status", "total"],
+  }}
+/>
+```
+
+Use `renderDetail(row)` when you want custom content inside Fable's default dialog/drawer. Use `onViewRow(row)` when the host app should own the whole destination, such as a route, side panel, modal, or product-specific drawer. When `onViewRow` is provided, Fable calls the host handler and does not open the default detail surface.
+
+```tsx
+<DataBrowser
+  title="Orders"
+  entityLabel="orders"
+  columns={columns}
+  rows={rows}
+  onViewRow={(row) => router.push(`/orders/${row.id}`)}
+/>
 ```
 
 ## ShowTable
@@ -167,7 +202,7 @@ export function RecentOrdersTable() {
 
 ## Tools
 
-`show_data_browser` is for browsing, search, filter, sort, pagination, fullscreen inspection, or detail over host-owned data.
+`show_data_browser` is for browsing, search, filter, sort, pagination, or row detail over host-owned data.
 
 The model must not pass raw SQL, raw Firestore query code, secrets, or authorization decisions. The host supplies data access, allowed filters, allowed sort fields, permissions, and row actions.
 
@@ -175,9 +210,9 @@ Rows with avatar-like fields such as `avatar`, `avatarUrl`, `image`, `imageUrl`,
 
 ## Tool definition
 
-`components/fable-ui/data-browser/tool-definition.ts` exports both tools. The schemas describe safe column and row payloads, the AI SDK tool objects describe how the model can call them, and the renderer entries map validated tool parts to `<ShowTable />` or `<DataBrowser />`.
+`lib/fable-ui/tools/show-data-browser-tool.ts` exports both tools. The schemas describe safe column and row payloads, the AI SDK tool objects describe how the model can call them, and the renderer entries map validated tool parts to `<ShowTable />` or `<DataBrowser />`. `lib/fable-ui/tools/show-table-tool.ts` re-exports the table-only contract for a consistent tool import path.
 
-<ComponentSource src="components/fable-ui/data-browser/tool-definition.ts" title="components/fable-ui/data-browser/tool-definition.ts" />
+<ComponentSource src="lib/fable-ui/tools/show-data-browser-tool.ts" title="lib/fable-ui/tools/show-data-browser-tool.ts" />
 
 ## States
 
@@ -205,4 +240,4 @@ Manifests are copyable routing contracts. They tell the model when to pick a com
 
 ## Choosing between them
 
-Use `show_table` when the rows are already available in the tool payload. Use `show_data_browser` when the model should select a registered host-owned resource by `resourceId` or when the user needs search, filters, sort, pagination, row detail, or fullscreen review.
+Use `show_table` when the rows are already available in the tool payload. Use `show_data_browser` when the model should select a registered host-owned resource by `resourceId` or when the user needs search, filters, sort, pagination, row detail, or row actions.

@@ -31,9 +31,13 @@ const result = streamText({
 })
 ```
 
+Only pass AI SDK tool objects into the route. A Fable definition includes both `tool` and `renderer`; the route should map just `showMetric.tool`, `showChart.tool`, or `showDataBrowser.tool`. Keep the full Fable registry in client/UI code where streamed tool parts are rendered.
+
+Heavy renderers are lazy-loaded from their definition files. For example, importing the chart definition lets the route register `showChart.tool` without eagerly loading the chart component or Recharts. The UI renderer loads those pieces only when it actually renders the tool part.
+
 ## Render Tool Parts
 
-Install `core` or any item that depends on it, then provide a registry map to the renderer:
+Install `core` or any item that depends on it, then provide the full Fable definition map to the renderer:
 
 ```tsx
 import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
@@ -59,7 +63,7 @@ Unknown tool parts render a small fallback. Invalid payloads are parsed with the
 `show_chart` renders static model-provided chart data only. Fetch private or live data in host code, validate the rows, then pass display-ready data into the chart payload.
 
 ```ts
-import { describeAvailableResources } from "@/components/fable-ui/data-browser/tool-definition"
+import { describeAvailableResources } from "@/lib/fable-ui/tools/show-data-browser-tool"
 
 const result = streamText({
   model,
