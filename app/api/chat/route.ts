@@ -369,7 +369,7 @@ function getMockToolCall(messages: UIMessage[]) {
     title: /table/.test(prompt) ? "Mock people table" : "Mock people browser",
     entityLabel: "people",
     description: "Static mock rows from the playground route.",
-    pageSize: 10,
+    pageSize: 8,
     columns: [
       { key: "name", label: "Name", sortable: true },
       { key: "role", label: "Role", filterable: true },
