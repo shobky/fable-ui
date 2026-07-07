@@ -1,6 +1,10 @@
 import type { ComponentType, LazyExoticComponent } from "react"
 import type { Tool } from "ai"
 import type { z } from "zod"
+import {
+  fableRegistry,
+  type DataSourceRegistry,
+} from "@/lib/fable-ui/core"
 
 export class ToolPayloadError extends Error {
   constructor(message: string) {
@@ -65,4 +69,11 @@ export function getToolNameFromPart(part: ToolPartLike) {
   }
 
   return null
+}
+
+// move to utils or resources related files.
+export function describeAvailableResources(
+  registry: DataSourceRegistry = fableRegistry
+) {
+  return JSON.stringify(registry.getAgentResourceManifest(), null, 2)
 }

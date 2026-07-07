@@ -4,8 +4,6 @@ import { z } from "zod"
 
 import {
   defineFableComponent,
-  fableRegistry,
-  type DataSourceRegistry,
 } from "@/lib/fable-ui/core"
 import {
   dataColumnSchema,
@@ -69,12 +67,6 @@ export const showDataBrowserInputSchema = z.object({
 })
 
 export type ShowDataBrowserInput = z.infer<typeof showDataBrowserInputSchema>
-
-export function describeAvailableResources(
-  registry: DataSourceRegistry = fableRegistry
-) {
-  return JSON.stringify(registry.getAgentResourceManifest(), null, 2)
-}
 
 export function createShowTableTool() {
   return tool({
