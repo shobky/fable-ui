@@ -6,7 +6,7 @@ export function ShowTable({
   description,
   columns,
   rows,
-  pageSize = 10,
+  pageSize = 8,
   isLoading,
   isDisabled,
   error,
