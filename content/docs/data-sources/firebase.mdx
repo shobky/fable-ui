@@ -20,27 +20,66 @@ Register Firebase in client-side host code because the Firestore Web SDK uses th
 // lib/fable-ui/register.ts
 import { fableRegistry } from "@/lib/fable-ui/core"
 import { createFirebaseDriver } from "@/lib/fable-ui/drivers/firebase"
-import { ordersResource } from "@/lib/fable-ui/data/recources"
 import { auth, db } from "@/firebase/config"
 
 fableRegistry.registerDriver("firebase", createFirebaseDriver({ db, auth }))
-fableRegistry.registerResource(ordersResource)
+fableRegistry.registerResource(
+  defineResource({
+    id: "orders",
+    label: "Orders",
+    entityLabel: "orders",
+    driver: "firebase",
+    source: { collection: "organizations/{orgId}/orders", requireAuth: true },
+    columns: [
+      { key: "orderNumber", label: "Order #" },
+      { key: "customer.name", label: "Customer" },
+      { key: "status", label: "Status" },
+      { key: "subtotal", label: "Total" },
+    ],
+    filters: [
+      { key: "status", label: "Status", type: "select", options: ["new", "complete", "canceled"] },
+      { key: "createdAt", label: "Date", type: "date" },
+    ],
+    sort: [
+      { key: "createdAt", label: "Created At", directions: ["desc", "asc"] },
+    ],
+    search: {
+      mode: "client",
+      fields: ["customer.name", "orderNumber"],
+    },
+    agent: {
+      description: "Orders for the active organization.",
+      aliases: ["sales", "tickets", "bills"],
+      useWhen: ["The user wants to browse or search orders."],
+    },
+  })
+)
 
 export { fableRegistry }
 ```
+
 The same `auth` object passed to `createFirebaseDriver({ db, auth })` must be the app's live Firebase Auth client. Fable does not read Firebase Auth from `FableDataProvider` context and does not use `ctx.auth.userId` when using firebase.
 
-
 Then import this module at the top of your route file:
+
 ```ts title="api/fable-chat/route.ts"
-import { fableRegistry } from "@/lib/fable-ui/data/register"
+import { fableRegistry } from "@/lib/fable-ui/data/register";
+import {describeAvailableResources} from "@/lib/fable-ui/core/definitions";
 
 export async function POST(req: Request) {
 // existing route logic..
+
+try {
+    const result = streamText({
+      model: createFableAIModel(config),
+      system: [
+        // your system prompts
+        describeAvailableResources(fableRegistry)
+      ].join("\n"),
+
+// existing route logic..
 }
 ```
-
-
 
 ## Sync Firebase Auth in the host app
 
