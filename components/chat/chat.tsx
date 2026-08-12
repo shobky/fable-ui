@@ -1,12 +1,15 @@
 "use client"
 
 import { ProviderId, ProviderReadiness } from "@/lib/ai/provider-config"
-import { DefaultChatTransport, UIMessage } from "ai"
+import { DefaultChatTransport } from "ai"
 import { useCallback, useMemo, useState } from "react"
 import { useChat } from "@ai-sdk/react"
 import { describeChatError } from "@/lib/helpers/chat.helpers"
 import { SubmittedPrompt } from "@/lib/types/chat.types"
 import type { ToolRenderHandlers } from "@/lib/fable-ui/core"
+import { useOptionalFableDataContext } from "@/lib/fable-ui/core"
+import type { FableUIMessage } from "@/lib/fable-ui/tools"
+import { shouldContinueAfterRenderedData } from "@/lib/fable-ui/tools/get-rendered-data-tool"
 import { useProviderSettings } from "@/hooks/use-provider-settings"
 import { MessageList } from "./message-list"
 import ChatComposer from "./chat-composer"
@@ -37,11 +40,64 @@ export default function Chat({
     defaults: providerDefaults,
     serverReadiness: providerReadiness,
   })
-  const { messages, sendMessage, status, error, clearError } =
-    useChat<UIMessage>({
+  const dataContext = useOptionalFableDataContext()
+  const resolveChatRequestOptions = useCallback(async () => {
+    const credentials = await providerSettings.resolveRequestCredentials()
+
+    return {
+      body: {
+        provider: providerSettings.provider,
+        model: providerSettings.model,
+        mode: credentials.credentialSource === "none" ? "mock" : undefined,
+        credentialSource: credentials.credentialSource,
+        selectedKeyId: credentials.selectedKeyId,
+        apiKey: credentials.apiKey,
+      },
+    }
+  }, [providerSettings])
+  const {
+    messages,
+    sendMessage,
+    addToolOutput,
+    status,
+    error,
+    clearError,
+  } = useChat<FableUIMessage>({
       transport,
       messages: [],
       experimental_throttle: 80,
+      sendAutomaticallyWhen: shouldContinueAfterRenderedData,
+      async onToolCall({ toolCall }) {
+        if (toolCall.dynamic || toolCall.toolName !== "get_rendered_data") {
+          return
+        }
+
+        try {
+          const options = await resolveChatRequestOptions()
+          const output = dataContext?.getRenderedData(
+            toolCall.input.resourceId
+          ) ?? {
+            status: "unavailable" as const,
+            resourceId: toolCall.input.resourceId,
+            reason: "not-rendered" as const,
+          }
+
+          addToolOutput({
+            tool: "get_rendered_data",
+            toolCallId: toolCall.toolCallId,
+            output,
+            options,
+          })
+        } catch (nextError) {
+          setClientError(describeChatError(nextError))
+          addToolOutput({
+            tool: "get_rendered_data",
+            toolCallId: toolCall.toolCallId,
+            state: "output-error",
+            errorText: "Unable to share the rendered data with the assistant.",
+          })
+        }
+      },
       onError: (nextError) => {
         setClientError(describeChatError(nextError))
       },
@@ -60,7 +116,7 @@ export default function Chat({
       clearVisibleError()
 
       try {
-        const credentials = await providerSettings.resolveRequestCredentials()
+        const requestOptions = await resolveChatRequestOptions()
         await sendMessage(
           {
             text,
@@ -71,17 +127,7 @@ export default function Chat({
               url,
             })),
           },
-          {
-            body: {
-              provider: providerSettings.provider,
-              model: providerSettings.model,
-              mode:
-                credentials.credentialSource === "none" ? "mock" : undefined,
-              credentialSource: credentials.credentialSource,
-              selectedKeyId: credentials.selectedKeyId,
-              apiKey: credentials.apiKey,
-            },
-          }
+          requestOptions
         )
 
         return true
@@ -90,7 +136,7 @@ export default function Chat({
         return false
       }
     },
-    [clearVisibleError, providerSettings, sendMessage]
+    [clearVisibleError, resolveChatRequestOptions, sendMessage]
   )
 
   const handleSuggestedAction = useCallback<NonNullable<ToolRenderHandlers["onSuggestedAction"]>>(

@@ -8,11 +8,13 @@ import {
 } from "@/components/ui/dialog"
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
+import { Button } from "@/components/ui/button"
 import * as React from "react"
 import type { DataBrowserDetail, DataBrowserRowAction } from "../data-browser.types"
 import { RowDetail } from "./row-detail"
@@ -67,9 +69,16 @@ export function ResponsiveDetailSurface<Row extends DataRow>({
     return (
       <Drawer open={isOpen} onOpenChange={(open) => (!open ? onClose() : undefined)}>
         <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>{resolvedTitle}</DrawerTitle>
-            {resolvedDescription ? <DrawerDescription>{resolvedDescription}</DrawerDescription> : null}
+          <DrawerHeader className="flex-row items-start justify-between gap-3 text-start">
+            <div className="flex flex-col gap-0.5">
+              <DrawerTitle>{resolvedTitle}</DrawerTitle>
+              {resolvedDescription ? <DrawerDescription>{resolvedDescription}</DrawerDescription> : null}
+            </div>
+            <DrawerClose asChild>
+              <Button type="button" variant="ghost" size="sm" aria-label="Close">
+                Close
+              </Button>
+            </DrawerClose>
           </DrawerHeader>
           <div className="max-h-[70vh] overflow-y-auto px-4 pb-4">
             {row ? (

@@ -54,13 +54,13 @@ export function DataBrowserToolbar({
       <div className="flex flex-col gap-2 sm:flex-row">
         <label className="relative flex-1">
           <span className="sr-only">{searchPlaceholder}</span>
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <SearchIcon className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
             placeholder={searchPlaceholder}
             disabled={isDisabled}
             aria-label={searchPlaceholder}
-            className="pl-9"
+            className="ps-9"
             onChange={(event) => onSearchChange(event.target.value)}
           />
         </label>

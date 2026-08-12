@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useMemo } from "react";
-import type { FileUIPart, UIMessage } from "ai";
+import type { FileUIPart } from "ai";
 import { Loading03Icon } from "@hugeicons/core-free-icons";
 
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
@@ -23,16 +23,17 @@ import {
   type ToolRenderPart,
 } from "@/lib/fable-ui/tool-router";
 import type { ToolRenderHandlers } from "@/lib/fable-ui/core";
+import type { FableUIMessage } from "@/lib/fable-ui/tools";
 
 type MessageListProps = {
-  messages: UIMessage[];
+  messages: FableUIMessage[];
   isLoading?: boolean;
   onSuggestedAction?: ToolRenderHandlers["onSuggestedAction"];
 };
 
 type TimelineItem =
   | { key: string; type: "marker" }
-  | { key: string; type: "message"; message: UIMessage }
+  | { key: string; type: "message"; message: FableUIMessage }
   | { key: string; type: "loading" };
 
 function toAttachmentItem(
@@ -52,7 +53,7 @@ const MessageRow = memo(function MessageRow({
   message,
   onSuggestedAction,
 }: {
-  message: UIMessage;
+  message: FableUIMessage;
   onSuggestedAction?: ToolRenderHandlers["onSuggestedAction"];
 }) {
   const isUser = message.role === "user";
@@ -93,13 +94,54 @@ const MessageRow = memo(function MessageRow({
                   className={cn(
                     "border-none",
                     isUser
-                      ? "w-full rounded-tr-sm"
+                      ? "w-full px-4"
                       : "w-full max-w-3xl px-0",
                   )}
                 >
                   <MarkdownResponse>{part.text}</MarkdownResponse>
                 </BubbleContent>
               </Bubble>
+            );
+          }
+
+          if (part.type === "tool-get_rendered_data") {
+            const isLoading =
+              part.state === "input-streaming" ||
+              part.state === "input-available"
+            const isError = part.state === "output-error"
+            let description =
+              "Render the data view before asking the assistant to reason about it."
+
+            if (isLoading) {
+              description = "Reading the current rendered data..."
+            } else if (isError) {
+              description =
+                "The rendered data could not be shared with the assistant."
+            } else if (part.state === "output-available") {
+              description =
+                part.output.status === "available"
+                  ? "The assistant can now reason about the current rendered data."
+                  : part.output.reason === "too-large"
+                    ? "The rendered data is too large. Narrow the visible view first."
+                    : description
+            }
+
+            return (
+              <Marker
+                key={`${message.id}-tool-${index}`}
+                role={isError ? "alert" : "status"}
+              >
+                {isLoading ? (
+                  <MarkerIcon>
+                    <HugeIcon
+                      icon={Loading03Icon}
+                      className="animate-spin motion-reduce:animate-none"
+                      aria-hidden="true"
+                    />
+                  </MarkerIcon>
+                ) : null}
+                <MarkerContent>{description}</MarkerContent>
+              </Marker>
             );
           }
 
@@ -124,21 +166,13 @@ const MessageRow = memo(function MessageRow({
   );
 });
 
-function TimelineMarker() {
-  return (
-    <div className="flex justify-center py-2 text-xs text-muted-foreground">
-      Today
-    </div>
-  );
-}
-
 function ThinkingRow() {
   return (
     <Marker role="status">
       <MarkerIcon>
         <HugeIcon
           icon={Loading03Icon}
-          className="animate-spin"
+          className="animate-spin motion-reduce:animate-none"
           aria-hidden="true"
         />
       </MarkerIcon>

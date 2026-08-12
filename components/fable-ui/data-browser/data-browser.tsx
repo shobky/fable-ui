@@ -82,6 +82,8 @@ export function DataBrowser<Row extends DataRow = DataRow>({
   const detail = useRowDetailSurface<Row>()
   const query = useDataBrowserQuery<Row>({
     resourceId,
+    title,
+    entityLabel,
     rows,
     columns,
     filters: effectiveFilters,
@@ -132,7 +134,7 @@ export function DataBrowser<Row extends DataRow = DataRow>({
       <Card
         className={cn(
           dataBrowserVariants({ variant, size }),
-          "transition-[box-shadow,opacity] duration-200",
+          "transition-[box-shadow,opacity] duration-200 motion-reduce:transition-none",
           isDisabled && "opacity-60"
         )}
         data-fable-ui="data-browser"
@@ -186,7 +188,7 @@ export function DataBrowser<Row extends DataRow = DataRow>({
             />
           ) : null}
           {busy ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground" role="status">
               Loading {resolvedEntityLabel}...
             </p>
           ) : null}

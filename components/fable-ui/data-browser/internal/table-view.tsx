@@ -53,14 +53,14 @@ function getColumnWidth(column: DataColumn, minWidth: number) {
 
 function getAlignClass(align: DataColumn["align"]) {
   if (align === "right") {
-    return "text-right"
+    return "text-end"
   }
 
   if (align === "center") {
     return "text-center"
   }
 
-  return "text-left"
+  return "text-start"
 }
 
 export function TableView<Row extends DataRow>({
@@ -92,6 +92,9 @@ export function TableView<Row extends DataRow>({
   return (
     <div
       className="min-h-0 overflow-auto rounded-md border scrollbar-pretty max-h-[min(60vh,36rem)]"
+      role="region"
+      tabIndex={0}
+      aria-label={`${entityLabel} table`}
     >
       <table
         className="w-full table-auto text-sm"
@@ -116,7 +119,7 @@ export function TableView<Row extends DataRow>({
               </th>
             ))}
             {onViewRow ? (
-              <th className="w-28 px-3 py-2 text-right font-medium">View</th>
+              <th className="w-28 px-3 py-2 text-end font-medium">View</th>
             ) : null}
           </tr>
         </thead>
@@ -159,10 +162,15 @@ export function TableView<Row extends DataRow>({
                       {columnIndex === 0 ? (
                         <div className="flex min-w-0 items-center gap-2">
                           <CellAvatar row={row} />
-                          <span className="min-w-0 truncate">{cellValue}</span>
+                          <span className="min-w-0 truncate" title={cellValue || undefined}>
+                            {cellValue}
+                          </span>
                         </div>
                       ) : (
-                        <span className="block min-w-0 truncate">
+                        <span
+                          className="block min-w-0 truncate"
+                          title={formattedValue || undefined}
+                        >
                           {formattedValue}
                         </span>
                       )}
@@ -170,7 +178,7 @@ export function TableView<Row extends DataRow>({
                   )
                 })}
                 {onViewRow ? (
-                  <td className="px-3 py-2 text-right">
+                  <td className="px-3 py-2 text-end">
                     <Button
                       type="button"
                       variant="ghost"

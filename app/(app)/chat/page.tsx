@@ -1,5 +1,6 @@
 import Chat from "@/components/chat/chat";
 import { getDefaultProviderConfig, getProviderReadiness } from "@/lib/ai/provider-config";
+import { FableDataProvider } from "@/lib/fable-ui/core";
 
 type PlaygroundSearchParams = {
   prompt?: string | string[];
@@ -27,12 +28,14 @@ export default async function Page({
       className="group/layout relative z-10 flex h-[calc(100svh-var(--header-height))] flex-col overflow-hidden bg-background"
     >
       <main className="h-[calc(100svh-var(--header-height))] flex-1 overflow-hidden">
-        <Chat
-          providerDefaults={providerDefaults}
-          providerReadiness={providerReadiness}
-          initialPrompt={initialPrompt}
-          autoSend={autoSend}
-        />
+        <FableDataProvider>
+          <Chat
+            providerDefaults={providerDefaults}
+            providerReadiness={providerReadiness}
+            initialPrompt={initialPrompt}
+            autoSend={autoSend}
+          />
+        </FableDataProvider>
       </main>
     </div>
 

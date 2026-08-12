@@ -103,12 +103,14 @@ export class DataSourceRegistry {
     ctx: DataSourceContext = {},
   ): Promise<DataQueryResult<Row>> {
     const { resource, driver, runtime } = this.resolve(resourceId)
+    const result = runtime?.list
+      ? await runtime.list(resource, query, ctx)
+      : await driver.list(resource, query, ctx, runtime)
 
-    if (runtime?.list) {
-      return runtime.list(resource, query, ctx) as Promise<DataQueryResult<Row>> | DataQueryResult<Row>
+    return {
+      ...result,
+      rows: resource.transformRows ? resource.transformRows(result.rows) : result.rows,
     }
-
-    return driver.list(resource, query, ctx, runtime)
   }
 
   async get<Row extends DataRow = DataRow>(
