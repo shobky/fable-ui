@@ -43,7 +43,9 @@ export function ComponentsList({
   variant?: "all" | "new"
 }) {
   const list = getPagesFromFolder(componentsFolder).filter(
-    (component) => variant === "all" || PAGES_NEW.includes(component.url)
+    (component) =>
+      component.url !== "/docs/components" &&
+      (variant === "all" || PAGES_NEW.includes(component.url))
   )
 
   if (!list.length) {

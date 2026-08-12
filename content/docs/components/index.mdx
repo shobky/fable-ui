@@ -1,0 +1,18 @@
+---
+title: Components
+description: Copy-and-own Fable UI surfaces for validated AI intent.
+---
+
+Fable UI components turn validated AI tool results into focused, copy-and-own interfaces. They render user-facing state; the host still owns data access, authorization, persistence, and side effects.
+
+<ComponentsList />
+
+## Browse by job
+
+- **Summaries and choices:** [MetricCard](/docs/components/metric-card), [SuggestedActions](/docs/components/suggested-actions), and [ConfirmationCard](/docs/components/confirmation-card).
+- **Structured input and data:** [FormCard](/docs/components/form-card), [DataBrowser](/docs/components/data-browser), and [Charts](/docs/components/charts).
+- **User-owned drafts and source:** [TextEditorCard](/docs/components/text-editor-card), [EmailComposerCard](/docs/components/email-composer-card), and [CodeBlockCard](/docs/components/code-block-card).
+
+Choose the smallest surface that matches the user’s next safe action. Use a form for a few structured fields, a confirmation card for a host-owned side effect, an editor for one local text draft, an email composer for a user-controlled compose handoff, and a code block for inspectable source. None of these components automatically fetch private data, execute code, send email, or mutate the host application.
+
+See [Tool Definitions](/docs/tool-definitions) for the shared renderer contract and [Manifests](/docs/manifests) for model-routing guidance.

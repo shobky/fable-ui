@@ -1,0 +1,103 @@
+---
+title: TextEditorCard
+description: Review, edit, copy, or download one plain-text or Markdown draft.
+---
+
+`TextEditorCard` presents one self-contained plain-text or Markdown draft. It is useful when an AI response should become a small user-owned document without turning into rich-text editing or a file write.
+
+<TextEditorCardPreview />
+
+## Installation
+
+<RegistryInstallCommand itemName="text-editor-card" />
+
+The registry item installs the component, its small uncontrolled-draft hook, copy helper, AI SDK tool, and routing manifest:
+
+```txt
+components/fable-ui/text-editor-card/index.ts
+components/fable-ui/text-editor-card/text-editor-card.tsx
+components/fable-ui/text-editor-card/use-plain-text-draft.ts
+hooks/use-copy-to-clipboard.ts
+lib/fable-ui/tools/show-text-editor-tool.ts
+lib/fable-ui/manifests/show-text-editor.md
+```
+
+It uses shadcn `alert`, `button`, `card`, `empty`, `field`, `skeleton`, `textarea`, and `tooltip` primitives, plus the shared Fable `core` registry dependency.
+
+## Usage
+
+```tsx
+import { TextEditorCard } from "@/components/fable-ui/text-editor-card"
+
+export function ProposalDraft() {
+  return (
+    <TextEditorCard
+      label="Proposal notes"
+      content={"## Summary\n\nStart with the clearest recommendation."}
+      format="markdown"
+      filename="proposal-notes.md"
+      maxLength={1200}
+      onContentChange={(content) => {
+        // Persist only after the user leaves the textarea.
+        console.log(content)
+      }}
+    />
+  )
+}
+```
+
+The textarea is intentionally uncontrolled while ready. `onContentChange` fires on blur, not on every keystroke. Set `editable={false}` or `isDisabled` to keep a selectable read-only draft. `maxLength` is a visible soft guide: it neither truncates text nor disables copy or download.
+
+The compact Copy and Download icons sit at the card’s logical inline end. They have accessible names and tooltips; the default “Text editor” title stays semantic but is visually hidden because the content itself supplies the hierarchy.
+
+## Tool definition
+
+The AI SDK tool name is `show_text_editor`. Its input accepts:
+
+```ts
+{
+  label?: string
+  content: string
+  format?: "plain" | "markdown"
+  filename?: string
+  editable?: boolean
+  direction?: "ltr" | "rtl" | "auto"
+  maxLength?: number
+}
+```
+
+Use it for one display-ready note, document, or Markdown draft. Do not use it for rich text, collaborative editing, source code, email recipients, forms, files, or host-side mutations. The host owns persistence and authorization.
+
+<ComponentSource
+  src="lib/fable-ui/tools/show-text-editor-tool.ts"
+  title="lib/fable-ui/tools/show-text-editor-tool.ts"
+/>
+
+## States
+
+| State     | Behavior                                                                                                               |
+| --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Ready     | Shows the editable textarea when `editable` is true; Copy and Download use the current local draft.                    |
+| Loading   | Shows a preparing status and skeleton; actions stay unavailable without meaningful content.                            |
+| Streaming | Shows generated content read-only until the part completes; meaningful partial text can still be copied or downloaded. |
+| Empty     | Explains that no text is available.                                                                                    |
+| Error     | Shows the error and retains any partial text as selectable, copyable, downloadable content.                            |
+| Disabled  | Keeps ready text read-only while leaving meaningful content available for copy and download.                           |
+
+## RTL and accessibility
+
+Use `direction="rtl"` or `direction="ltr"` when known. With `auto`, the card detects Arabic and Hebrew characters for read-only presentation while preserving the host document direction elsewhere. Actions use `CardAction` at the logical inline end, so they follow RTL layout without hard-coded left/right positioning.
+
+Each textarea has a visible label, the icon-only actions have screen-reader labels and tooltips, loading status is announced, and partial/error content remains available rather than disappearing.
+
+## Manifest and caveats
+
+The manifest explains when the model should choose a focused editable draft rather than a form, email, or code block.
+
+<ComponentSource
+  src="lib/fable-ui/manifests/show-text-editor.md"
+  title="lib/fable-ui/manifests/show-text-editor.md"
+  language="md"
+/>
+
+This card only manages local browser state. It does not save, sync, sanitize rich text, or write a file on its own.

@@ -8,7 +8,6 @@ import { PAGES_BETA, PAGES_NEW } from "@/lib/docs"
 import { getPagesFromFolder } from "@/lib/page-tree"
 import { type source } from "@/lib/source"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import {
   Popover,
   PopoverContent,
@@ -17,6 +16,7 @@ import {
 import { Badge } from "./ui/badge"
 
 const TOP_LEVEL_SECTIONS = [
+  { name: "Components", href: "/docs/components" },
   { name: "Introduction", href: "/docs/introduction" },
   {
     name: "Installation",
@@ -55,8 +55,9 @@ export function MobileNav({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
+          aria-label={open ? "Close menu" : "Open menu"}
           className={cn(
-            "extend-touch-target h-8 touch-manipulation flex items-center justify-start gap-2.5 p-0! ",
+            "extend-touch-target flex h-8 touch-manipulation items-center justify-start gap-2.5 p-0!",
             className
           )}
         >
@@ -64,18 +65,17 @@ export function MobileNav({
             <div className="relative size-4">
               <span
                 className={cn(
-                  "absolute left-0 block h-0.5 w-4 bg-foreground transition-all duration-100",
+                  "absolute left-0 block h-0.5 w-4 bg-foreground transition-all duration-100 motion-reduce:transition-none",
                   open ? "top-[0.4rem] -rotate-45" : "top-1"
                 )}
               />
               <span
                 className={cn(
-                  "absolute left-0 block h-0.5 w-4 bg-foreground transition-all duration-100",
+                  "absolute left-0 block h-0.5 w-4 bg-foreground transition-all duration-100 motion-reduce:transition-none",
                   open ? "top-[0.4rem] rotate-45" : "top-2.5"
                 )}
               />
             </div>
-            <span className="sr-only">Toggle Menu</span>
           </div>
           <span className="flex h-8 items-center text-lg leading-none font-medium">
             Menu
@@ -136,27 +136,29 @@ export function MobileNav({
                     {group.name}
                   </div>
                   <div className="flex flex-col gap-3">
-                    {getPagesFromFolder(group).map((item) => (
-                      <MobileLink
-                        key={item.url}
-                        href={item.url}
-                        onOpenChange={setOpen}
-                        className="flex items-center gap-2"
-                      >
-                        {item.name}
-                        {PAGES_NEW.includes(item.url) && (
-                          <span
-                            className="flex size-2 rounded-full bg-blue-500"
-                            title="New"
-                          />
-                        )}
-                        {PAGES_BETA.includes(item.url) && (
-                          <Badge className="scale-90 bg-yellow-500/15 text-yellow-500">
-                            Beta
-                          </Badge>
-                        )}
-                      </MobileLink>
-                    ))}
+                    {getPagesFromFolder(group)
+                      .filter((item) => item.url !== "/docs/components")
+                      .map((item) => (
+                        <MobileLink
+                          key={item.url}
+                          href={item.url}
+                          onOpenChange={setOpen}
+                          className="flex items-center gap-2"
+                        >
+                          {item.name}
+                          {PAGES_NEW.includes(item.url) && (
+                            <span
+                              className="flex size-2 rounded-full bg-blue-500"
+                              title="New"
+                            />
+                          )}
+                          {PAGES_BETA.includes(item.url) && (
+                            <Badge className="scale-90 bg-yellow-500/15 text-yellow-500">
+                              Beta
+                            </Badge>
+                          )}
+                        </MobileLink>
+                      ))}
                   </div>
                 </div>
               )

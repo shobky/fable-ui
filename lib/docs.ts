@@ -1,4 +1,9 @@
-export const PAGES_NEW = [""]
+export const PAGES_NEW = [
+  "/docs/components",
+  "/docs/components/text-editor-card",
+  "/docs/components/email-composer-card",
+  "/docs/components/code-block-card",
+]
 
 export const PAGES_UPDATED = []
 
@@ -13,4 +18,5 @@ export const PAGES_BETA = [
   "/docs/data-sources/actions-and-invalidation",
   "/docs/data-sources/rest",
   "/docs/data-sources/multiple-data-sources",
+  "/docs/data-sources/firebase",
 ]

@@ -1,11 +1,15 @@
 {
   "title": "Components",
   "pages": [
+    "index",
     "metric-card",
     "suggested-actions",
     "confirmation-card",
     "form-card",
     "data-browser",
-    "charts"
+    "charts",
+    "text-editor-card",
+    "email-composer-card",
+    "code-block-card"
   ]
 }

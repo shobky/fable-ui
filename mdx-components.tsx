@@ -15,13 +15,16 @@ import { CopyButton } from "@/components/copy-button"
 import { getIconForLanguageExtension } from "@/components/icons"
 import {
   ChartsPreview,
+  CodeBlockCardPreview,
   ConfirmationCardPreview,
   DataBrowserPreview,
+  EmailComposerCardPreview,
   FormCardPreview,
   MetricCardPreview,
   PieChartPreview,
   ShowTablePreview,
   SuggestedActionsPreview,
+  TextEditorCardPreview,
 } from "@/components/fable-ui-previews"
 import { RegistryInstallCommand } from "@/components/registry-install-command"
 import {
@@ -460,6 +463,7 @@ export const mdxComponents = {
   CodeTabs,
   ComponentPreview,
   ChartsPreview,
+  CodeBlockCardPreview,
   PieChartPreview,
   MetricCardPreview,
   SuggestedActionsPreview,
@@ -467,6 +471,8 @@ export const mdxComponents = {
   FormCardPreview,
   DataBrowserPreview,
   ShowTablePreview,
+  TextEditorCardPreview,
+  EmailComposerCardPreview,
   RegistryInstallCommand,
   ComponentSource,
   CodeCollapsibleWrapper,

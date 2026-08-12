@@ -12,6 +12,8 @@ import {
 import { DataBrowser } from "@/components/fable-ui/data-browser/data-browser"
 import type { DataBrowserProps } from "@/components/fable-ui/data-browser/data-browser.types"
 import { ShowTable } from "@/components/fable-ui/data-browser/show-table"
+import { CodeBlockCard } from "@/components/fable-ui/code-block-card"
+import { EmailComposerCard } from "@/components/fable-ui/email-composer-card"
 import {
   FormCard,
   type FormCardProps,
@@ -24,6 +26,7 @@ import {
   SuggestedActions,
   type SuggestedActionsProps,
 } from "@/components/fable-ui/suggested-actions/suggested-actions"
+import { TextEditorCard } from "@/components/fable-ui/text-editor-card"
 import { HighlightedSourceBlock } from "@/components/highlighted-source-block"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { DataColumn, DataRow } from "@/lib/fable-ui/core"
@@ -37,6 +40,18 @@ const previewStates = [
 ] as const
 
 type PreviewState = (typeof previewStates)[number]["value"]
+
+const contentCardPreviewStates = [
+  { value: "ready", label: "Ready" },
+  { value: "loading", label: "Loading" },
+  { value: "streaming", label: "Streaming" },
+  { value: "empty", label: "Empty" },
+  { value: "error", label: "Error" },
+  { value: "disabled", label: "Disabled" },
+] as const
+
+type ContentCardPreviewState =
+  (typeof contentCardPreviewStates)[number]["value"]
 
 function PreviewStateTabs({
   value,
@@ -91,6 +106,34 @@ function PreviewFrame({
         <PreviewStateTabs value={state} onValueChange={onStateChange} />
       </div>
       <div className="flex h-full w-full justify-center pt-10">{children}</div>
+    </div>
+  )
+}
+
+function ContentCardPreviewFrame({
+  children,
+  state,
+  onStateChange,
+}: {
+  children: React.ReactNode
+  state: ContentCardPreviewState
+  onStateChange: (state: ContentCardPreviewState) => void
+}) {
+  return (
+    <div className="flex w-full flex-col items-center gap-4">
+      <Tabs
+        value={state}
+        onValueChange={(next) => onStateChange(next as ContentCardPreviewState)}
+      >
+        <TabsList className="flex-wrap">
+          {contentCardPreviewStates.map((previewState) => (
+            <TabsTrigger key={previewState.value} value={previewState.value}>
+              {previewState.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+      <div className="flex h-full w-full justify-center">{children}</div>
     </div>
   )
 }
@@ -795,6 +838,198 @@ export function ShowTablePreview() {
       source={<SourceBlock>{showTableSource}</SourceBlock>}
       sourcePreview={<SourceBlock preview>{showTableSource}</SourceBlock>}
       previewClassName="h-auto min-h-[34rem] p-6"
+      align="center"
+    />
+  )
+}
+
+const textEditorSource = `import { TextEditorCard } from "@/components/fable-ui/text-editor-card"
+
+export function ProposalDraft() {
+  return (
+    <TextEditorCard
+      label="Proposal notes"
+      content="Start with a short summary."
+      format="markdown"
+      filename="proposal-notes.md"
+      maxLength={1200}
+    />
+  )
+}`
+
+export function TextEditorCardPreview() {
+  const [state, setState] = React.useState<ContentCardPreviewState>("ready")
+  const propsByState = {
+    ready: {
+      label: "Proposal notes",
+      content: "## Launch notes\n\nKeep the summary direct and useful.",
+      format: "markdown",
+      filename: "launch-notes.md",
+      maxLength: 1200,
+    },
+    loading: { label: "Proposal notes", content: "", isLoading: true },
+    streaming: {
+      label: "Proposal notes",
+      content: "## Launch notes\n\nDrafting the next section…",
+      format: "markdown",
+      isStreaming: true,
+    },
+    empty: { label: "Proposal notes", content: "" },
+    error: {
+      label: "Proposal notes",
+      content: "## Partial notes\n\nThe completed portion is still available.",
+      format: "markdown",
+      error: {
+        title: "Draft interrupted",
+        description: "Copy or download the available text before retrying.",
+      },
+    },
+    disabled: {
+      label: "Proposal notes",
+      content: "This approved note stays selectable and exportable.",
+      isDisabled: true,
+    },
+  } satisfies Record<
+    ContentCardPreviewState,
+    React.ComponentProps<typeof TextEditorCard>
+  >
+
+  return (
+    <ComponentPreviewTabs
+      component={
+        <ContentCardPreviewFrame state={state} onStateChange={setState}>
+          <TextEditorCard key={state} {...propsByState[state]} />
+        </ContentCardPreviewFrame>
+      }
+      source={<SourceBlock>{textEditorSource}</SourceBlock>}
+      sourcePreview={<SourceBlock preview>{textEditorSource}</SourceBlock>}
+      previewClassName="h-auto min-h-[30rem] p-6"
+      align="center"
+    />
+  )
+}
+
+const emailComposerSource = `import { EmailComposerCard } from "@/components/fable-ui/email-composer-card"
+
+export function WelcomeEmail() {
+  return (
+    <EmailComposerCard
+      to={["reader@example.com"]}
+      subject="Welcome to the team"
+      body="Hi there,\\n\\nHere is your first-week checklist."
+    />
+  )
+}`
+
+export function EmailComposerCardPreview() {
+  const [state, setState] = React.useState<ContentCardPreviewState>("ready")
+  const propsByState = {
+    ready: {
+      to: ["reader@example.com"],
+      subject: "Welcome to the team",
+      body: "Hi there,\n\nHere is your first-week checklist.",
+    },
+    loading: { subject: "", body: "", isLoading: true },
+    streaming: {
+      to: ["reader@example.com"],
+      subject: "Welcome to the team",
+      body: "Hi there,\n\nDrafting the remaining details…",
+      isStreaming: true,
+    },
+    empty: { subject: "", body: "" },
+    error: {
+      to: ["reader@example.com"],
+      subject: "Welcome to the team",
+      body: "Hi there,\n\nThe completed email remains available to copy.",
+      error: {
+        title: "Email draft interrupted",
+        description: "Copy the available package before retrying.",
+      },
+    },
+    disabled: {
+      to: ["reader@example.com"],
+      subject: "Approved announcement",
+      body: "This read-only draft can still be copied.",
+      isDisabled: true,
+    },
+  } satisfies Record<
+    ContentCardPreviewState,
+    React.ComponentProps<typeof EmailComposerCard>
+  >
+
+  return (
+    <ComponentPreviewTabs
+      component={
+        <ContentCardPreviewFrame state={state} onStateChange={setState}>
+          <EmailComposerCard key={state} {...propsByState[state]} />
+        </ContentCardPreviewFrame>
+      }
+      source={<SourceBlock>{emailComposerSource}</SourceBlock>}
+      sourcePreview={<SourceBlock preview>{emailComposerSource}</SourceBlock>}
+      previewClassName="h-auto min-h-[34rem] p-6"
+      align="center"
+    />
+  )
+}
+
+const codeBlockSource = `import { CodeBlockCard } from "@/components/fable-ui/code-block-card"
+
+export function InstallCommand() {
+  return (
+    <CodeBlockCard
+      language="ts"
+      filename="welcome.ts"
+      code={'export const welcome = "Hello"'}
+    />
+  )
+}`
+
+export function CodeBlockCardPreview() {
+  const [state, setState] = React.useState<ContentCardPreviewState>("ready")
+  const propsByState = {
+    ready: {
+      language: "ts",
+      filename: "welcome.ts",
+      code: 'export const welcome = "Hello"',
+    },
+    loading: { language: "ts", code: "", isLoading: true },
+    streaming: {
+      language: "ts",
+      filename: "welcome.ts",
+      code: 'export const welcome = "Drafting"',
+      isStreaming: true,
+    },
+    empty: { language: "ts", code: "" },
+    error: {
+      language: "ts",
+      filename: "partial.ts",
+      code: "export const partial = true",
+      error: {
+        title: "Code generation interrupted",
+        description: "The available source can still be copied or downloaded.",
+      },
+    },
+    disabled: {
+      language: "ts",
+      filename: "approved.ts",
+      code: "export const approved = true",
+      isDisabled: true,
+    },
+  } satisfies Record<
+    ContentCardPreviewState,
+    React.ComponentProps<typeof CodeBlockCard>
+  >
+
+  return (
+    <ComponentPreviewTabs
+      component={
+        <ContentCardPreviewFrame state={state} onStateChange={setState}>
+          <CodeBlockCard key={state} {...propsByState[state]} />
+        </ContentCardPreviewFrame>
+      }
+      source={<SourceBlock>{codeBlockSource}</SourceBlock>}
+      sourcePreview={<SourceBlock preview>{codeBlockSource}</SourceBlock>}
+      previewClassName="h-auto min-h-[30rem] p-6"
       align="center"
     />
   )

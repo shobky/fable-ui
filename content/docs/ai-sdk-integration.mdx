@@ -58,7 +58,7 @@ Unknown tool parts render a small fallback. Invalid payloads are parsed with the
 
 ## Wire Interactive Tool Parts
 
-Display-only tools can render without handlers. Interactive surfaces need the host chat to pass callbacks into `FableToolPart`.
+Display tools can render without handlers. Interactive surfaces need the host chat to pass callbacks into `FableToolPart`.
 
 For `show_next_actions`, a click should become a normal user message:
 
@@ -89,7 +89,7 @@ export function ChatToolPart({ part }: { part: unknown }) {
 
       void sendMessage({ text: action.prompt })
     },
-    [isBusy, sendMessage],
+    [isBusy, sendMessage]
   )
 
   return (
@@ -116,20 +116,20 @@ await sendMessage(
       selectedKeyId,
       apiKey,
     },
-  },
+  }
 )
 ```
 
 The selected action is user intent, not an automatic side effect. The model receives the prompt, then decides whether to answer in text or call another registered Fable tool.
 
-## DataBrowser Resources
+## DataBrowser Tools
 
-`show_data_browser` should receive a `resourceId`, not database details. Register resources in host code, then add the safe manifest to your system prompt:
+`show_table` and `show_data_browser` are display tools. `show_data_browser` should receive a `resourceId`, not database details. Register resources in host code, then add the safe manifest to your system prompt:
 
 `show_chart` renders static model-provided chart data only. Fetch private or live data in host code, validate the rows, then pass display-ready data into the chart payload.
 
 ```ts
-import { describeAvailableResources } from "@/lib/fable-ui/tools/show-data-browser-tool"
+import { describeAvailableResources } from "@/lib/fable-ui/core"
 
 const result = streamText({
   model,
@@ -143,6 +143,65 @@ const result = streamText({
 ```
 
 The model can select a resource id from that manifest. It must not pass raw SQL, Firestore paths, collection names, REST URLs, secrets, or permission decisions.
+
+Register `get_rendered_data` alongside those display tools when the model may need to reason about a resource-backed browser after it renders. In AI SDK 7 it is a client tool: its definition has no `execute`, so the route registers the tool while `useChat` supplies the output.
+
+`FableDataProvider` must wrap the shared chat and rendered DataBrowser tree. Register resources on the same registry passed to this provider; without it, no rendered snapshot is published and the client tool correctly returns `not-rendered`.
+
+```tsx
+import type { ReactNode } from "react"
+
+import { FableDataProvider } from "@/lib/fable-ui/core"
+
+export function FableDataRoot({ children }: { children: ReactNode }) {
+  return <FableDataProvider>{children}</FableDataProvider>
+}
+```
+
+```tsx
+"use client"
+
+import { useChat } from "@ai-sdk/react"
+
+import { useFableDataContext } from "@/lib/fable-ui/core"
+import type { FableUIMessage } from "@/lib/fable-ui/tools"
+import { shouldContinueAfterRenderedData } from "@/lib/fable-ui/tools/get-rendered-data-tool"
+
+export function useFableChat() {
+  const dataContext = useFableDataContext()
+
+  const { addToolOutput, ...chat } = useChat<FableUIMessage>({
+    sendAutomaticallyWhen: shouldContinueAfterRenderedData,
+    onToolCall({ toolCall }) {
+      if (toolCall.dynamic || toolCall.toolName !== "get_rendered_data") return
+
+      const output = dataContext.getRenderedData(toolCall.input.resourceId)
+
+      addToolOutput({
+        tool: "get_rendered_data",
+        toolCallId: toolCall.toolCallId,
+        output,
+      })
+    },
+  })
+
+  return { addToolOutput, ...chat }
+}
+```
+
+The provider reads only its current rendered resource page; this client handler must never fetch or refetch. A miss or over-limit snapshot returns `unavailable`. Keep the continuation predicate narrow so it sends the next request only after the tool output is available. Rows are untrusted model context, not instructions, authorization, or permission to perform a side effect.
+
+## Agent-rendered UI
+
+This guidance is verified against `ai@7.0.14` and `@ai-sdk/react@4.0.15`. Recheck the installed AI SDK docs and types when upgrading because the agent and UI APIs change frequently.
+
+AI SDK generative UI does not let the model write React or HTML. The model selects a registered tool, the SDK streams a typed `tool-*` message part, and the host maps that trusted tool contract to a React component. Fable follows that pattern: schemas constrain model input, `FableUIMessage` keeps tool parts typed end to end, and `FableToolPart` selects an allowlisted renderer.
+
+Keep the current `streamText` route while a workflow depends on browser-owned state such as `get_rendered_data`. A client tool has no `execute`; the server loop pauses at its tool call, `useChat` supplies the result with `addToolOutput`, and the narrow `sendAutomaticallyWhen` predicate starts the next request. Moving this flow into a server-only loop would not give the server access to the provider's browser cache.
+
+Use `ToolLoopAgent` later when the host has reusable, server-executed tools that need several autonomous steps. At that point, define the tools once on the agent, infer the client message type with `InferAgentUIMessage<typeof agent>`, and return its stream with `createAgentUIStreamResponse`. Do not migrate only to rename the current `streamText` call: the agent abstraction becomes useful when it owns a real multi-step server workflow, lifecycle callbacks, or shared call configuration.
+
+SDK tool approval is also a future server-side boundary. Use it when a tool's `execute` performs a sensitive action. A rendered confirmation card or client tool output is model context, not authorization; the host must still authenticate, authorize, and validate the action.
 
 ## Quickstart
 

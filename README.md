@@ -8,21 +8,25 @@ Fable UI is for product interfaces where the assistant should be able to show a 
 
 ## Documentation
 
-- [Introduction](https://fable-ui.vercel.app/docs/introduction)
-- [Installation](https://fable-ui.vercel.app/docs/installation)
-- [Registry](https://fable-ui.vercel.app/docs/registry)
-- [Manifests](https://fable-ui.vercel.app/docs/manifests)
-- [AI SDK Integration](https://fable-ui.vercel.app/docs/ai-sdk-integration)
-- [MetricCard](https://fable-ui.vercel.app/docs/components/metric-card)
-- [SuggestedActions](https://fable-ui.vercel.app/docs/components/suggested-actions)
-- [ConfirmationCard](https://fable-ui.vercel.app/docs/components/confirmation-card)
-- [FormCard](https://fable-ui.vercel.app/docs/components/form-card)
-- [DataBrowser](https://fable-ui.vercel.app/docs/components/data-browser)
-- [Charts](https://fable-ui.vercel.app/docs/components/charts)
-- [Data Sources](https://fable-ui.vercel.app/docs/data-sources/overview)
-- [System Flow](https://fable-ui.vercel.app/docs/architecture/system-flow)
-- [Agent Routing](https://fable-ui.vercel.app/docs/architecture/agent-routing)
-- [Security](https://fable-ui.vercel.app/docs/architecture/security)
+- [Introduction](https://fable-ui.shobky.com/docs/introduction)
+- [Installation](https://fable-ui.shobky.com/docs/installation)
+- [Registry](https://fable-ui.shobky.com/docs/registry)
+- [Manifests](https://fable-ui.shobky.com/docs/manifests)
+- [AI SDK Integration](https://fable-ui.shobky.com/docs/ai-sdk-integration)
+- [Components](https://fable-ui.shobky.com/docs/components)
+- [MetricCard](https://fable-ui.shobky.com/docs/components/metric-card)
+- [SuggestedActions](https://fable-ui.shobky.com/docs/components/suggested-actions)
+- [ConfirmationCard](https://fable-ui.shobky.com/docs/components/confirmation-card)
+- [FormCard](https://fable-ui.shobky.com/docs/components/form-card)
+- [DataBrowser](https://fable-ui.shobky.com/docs/components/data-browser)
+- [Charts](https://fable-ui.shobky.com/docs/components/charts)
+- [TextEditorCard](https://fable-ui.shobky.com/docs/components/text-editor-card)
+- [EmailComposerCard](https://fable-ui.shobky.com/docs/components/email-composer-card)
+- [CodeBlockCard](https://fable-ui.shobky.com/docs/components/code-block-card)
+- [Data Sources](https://fable-ui.shobky.com/docs/data-sources/overview)
+- [System Flow](https://fable-ui.shobky.com/docs/architecture/system-flow)
+- [Agent Routing](https://fable-ui.shobky.com/docs/architecture/agent-routing)
+- [Security](https://fable-ui.shobky.com/docs/architecture/security)
 
 ## Why Fable UI Exists
 
@@ -66,6 +70,9 @@ Current registry items include:
 - `form-card`: collects a few structured fields mid-conversation through `collect_input`.
 - `data-browser`: renders static row snapshots or host-backed browsing surfaces with search, filters, sort, pagination, row details, and row actions.
 - `charts`: renders static line, bar, and pie chart payloads through `show_chart`.
+- `text-editor-card`: renders a plain-text or Markdown draft with accessible copy and download actions.
+- `email-composer-card`: renders one plain-text email with a portable copied package and explicit compose handoffs.
+- `code-block-card`: renders code with live Shiki highlighting, a raw fallback, and copy or download actions.
 - `rest-driver`: optional driver for host-owned HTTP endpoints.
 - `firebase-driver`: optional driver for Firestore-backed resources.
 - `quickstart`: installs a production-ready chat at `/fable-chat` and `/api/fable-chat`.
@@ -107,6 +114,9 @@ pnpm dlx shadcn@latest add shobky/fable-ui/suggested-actions
 pnpm dlx shadcn@latest add shobky/fable-ui/confirmation-card
 pnpm dlx shadcn@latest add shobky/fable-ui/form-card
 pnpm dlx shadcn@latest add shobky/fable-ui/data-browser
+pnpm dlx shadcn@latest add shobky/fable-ui/text-editor-card
+pnpm dlx shadcn@latest add shobky/fable-ui/email-composer-card
+pnpm dlx shadcn@latest add shobky/fable-ui/code-block-card
 ```
 
 Install optional data drivers only when your app needs them:
@@ -218,13 +228,15 @@ In the playground, "None / mock only" credential mode can render mock `collect_i
 
 `DataBrowser` renders table snapshots or host-backed browsing surfaces.
 
-Use `show_table` when rows are already available in the tool payload. Static table/browser payloads support up to 200 rows with pagination. Use `show_data_browser` when the model should select an allowlisted host-owned resource by `resourceId`.
+Use `show_table` when rows are already available in the tool payload. Static table/browser payloads support up to 200 rows with pagination. Use `show_data_browser` when the model should select an allowlisted host-owned resource by `resourceId`. These are display tools.
 
 Rows with avatar-like fields such as `avatar`, `avatarUrl`, `image`, `imageUrl`, `picture`, `pictureUrl`, `photo`, or `photoUrl` render an avatar image or initials in the first column.
 
+`get_rendered_data` is a client reasoning tool for the provider-owned current page of an already rendered, resource-backed browser. It has no `execute`, never fetches or refetches, and returns `unavailable` if the page is missing or too large. The client calls `addToolOutput` and a continuation predicate after reading that page; its rows are untrusted model context.
+
 The model must not pass raw SQL, raw Firestore query code, secrets, authorization decisions, private endpoints, or collection paths. The host supplies data access, allowed filters, allowed sort fields, permissions, and row actions.
 
-Tool names: `show_table`, `show_data_browser`
+Tool names: `show_table`, `show_data_browser`, `get_rendered_data`
 
 ### Charts
 
@@ -309,9 +321,16 @@ pnpm dev
 Run checks:
 
 ```bash
+pnpm test
 pnpm typecheck
-pnpm lint
+pnpm build
 pnpm registry:check
+```
+
+Run the isolated all-items consumer install before a release:
+
+```bash
+pnpm registry:consumer-smoke
 ```
 
 Build registry output:
@@ -351,4 +370,4 @@ The product goal is stable: assistants should choose from product surfaces your 
 
 ## License
 
-No license file is currently included in this repository. Add one before distributing or publishing the project under explicit open-source terms.
+Fable UI is available under the [MIT License](./LICENSE.MD).

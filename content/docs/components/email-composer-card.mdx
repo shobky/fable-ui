@@ -1,0 +1,121 @@
+---
+title: EmailComposerCard
+description: Review one plain-text email and hand it off to a chosen mail client.
+---
+
+`EmailComposerCard` gives an AI-generated plain-text email a deliberate browser handoff. Users can edit a completed draft, copy one portable email package, then choose Gmail, Outlook, or their default mail handler.
+
+<EmailComposerCardPreview />
+
+## Installation
+
+<RegistryInstallCommand itemName="email-composer-card" />
+
+The registry item installs:
+
+```txt
+components/fable-ui/email-composer-card/index.ts
+components/fable-ui/email-composer-card/email-composer-card.tsx
+hooks/use-copy-to-clipboard.ts
+lib/fable-ui/tools/show-email-composer-tool.ts
+lib/fable-ui/manifests/show-email-composer.md
+```
+
+It depends on the text-editor registry item for shared plain-text draft and direction helpers, Fable `core`, and shadcn `alert`, `button`, `card`, `dropdown-menu`, `empty`, `field`, `input`, `skeleton`, `textarea`, and `tooltip` primitives.
+
+## Usage
+
+```tsx
+import { EmailComposerCard } from "@/components/fable-ui/email-composer-card"
+
+export function WelcomeEmail() {
+  return (
+    <EmailComposerCard
+      to={["reader@example.com"]}
+      subject="Welcome to the team"
+      body={"Hi there,\n\nHere is your first-week checklist."}
+      onDraftChange={(draft) => {
+        // Persist only after a field loses focus.
+        console.log(draft)
+      }}
+    />
+  )
+}
+```
+
+Recipients are comma-separated while editing and validated before sending. An empty recipient list is valid: the user can choose one in the mail client. The To field is always LTR; subject and body follow the supplied `direction` or `auto` detection.
+
+The top inline-end Copy icon copies the current edited draft as deterministic plain text:
+
+```txt
+To: reader@example.com
+Subject: Welcome to the team
+
+Hi there,
+
+Here is your first-week checklist.
+```
+
+`To:` is omitted when there are no recipients. Copy remains useful for complete, partial, error, and disabled content.
+
+## Email handoff
+
+The Send icon opens a fixed menu rather than trying to discover installed applications:
+
+| Item                   | Browser action                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| Open in Gmail          | Synchronously opens a blank tab, clears `opener`, then navigates it to Gmail compose.   |
+| Open in Outlook        | Synchronously opens a blank tab, clears `opener`, then navigates it to Outlook compose. |
+| Open default email app | Synchronously assigns a RFC 6068 `mailto:` URL to `window.location.href`.               |
+
+Gmail and Outlook links are best-effort compose URLs built with `URL` and `URLSearchParams`. They require the user to be signed in. The default option depends on the OS and browser mail handler. Browsers cannot enumerate installed mail apps, so the menu is intentionally fixed.
+
+If a browser blocks Gmail or Outlook and `window.open` returns `null`, the card shows a visible status instead of claiming the compose window opened. The user can allow popups and try again, or copy the email package.
+
+The `mailto:` body normalizes line breaks to CRLF and is disabled once the generated URL exceeds the component’s 1800-character reliability guard. Invalid recipients, partial streaming/error drafts, disabled drafts, and too-long links show a visible status while Copy remains available where the content is meaningful.
+
+## Tool definition
+
+The AI SDK tool name is `show_email_composer`.
+
+```ts
+{
+  subject: string
+  body: string
+  to?: string[]
+  editable?: boolean
+  direction?: "ltr" | "rtl" | "auto"
+}
+```
+
+Use it for one user-reviewed plain-text email. Do not use it for automatic delivery, bulk email, attachments, HTML email, tracking, secrets, or host-side sending. The component opens a user-controlled compose handoff; it never sends mail itself.
+
+<ComponentSource
+  src="lib/fable-ui/tools/show-email-composer-tool.ts"
+  title="lib/fable-ui/tools/show-email-composer-tool.ts"
+/>
+
+## States
+
+| State     | Behavior                                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------------------------- |
+| Ready     | Shows editable recipient, subject, and body fields. The app menu is enabled only for a valid, short-enough draft.   |
+| Loading   | Shows a preparing status and skeleton.                                                                              |
+| Streaming | Shows partial email content read-only. Copy can package meaningful content; Send stays unavailable.                 |
+| Empty     | Explains that no recipient, subject, or body is available.                                                          |
+| Error     | Shows the error with any partial email read-only and copyable; Send stays unavailable.                              |
+| Disabled  | Keeps the completed fields read-only. Copy remains available but the app menu explains that sending is unavailable. |
+
+## Accessibility and RTL
+
+The compact icons use accessible names and tooltips, and `CardAction` places them at the logical inline end for LTR and RTL layouts. The recipient control remains LTR for address readability. The menu items have visible provider marks and text labels, so color is never the only identifier.
+
+## Manifest and caveats
+
+<ComponentSource
+  src="lib/fable-ui/manifests/show-email-composer.md"
+  title="lib/fable-ui/manifests/show-email-composer.md"
+  language="md"
+/>
+
+Mailto length support and provider compose behavior vary by browser and handler. Treat the app choices as user-facing handoffs, not delivery confirmation or installed-app discovery.

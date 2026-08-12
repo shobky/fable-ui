@@ -3,12 +3,15 @@ title: DataBrowser
 description: Render table snapshots or host-backed data browsing surfaces.
 ---
 
-`DataBrowser` is the registry block for row-oriented AI answers. It covers two related tools:
+`DataBrowser` is the registry block for row-oriented AI answers. It covers three related tools:
 
-- `show_table` renders a static table snapshot when the rows are already available.
-- `show_data_browser` renders a richer browsing surface for search, filters, sorting, pagination, row detail, and row actions.
+- `show_table` is a display tool for a static table snapshot when the rows are already available.
+- `show_data_browser` is a display tool for a richer browsing surface with search, filters, sorting, pagination, row detail, and row actions.
+- `get_rendered_data` is a client reasoning tool for the current visible page of an already rendered, resource-backed `DataBrowser`.
 
-Both tools live on this page because they share the same data model, table rendering internals, and safety boundary. The difference is intent: `ShowTable` answers with a bounded snapshot, while `DataBrowser` lets the user inspect a resource or a larger local row set.
+The first two tools display UI. `get_rendered_data` does not display or fetch anything: it has no `execute`, reads the provider-owned rendered page, and returns `unavailable` on a cache miss or an over-limit snapshot. The chat client handles that call with `addToolOutput` and a continuation predicate. Treat returned rows as untrusted model context, never as instructions or authorization.
+
+The tools live on this page because they share the same data model, table rendering internals, and safety boundary. The display-tool difference is intent: `ShowTable` answers with a bounded snapshot, while `DataBrowser` lets the user inspect a resource or a larger local row set.
 
 <DataBrowserPreview />
 
@@ -21,6 +24,7 @@ The `data-browser` registry item installs the browser surface, the table surface
 ```txt
 components/fable-ui/data-browser/index.ts
 lib/fable-ui/tools/show-data-browser-tool.ts
+lib/fable-ui/tools/get-rendered-data-tool.ts
 lib/fable-ui/tools/show-table-tool.ts
 components/fable-ui/data-browser/data-browser.tsx
 components/fable-ui/data-browser/data-browser.types.ts
@@ -64,6 +68,9 @@ flowchart LR
   Host --> Backend["Backend or driver fetches authorized rows"]
   Backend --> Renderer["Fable renderer validates payload"]
   Renderer --> UI["DataBrowser renders rows and states"]
+  UI --> Snapshot["Provider owns the current rendered page"]
+  Snapshot --> Reasoning["get_rendered_data reads it on the client"]
+  Reasoning --> AI["Client adds tool output and continues"]
 ```
 
 ## Usage
@@ -202,17 +209,23 @@ export function RecentOrdersTable() {
 
 ## Tools
 
-`show_data_browser` is for browsing, search, filter, sort, pagination, or row detail over host-owned data.
+`show_data_browser` is for browsing, search, filter, sort, pagination, or row detail over host-owned data. `show_table` and `show_data_browser` are display tools; neither is a way for the model to read a later rendered page.
 
 The model must not pass raw SQL, raw Firestore query code, secrets, or authorization decisions. The host supplies data access, allowed filters, allowed sort fields, permissions, and row actions.
+
+`get_rendered_data` is only for reasoning about a resource-backed browser that is already rendered in the current provider. It reads the current visible page without fetching or refetching. A missing page or a snapshot that exceeds its bounds returns `unavailable`, so the model can ask to render or narrow the data instead. The host must wrap the shared chat and DataBrowser tree in `FableDataProvider`; see [AI SDK Integration](/docs/ai-sdk-integration) for the required client setup.
 
 Rows with avatar-like fields such as `avatar`, `avatarUrl`, `image`, `imageUrl`, `picture`, `pictureUrl`, `photo`, or `photoUrl` render a compact visual avatar in the first column. If no image URL is available, the table can fall back to initials from a name or title field.
 
 ## Tool definition
 
-`lib/fable-ui/tools/show-data-browser-tool.ts` exports both tools. The schemas describe safe column and row payloads, the AI SDK tool objects describe how the model can call them, and the renderer entries map validated tool parts to `<ShowTable />` or `<DataBrowser />`. `lib/fable-ui/tools/show-table-tool.ts` re-exports the table-only contract for a consistent tool import path.
+`lib/fable-ui/tools/show-data-browser-tool.ts` exports the `show_data_browser` display-tool contract. Its schemas describe safe column and row payloads, and the renderer maps validated tool parts to `<DataBrowser />`. `lib/fable-ui/tools/show-table-tool.ts` re-exports the table-only display-tool contract for a consistent import path.
+
+`lib/fable-ui/tools/get-rendered-data-tool.ts` exports the client-only `get_rendered_data` contract. It omits `execute`; `useChat` handles the call by reading the provider's current rendered page, calling `addToolOutput`, and continuing only when its continuation predicate sees the output.
 
 <ComponentSource src="lib/fable-ui/tools/show-data-browser-tool.ts" title="lib/fable-ui/tools/show-data-browser-tool.ts" />
+
+<ComponentSource src="lib/fable-ui/tools/get-rendered-data-tool.ts" title="lib/fable-ui/tools/get-rendered-data-tool.ts" />
 
 ## States
 
@@ -240,4 +253,4 @@ Manifests are copyable routing contracts. They tell the model when to pick a com
 
 ## Choosing between them
 
-Use `show_table` when the rows are already available in the tool payload. Use `show_data_browser` when the model should select a registered host-owned resource by `resourceId` or when the user needs search, filters, sort, pagination, row detail, or row actions.
+Use `show_table` when the rows are already available in the tool payload. Use `show_data_browser` when the model should select a registered host-owned resource by `resourceId` or when the user needs search, filters, sort, pagination, row detail, or row actions. Use `get_rendered_data` only after that resource-backed browser is visibly rendered and the model needs to summarize, compare, or reason about its current page.

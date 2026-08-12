@@ -19,6 +19,7 @@ import {
 import { Badge } from "./ui/badge"
 
 const TOP_LEVEL_SECTIONS = [
+  { name: "Components", href: "/docs/components" },
   { name: "Introduction", href: "/docs/introduction" },
   {
     name: "Installation",
@@ -50,7 +51,7 @@ export function DocsSidebar({
 
   return (
     <Sidebar
-      className="sticky top-[calc(var(--header-height)+0.6rem)] bg-transparent z-30 hidden h-[calc(100svh-10rem)]  overscroll-none  overflow-hidden lg:flex"
+      className="sticky top-[calc(var(--header-height)+0.6rem)] z-30 ml-2 hidden h-[calc(100svh-10rem)] overflow-hidden overscroll-none bg-transparent lg:flex"
       collapsible="none"
       {...props}
     >
@@ -61,29 +62,30 @@ export function DocsSidebar({
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {TOP_LEVEL_SECTIONS.map(({ name, href }: { name: string, href: string }) => {
-                return (
-                  <SidebarMenuItem key={name}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === href}
-                      className="relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48"
-                    >
-                      <Link href={href}>
-                        <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
-                        {name}
-                        {PAGES_NEW.includes(href) && (
-                          <span
-                            className="flex size-2 rounded-full bg-blue-500"
-                            title="New"
-                          />
-                        )}
-
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
+              {TOP_LEVEL_SECTIONS.map(
+                ({ name, href }: { name: string; href: string }) => {
+                  return (
+                    <SidebarMenuItem key={name}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname === href}
+                        className="3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent"
+                      >
+                        <Link href={href}>
+                          <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
+                          {name}
+                          {PAGES_NEW.includes(href) && (
+                            <span
+                              className="flex size-2 rounded-full bg-blue-500"
+                              title="New"
+                            />
+                          )}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                }
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -100,33 +102,35 @@ export function DocsSidebar({
               <SidebarGroupContent>
                 {item.type === "folder" && (
                   <SidebarMenu className="gap-0.5">
-                    {getPagesFromFolder(item).map((page) => {
-                      return (
-                        <SidebarMenuItem key={page.url}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={page.url === pathname}
-                            className="relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:cursor-default data-[active=true]:text-muted-foreground data-[active=true]:bg-transparent 3xl:fixed:w-full 3xl:fixed:max-w-48"
-                          >
-                            <Link href={page.url}>
-                              <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
-                              {page.name}
-                              {PAGES_NEW.includes(page.url) && (
-                                <span
-                                  className="flex size-2 rounded-full bg-blue-500"
-                                  title="New"
-                                />
-                              )}
-                              {PAGES_BETA.includes(page.url) && (
-                                <Badge className="scale-90 bg-yellow-500/15 text-yellow-500">
-                                  Beta
-                                </Badge>
-                              )}
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      )
-                    })}
+                    {getPagesFromFolder(item)
+                      .filter((page) => page.url !== "/docs/components")
+                      .map((page) => {
+                        return (
+                          <SidebarMenuItem key={page.url}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={page.url === pathname}
+                              className="3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:cursor-default data-[active=true]:bg-transparent data-[active=true]:text-muted-foreground"
+                            >
+                              <Link href={page.url}>
+                                <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
+                                {page.name}
+                                {PAGES_NEW.includes(page.url) && (
+                                  <span
+                                    className="flex size-2 rounded-full bg-blue-500"
+                                    title="New"
+                                  />
+                                )}
+                                {PAGES_BETA.includes(page.url) && (
+                                  <Badge className="scale-90 bg-yellow-500/15 text-yellow-500">
+                                    Beta
+                                  </Badge>
+                                )}
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )
+                      })}
                   </SidebarMenu>
                 )}
               </SidebarGroupContent>

@@ -1,0 +1,95 @@
+---
+title: CodeBlockCard
+description: Stream, inspect, copy, and download one source-code snippet.
+---
+
+`CodeBlockCard` renders one display-ready source snippet with line numbers, plain-text copy/download, and Shiki syntax highlighting. It treats code as text: it never executes the snippet or writes it into the host project.
+
+<CodeBlockCardPreview />
+
+## Installation
+
+<RegistryInstallCommand itemName="code-block-card" />
+
+The registry item installs:
+
+```txt
+components/fable-ui/code-block-card/index.ts
+components/fable-ui/code-block-card/code-block-card.tsx
+hooks/use-copy-to-clipboard.ts
+lib/fable-ui/tools/show-code-block-tool.ts
+lib/fable-ui/manifests/show-code-block.md
+```
+
+It uses the installed `shiki` package plus shadcn `alert`, `button`, `card`, `empty`, and `skeleton` primitives, and shared Fable `core`.
+
+## Usage
+
+```tsx
+import { CodeBlockCard } from "@/components/fable-ui/code-block-card"
+
+export function InstallCommand() {
+  return (
+    <CodeBlockCard
+      language="ts"
+      filename="welcome.ts"
+      code={'export const welcome = "Hello"'}
+    />
+  )
+}
+```
+
+Use `showLineNumbers={false}` for a very small snippet. Copy and Download live in compact, accessible icon actions at the card’s logical inline end. Download uses the supplied filename when safe, or derives a file extension from the language.
+
+## Streaming highlighting
+
+During streaming, the card first shows a plain-text fallback, then re-highlights the latest code with the existing `shiki@3.23.0` API roughly every 150ms. Each scheduled timer is cancellable; in-flight Shiki work is guarded by its code key/request id, so an old asynchronous result is ignored rather than replacing newer HTML. The completed part triggers an exact immediate highlight flush.
+
+Successful results use a bounded, recency-refreshed cache of at most 40 entries; the oldest successful highlight is evicted as new sources arrive.
+
+If a language is unsupported or Shiki fails, the raw code remains visible with optional line numbers. This favors an honest readable fallback over stale or missing source. The card does not use `@shikijs/stream`.
+
+## Tool definition
+
+The AI SDK tool name is `show_code_block`.
+
+```ts
+{
+  language: string
+  code: string
+  filename?: string
+  showLineNumbers?: boolean
+}
+```
+
+Use it for one complete or streaming code snippet that benefits from inspection, copying, or download. Do not use it for shell execution, host file writes, secrets, a source tree, rich text, or a prose draft.
+
+<ComponentSource
+  src="lib/fable-ui/tools/show-code-block-tool.ts"
+  title="lib/fable-ui/tools/show-code-block-tool.ts"
+/>
+
+## States
+
+| State     | Behavior                                                                                                          |
+| --------- | ----------------------------------------------------------------------------------------------------------------- |
+| Ready     | Renders the final Shiki highlight or raw fallback, with Copy and Download enabled for source.                     |
+| Loading   | Shows a preparing status and skeleton.                                                                            |
+| Streaming | Keeps the source selectable, begins plain, and coalesces live Shiki updates about every 150ms.                    |
+| Empty     | Explains that no source is available.                                                                             |
+| Error     | Shows the error and retains any available code as raw, copyable, downloadable text.                               |
+| Disabled  | Marks the snippet read-only; code remains copyable and downloadable because no execution or mutation is involved. |
+
+## Direction and accessibility
+
+Metadata inherits the host direction while the source surface is explicitly LTR, including inside RTL documents. Icon actions have accessible names and tooltips, loading status is announced, and line numbers are visual metadata rather than a replacement for code text.
+
+## Manifest and caveats
+
+<ComponentSource
+  src="lib/fable-ui/manifests/show-code-block.md"
+  title="lib/fable-ui/manifests/show-code-block.md"
+  language="md"
+/>
+
+Syntax highlighting is presentation only. It cannot prove the code compiles, is safe to execute, or has access to a host runtime.
