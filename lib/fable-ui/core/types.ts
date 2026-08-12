@@ -71,6 +71,46 @@ export type DataQueryResult<Row extends DataRow = DataRow> = {
   previousCursor?: string
 }
 
+export type RenderedDataValue =
+  | string
+  | number
+  | boolean
+  | null
+  | RenderedDataValue[]
+  | { [key: string]: RenderedDataValue }
+
+export type RenderedDataQuery = {
+  search?: string
+  filters?: Record<string, RenderedDataValue>
+  sort?: SortState
+  page?: number
+  pageSize?: number
+}
+
+export type RenderedDataSnapshot = {
+  resourceId: string
+  title: string
+  entityLabel: string
+  scope: "current-view"
+  capturedAt: string
+  query: RenderedDataQuery
+  columns: Array<
+    Pick<DataColumn, "key" | "label" | "description" | "type" | "align">
+  >
+  rows: Array<Record<string, DataCell>>
+  totalRows: number
+  page: number
+  pageSize: number
+}
+
+export type RenderedDataResult =
+  | { status: "available"; data: RenderedDataSnapshot }
+  | {
+      status: "unavailable"
+      resourceId: string
+      reason: "not-rendered" | "too-large"
+    }
+
 export type DataSourceContext = {
   orgId?: string
   tenantId?: string

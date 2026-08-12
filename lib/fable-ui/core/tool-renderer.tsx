@@ -11,7 +11,10 @@ import {
 
 function UnknownToolPart({ name }: { name: string }) {
   return (
-    <div className="rounded-md border bg-muted/40 p-4 text-sm text-muted-foreground">
+    <div
+      role="alert"
+      className="rounded-md border bg-muted/40 p-4 text-sm text-muted-foreground"
+    >
       Unknown Fable tool part: <code>{name}</code>
     </div>
   )
@@ -19,7 +22,7 @@ function UnknownToolPart({ name }: { name: string }) {
 
 function renderComponent(
   Component: FableToolRegistry[string]["renderer"]["Component"],
-  props: Record<string, unknown>,
+  props: Record<string, unknown>
 ) {
   return (
     <React.Suspense fallback={null}>
@@ -47,14 +50,40 @@ export function renderFableToolPart({
   const fableState = part.toolMetadata?.fableState
   const isDisabled = fableState === "disabled"
 
-  if (part.state === "input-streaming" || fableState === "loading") {
+  if (fableState === "loading") {
     return renderComponent(def.renderer.Component, def.renderer.loadingProps)
+  }
+
+  if (part.state === "input-streaming") {
+    if (!def.renderer.streamingProps) {
+      return renderComponent(def.renderer.Component, def.renderer.loadingProps)
+    }
+
+    try {
+      return renderComponent(
+        def.renderer.Component,
+        def.renderer.streamingProps(part.input)
+      )
+    } catch (error) {
+      const description =
+        error instanceof ToolPayloadError
+          ? error.message
+          : "Unexpected error rendering component."
+
+      return renderComponent(
+        def.renderer.Component,
+        def.renderer.errorProps(description, part)
+      )
+    }
   }
 
   if (part.state === "output-error" || fableState === "error") {
     return renderComponent(
       def.renderer.Component,
-      def.renderer.errorProps(part.errorText || "The tool result could not be rendered."),
+      def.renderer.errorProps(
+        part.errorText || "The tool result could not be rendered.",
+        part
+      )
     )
   }
 
@@ -67,23 +96,28 @@ export function renderFableToolPart({
   if (!parsed.success) {
     return renderComponent(
       def.renderer.Component,
-      def.renderer.errorProps("The tool result did not match the expected data contract."),
+      def.renderer.errorProps(
+        "The tool result did not match the expected data contract.",
+        part
+      )
     )
   }
 
   try {
-    return renderComponent(
-      def.renderer.Component,
-      {
-        ...def.renderer.toProps(parsed.data, handlers),
-        isDisabled,
-      },
-    )
+    return renderComponent(def.renderer.Component, {
+      ...def.renderer.toProps(parsed.data, handlers),
+      isDisabled,
+    })
   } catch (error) {
     const description =
-      error instanceof ToolPayloadError ? error.message : "Unexpected error rendering component."
+      error instanceof ToolPayloadError
+        ? error.message
+        : "Unexpected error rendering component."
 
-    return renderComponent(def.renderer.Component, def.renderer.errorProps(description))
+    return renderComponent(
+      def.renderer.Component,
+      def.renderer.errorProps(description, part)
+    )
   }
 }
 

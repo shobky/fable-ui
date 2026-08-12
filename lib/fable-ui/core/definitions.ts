@@ -1,10 +1,7 @@
 import type { ComponentType, LazyExoticComponent } from "react"
 import type { Tool } from "ai"
 import type { z } from "zod"
-import {
-  fableRegistry,
-  type DataSourceRegistry,
-} from "@/lib/fable-ui/core"
+import { fableRegistry, type DataSourceRegistry } from "@/lib/fable-ui/core"
 
 export class ToolPayloadError extends Error {
   constructor(message: string) {
@@ -14,7 +11,11 @@ export class ToolPayloadError extends Error {
 }
 
 export type ToolRenderHandlers = {
-  onSuggestedAction?: (action: { label: string; prompt: string; description?: string }) => void
+  onSuggestedAction?: (action: {
+    label: string
+    prompt: string
+    description?: string
+  }) => void
   onConfirm?: (confirmation: { id: string; label: string }) => void
   onCancel?: (confirmation: { id: string; label: string }) => void
   onFormSubmit?: (values: Record<string, string | number | boolean>) => void
@@ -35,27 +36,38 @@ export type ToolPartLike = {
 }
 
 export type FableRenderableComponent<TProps extends object> =
-  | ComponentType<TProps>
-  | LazyExoticComponent<ComponentType<TProps>>
+  ComponentType<TProps> | LazyExoticComponent<ComponentType<TProps>>
 
-export interface FableComponent<TSchema extends z.ZodType = z.ZodType, TProps extends object = Record<string, unknown>> {
+export interface FableComponent<
+  TSchema extends z.ZodType = z.ZodType,
+  TProps extends object = Record<string, unknown>,
+  TTool extends Tool = Tool,
+> {
   name: string
   schema: TSchema
-  tool: Tool
+  tool: TTool
   renderer: {
     Component: FableRenderableComponent<TProps>
     loadingProps: TProps
+    streamingProps?: (input: unknown) => TProps
     emptyProps: TProps
-    errorProps: (description: string) => TProps
+    errorProps: (description: string, part?: ToolPartLike) => TProps
     toProps: (data: z.infer<TSchema>, handlers: ToolRenderHandlers) => TProps
   }
 }
 
-export type FableToolRegistry = Record<string, FableComponent<z.ZodType, any>>
+export type FableToolRegistry = Record<
+  string,
+  // Registry entries intentionally have heterogeneous component props.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  FableComponent<z.ZodType, any, Tool>
+>
 
-export function defineFableComponent<TSchema extends z.ZodType, TProps extends object>(
-  def: FableComponent<TSchema, TProps>,
-) {
+export function defineFableComponent<
+  TSchema extends z.ZodType,
+  TProps extends object,
+  TTool extends Tool,
+>(def: FableComponent<TSchema, TProps, TTool>) {
   return def
 }
 
