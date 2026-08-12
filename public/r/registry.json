@@ -8,10 +8,7 @@
       "type": "registry:lib",
       "title": "Fable UI Core",
       "description": "Shared tool rendering, data-source types, schemas, registry, local querying, and provider utilities.",
-      "dependencies": [
-        "ai",
-        "zod"
-      ],
+      "dependencies": ["ai", "zod"],
       "files": [
         {
           "path": "lib/fable-ui/core/definitions.ts",
@@ -65,11 +62,7 @@
       "type": "registry:component",
       "title": "MetricCard",
       "description": "Display one trusted metric from a validated AI tool payload.",
-      "dependencies": [
-        "ai",
-        "zod",
-        "class-variance-authority"
-      ],
+      "dependencies": ["ai", "zod", "class-variance-authority"],
       "registryDependencies": [
         "card",
         "badge",
@@ -104,10 +97,7 @@
       "type": "registry:component",
       "title": "SuggestedActions",
       "description": "Render safe follow-up prompts from a validated AI tool payload.",
-      "dependencies": [
-        "ai",
-        "zod"
-      ],
+      "dependencies": ["ai", "zod"],
       "registryDependencies": [
         "card",
         "button",
@@ -142,10 +132,7 @@
       "type": "registry:component",
       "title": "ConfirmationCard",
       "description": "Request explicit user confirmation before the host app performs a side effect.",
-      "dependencies": [
-        "ai",
-        "zod"
-      ],
+      "dependencies": ["ai", "zod"],
       "registryDependencies": [
         "card",
         "button",
@@ -180,10 +167,7 @@
       "type": "registry:component",
       "title": "FormCard",
       "description": "Collect a few structured fields mid-conversation.",
-      "dependencies": [
-        "ai",
-        "zod"
-      ],
+      "dependencies": ["ai", "zod"],
       "registryDependencies": [
         "card",
         "button",
@@ -219,12 +203,7 @@
       "type": "registry:block",
       "title": "DataBrowser",
       "description": "Render static row snapshots or host-backed data browsing with local search, filters, sort, row details, pagination, and row actions.",
-      "dependencies": [
-        "ai",
-        "zod",
-        "class-variance-authority",
-        "lucide-react"
-      ],
+      "dependencies": ["ai", "zod", "class-variance-authority", "lucide-react"],
       "registryDependencies": [
         "card",
         "button",
@@ -245,6 +224,11 @@
           "path": "lib/fable-ui/tools/show-data-browser-tool.ts",
           "type": "registry:lib",
           "target": "@lib/fable-ui/tools/show-data-browser-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/tools/get-rendered-data-tool.ts",
+          "type": "registry:lib",
+          "target": "@lib/fable-ui/tools/get-rendered-data-tool.ts"
         },
         {
           "path": "lib/fable-ui/tools/show-table-tool.ts",
@@ -348,11 +332,7 @@
       "type": "registry:block",
       "title": "Charts",
       "description": "Render static AI-provided chart payloads using shadcn chart conventions and Recharts.",
-      "dependencies": [
-        "ai",
-        "zod",
-        "recharts"
-      ],
+      "dependencies": ["ai", "zod", "recharts"],
       "registryDependencies": [
         "alert",
         "card",
@@ -397,13 +377,152 @@
       ]
     },
     {
+      "name": "text-editor-card",
+      "type": "registry:component",
+      "title": "TextEditorCard",
+      "description": "Render an uncontrolled plain-text or Markdown draft with accessible inline copy and download actions.",
+      "dependencies": ["ai", "zod", "lucide-react"],
+      "registryDependencies": [
+        "alert",
+        "button",
+        "card",
+        "empty",
+        "field",
+        "skeleton",
+        "textarea",
+        "tooltip",
+        "shobky/fable-ui/core"
+      ],
+      "files": [
+        {
+          "path": "components/fable-ui/text-editor-card/index.ts",
+          "type": "registry:component",
+          "target": "@components/fable-ui/text-editor-card/index.ts"
+        },
+        {
+          "path": "components/fable-ui/text-editor-card/text-editor-card.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/text-editor-card/text-editor-card.tsx"
+        },
+        {
+          "path": "components/fable-ui/text-editor-card/use-plain-text-draft.ts",
+          "type": "registry:hook",
+          "target": "@components/fable-ui/text-editor-card/use-plain-text-draft.ts"
+        },
+        {
+          "path": "hooks/use-copy-to-clipboard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-copy-to-clipboard.ts"
+        },
+        {
+          "path": "lib/fable-ui/tools/show-text-editor-tool.ts",
+          "type": "registry:lib",
+          "target": "@lib/fable-ui/tools/show-text-editor-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/show-text-editor.md",
+          "type": "registry:file",
+          "target": "@lib/fable-ui/manifests/show-text-editor.md"
+        }
+      ]
+    },
+    {
+      "name": "email-composer-card",
+      "type": "registry:component",
+      "title": "EmailComposerCard",
+      "description": "Compose a plain-text email draft with one portable copy action and intentional Gmail, Outlook, or mailto handoff.",
+      "dependencies": ["ai", "zod", "lucide-react"],
+      "registryDependencies": [
+        "alert",
+        "button",
+        "card",
+        "dropdown-menu",
+        "empty",
+        "field",
+        "input",
+        "skeleton",
+        "textarea",
+        "tooltip",
+        "shobky/fable-ui/core",
+        "shobky/fable-ui/text-editor-card"
+      ],
+      "files": [
+        {
+          "path": "components/fable-ui/email-composer-card/index.ts",
+          "type": "registry:component",
+          "target": "@components/fable-ui/email-composer-card/index.ts"
+        },
+        {
+          "path": "components/fable-ui/email-composer-card/email-composer-card.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/email-composer-card/email-composer-card.tsx"
+        },
+        {
+          "path": "hooks/use-copy-to-clipboard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-copy-to-clipboard.ts"
+        },
+        {
+          "path": "lib/fable-ui/tools/show-email-composer-tool.ts",
+          "type": "registry:lib",
+          "target": "@lib/fable-ui/tools/show-email-composer-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/show-email-composer.md",
+          "type": "registry:file",
+          "target": "@lib/fable-ui/manifests/show-email-composer.md"
+        }
+      ]
+    },
+    {
+      "name": "code-block-card",
+      "type": "registry:component",
+      "title": "CodeBlockCard",
+      "description": "Render code with throttled live Shiki highlighting, a raw fallback, and copy or download actions.",
+      "dependencies": ["ai", "zod", "lucide-react", "shiki"],
+      "registryDependencies": [
+        "alert",
+        "button",
+        "card",
+        "empty",
+        "skeleton",
+        "tooltip",
+        "shobky/fable-ui/core"
+      ],
+      "files": [
+        {
+          "path": "components/fable-ui/code-block-card/index.ts",
+          "type": "registry:component",
+          "target": "@components/fable-ui/code-block-card/index.ts"
+        },
+        {
+          "path": "components/fable-ui/code-block-card/code-block-card.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/code-block-card/code-block-card.tsx"
+        },
+        {
+          "path": "hooks/use-copy-to-clipboard.ts",
+          "type": "registry:hook",
+          "target": "@hooks/use-copy-to-clipboard.ts"
+        },
+        {
+          "path": "lib/fable-ui/tools/show-code-block-tool.ts",
+          "type": "registry:lib",
+          "target": "@lib/fable-ui/tools/show-code-block-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/show-code-block.md",
+          "type": "registry:file",
+          "target": "@lib/fable-ui/manifests/show-code-block.md"
+        }
+      ]
+    },
+    {
       "name": "rest-driver",
       "type": "registry:lib",
       "title": "REST Data Source Driver",
       "description": "Optional Fable UI data source driver for host-owned REST endpoints.",
-      "registryDependencies": [
-        "shobky/fable-ui/core"
-      ],
+      "registryDependencies": ["shobky/fable-ui/core"],
       "files": [
         {
           "path": "lib/fable-ui/drivers/rest/rest-driver.types.ts",
@@ -427,12 +546,8 @@
       "type": "registry:lib",
       "title": "Firebase Data Source Driver",
       "description": "Optional Fable UI data source driver for allowlisted Firestore resources.",
-      "dependencies": [
-        "firebase"
-      ],
-      "registryDependencies": [
-        "shobky/fable-ui/core"
-      ],
+      "dependencies": ["firebase"],
+      "registryDependencies": ["shobky/fable-ui/core"],
       "files": [
         {
           "path": "lib/fable-ui/drivers/firebase/firebase-driver.types.ts",
