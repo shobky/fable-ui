@@ -85,7 +85,8 @@ export function FormCard({
 
     return next
   }, [editedValues, fields, initialValues])
-  const formDisabled = Boolean(isDisabled || isLoading || error)
+  const formDisabled = Boolean(isDisabled || isLoading || error || !onSubmit)
+  const isUnavailable = Boolean(!onSubmit && !isDisabled && !isLoading && !error)
 
   function setValue(name: string, value: string | number | boolean) {
     setEditedValues((current) => ({ ...current, [name]: value }))
@@ -103,7 +104,9 @@ export function FormCard({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Preparing form...</p>
+          <p role="status" className="text-sm text-muted-foreground">
+            Preparing form...
+          </p>
         ) : null}
         {error ? (
           <div
@@ -119,6 +122,11 @@ export function FormCard({
               </p>
             ) : null}
           </div>
+        ) : null}
+        {isUnavailable ? (
+          <p role="status" className="mb-4 text-sm text-muted-foreground">
+            Form submission is unavailable.
+          </p>
         ) : null}
         <form
           className="flex flex-col gap-4"
@@ -170,6 +178,7 @@ export function FormCard({
                   <input
                     type="checkbox"
                     checked={Boolean(value)}
+                    required={field.required}
                     disabled={formDisabled}
                     onChange={(event) =>
                       setValue(field.name, event.target.checked)

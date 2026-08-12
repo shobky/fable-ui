@@ -206,9 +206,10 @@ const ChatComposer = memo(function ChatComposer({
       onSubmit={handleSubmit}
       className="sticky bottom-0 z-20 px-4 pb-4 pt-3  sm:px-6"
     >
+      <input ref={fileInputRef} type="file" multiple hidden onChange={handleFileChange} />
       <div className="mx-auto max-w-3xl">
         {errorText ? (
-          <div className="mb-3 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <div role="alert" className="mb-3 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {errorText}
           </div>
         ) : null}
@@ -251,8 +252,12 @@ const ChatComposer = memo(function ChatComposer({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <InputGroupButton size={"icon-sm"} onClick={() => fileInputRef.current?.click()}>
-                      <input ref={fileInputRef} type="file" multiple className="sr-only" onChange={handleFileChange} />
+                    <InputGroupButton
+                      type="button"
+                      size={"icon-sm"}
+                      aria-label="Add photos and files"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <HugeIcon icon={AttachmentIcon} className="size-5 text-muted-foreground" aria-hidden="true" />
                     </InputGroupButton>
                   </TooltipTrigger>
@@ -317,7 +322,7 @@ const ChatComposer = memo(function ChatComposer({
                 aria-label="Send message"
               >
                 {isBusy ? (
-                  <HugeIcon icon={Loading03Icon} className="animate-spin" aria-hidden="true" />
+                  <HugeIcon icon={Loading03Icon} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
                 ) : (
                   <HugeIcon icon={SentIcon} aria-hidden="true" />
                 )}

@@ -7,24 +7,27 @@ import { cn } from "@/lib/utils"
 
 export type MetricTrendDirection = "up" | "down" | "neutral"
 
-const metricCardVariants = cva("w-full max-w-md overflow-hidden transition-opacity", {
-  variants: {
-    variant: {
-      default: "bg-card shadow-sm",
-      elevated: "bg-card shadow-lg shadow-foreground/5",
-      subtle: "bg-muted/40 shadow-none",
+const metricCardVariants = cva(
+  "w-full max-w-md overflow-hidden transition-opacity motion-reduce:transition-none",
+  {
+    variants: {
+      variant: {
+        default: "bg-card shadow-sm",
+        elevated: "bg-card shadow-lg shadow-foreground/5",
+        subtle: "bg-muted/40 shadow-none",
+      },
+      size: {
+        sm: "",
+        md: "",
+        lg: "",
+      },
     },
-    size: {
-      sm: "",
-      md: "",
-      lg: "",
+    defaultVariants: {
+      variant: "default",
+      size: "md",
     },
-  },
-  defaultVariants: {
-    variant: "default",
-    size: "md",
-  },
-})
+  }
+)
 
 const metricContentSize = {
   sm: { header: "p-4 pb-2", content: "p-4 pt-0", value: "text-3xl" },
@@ -32,7 +35,9 @@ const metricContentSize = {
   lg: { header: "p-6 pb-3", content: "p-6 pt-0", value: "text-5xl" },
 } as const
 
-export interface MetricCardProps extends VariantProps<typeof metricCardVariants> {
+export interface MetricCardProps extends VariantProps<
+  typeof metricCardVariants
+> {
   label: string
   value: string
   trend?: {
@@ -76,45 +81,64 @@ export function MetricCard({
       className={cn(
         metricCardVariants({ variant, size }),
         isDisabled && "pointer-events-none opacity-50",
-        className,
+        className
       )}
       data-fable-ui="metric-card"
       aria-busy={isLoading || undefined}
     >
       <CardHeader className={sizeClasses.header}>
-        <CardTitle className="break-words text-sm font-medium leading-none text-muted-foreground">
-          {isLoading ? <Skeleton className="h-4 w-28" /> : label || "Metric"}
+        <CardTitle className="text-sm leading-none font-medium break-words text-muted-foreground">
+          {isLoading ? (
+            <Skeleton className="h-4 w-28 motion-reduce:animate-none" />
+          ) : (
+            label || "Metric"
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className={cn("flex flex-col gap-4", sizeClasses.content)}>
         {isLoading ? (
-          <div className="flex flex-col gap-4">
-            <Skeleton className="h-10 w-40" />
-            <div className="flex items-center justify-between gap-3">
-              <Skeleton className="h-7 w-24 rounded-full" />
-              <Skeleton className="h-4 w-32" />
+          <>
+            <p role="status" className="sr-only">
+              Loading metric...
+            </p>
+            <div className="flex flex-col gap-4">
+              <Skeleton className="h-10 w-40 motion-reduce:animate-none" />
+              <div className="flex items-center justify-between gap-3">
+                <Skeleton className="h-7 w-24 rounded-full motion-reduce:animate-none" />
+                <Skeleton className="h-4 w-32 motion-reduce:animate-none" />
+              </div>
             </div>
-          </div>
+          </>
         ) : error ? (
-          <div className="rounded-md border border-destructive/20 bg-destructive/5 p-4">
-            <p className="text-sm font-medium text-destructive">{error.title}</p>
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/20 bg-destructive/5 p-4"
+          >
+            <p className="text-sm font-medium text-destructive">
+              {error.title}
+            </p>
             {error.description ? (
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">{error.description}</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {error.description}
+              </p>
             ) : null}
           </div>
         ) : !hasMetric ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <p className="text-sm font-medium text-foreground">Metric unavailable</p>
+            <p className="text-sm font-medium text-foreground">
+              Metric unavailable
+            </p>
             <p className="max-w-60 text-xs leading-5 text-muted-foreground">
-              A label and value are required before this metric can be displayed.
+              A label and value are required before this metric can be
+              displayed.
             </p>
           </div>
         ) : (
           <>
             <p
               className={cn(
-                "break-words font-mono font-semibold leading-tight text-foreground tabular-nums",
-                sizeClasses.value,
+                "font-mono leading-tight font-semibold break-words text-foreground tabular-nums",
+                sizeClasses.value
               )}
             >
               {value}
@@ -125,10 +149,14 @@ export function MetricCard({
                   {trend.delta}
                 </Badge>
               ) : (
-                <span className="text-sm leading-6 text-muted-foreground">No trend provided</span>
+                <span className="text-sm leading-6 text-muted-foreground">
+                  No trend provided
+                </span>
               )}
               {context ? (
-                <p className="text-sm leading-6 text-muted-foreground sm:text-right">{context}</p>
+                <p className="text-sm leading-6 text-muted-foreground sm:text-end">
+                  {context}
+                </p>
               ) : null}
             </div>
           </>

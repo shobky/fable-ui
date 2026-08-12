@@ -116,14 +116,15 @@ export function LandingPlaygroundDemo() {
       <div className="overflow-hidden rounded-[2rem] bg-secondary/20 pb-4">
         <div className="grid sm:min-h-[620px]">
           <div className="flex min-w-0 flex-col">
-            <div className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3 sm:px-6">
+            <div className="flex items-center justify-between gap-3 border-b border-border/70 px-4  sm:px-6">
               <div className="flex min-w-0 items-center gap-2 text-sm font-medium text-muted-foreground">
                 <span className="truncate">New Chat</span>
               </div>
               <button
                 type="button"
                 onClick={resetDemo}
-                className="inline-flex h-8  w-8 justify-center items-center gap-1.5 rounded-2xl border border-border bg-background px-3 text-sm font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Reset demo"
+                className="inline-flex h-8  w-8 justify-center items-center gap-1.5 rounded-2xl border border-border bg-background px-3 text-sm font-medium transition motion-reduce:transition-none hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={!hasStarted}
               >
                 <RotateCw className="size-3.5 shrink-0" aria-hidden="true" />
@@ -195,7 +196,7 @@ function ThinkingMessage() {
   return (
     <AssistantBlock>
       <div className="flex items-center gap-2 text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
         <span>Thinking...</span>
       </div>
     </AssistantBlock>
@@ -205,7 +206,7 @@ function ThinkingMessage() {
 function ToolCall({ label, isLoading }: { label: string; isLoading: boolean }) {
   return (
     <div className="flex w-fit items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-      {isLoading ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : <CheckCircle2 className="size-3.5 text-emerald-600" aria-hidden="true" />}
+      {isLoading ? <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <CheckCircle2 className="size-3.5 text-emerald-600" aria-hidden="true" />}
       <span>{label}</span>
     </div>
   )
@@ -318,6 +319,7 @@ function DemoDataBrowser({ isLoading }: { isLoading: boolean }) {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search rows"
+                  aria-label="Search transactions"
                   className="h-9 w-full rounded-2xl border border-transparent bg-input/50 px-9 text-sm outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/30"
                 />
               </label>
@@ -571,7 +573,7 @@ function DemoComposer({
               aria-label="Send message"
               className="inline-flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-primary/80 disabled:pointer-events-none disabled:opacity-50"
             >
-              {isBusy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Send className="size-4" aria-hidden="true" />}
+              {isBusy ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Send className="size-4" aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -581,5 +583,5 @@ function DemoComposer({
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-2xl bg-muted", className)} />
+  return <div className={cn("animate-pulse rounded-2xl bg-muted motion-reduce:animate-none", className)} />
 }

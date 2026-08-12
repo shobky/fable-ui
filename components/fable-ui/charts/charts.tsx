@@ -291,13 +291,78 @@ function toPieData(
     .filter((row) => row.value > 0)
 }
 
+function getChartTitle(title: string, type: ChartType) {
+  return `${title} ${chartTypeLabels[type].toLowerCase()} chart`
+}
+
+function getCartesianChartAccessibility(
+  type: "line" | "bar",
+  props: ChartsProps,
+  xKey: string,
+  series: ResolvedSeries[]
+) {
+  const title = getChartTitle(props.title, type)
+  const seriesLabel = series.map((item) => item.label).join(", ")
+
+  return {
+    title,
+    desc: `${chartTypeLabels[type]} chart showing ${seriesLabel} by ${titleizeKey(xKey)}.`,
+    "aria-label": title,
+  }
+}
+
+function getPieChartAccessibility(
+  props: ChartsProps,
+  categoryKey: string,
+  valueKey: string
+) {
+  const title = getChartTitle(props.title, "pie")
+
+  return {
+    title,
+    desc: `Pie chart showing ${titleizeKey(valueKey)} by ${titleizeKey(categoryKey)}.`,
+    "aria-label": title,
+  }
+}
+
+function ChartTooltipValue({
+  value,
+  name,
+  color,
+  formatValue,
+}: {
+  value: unknown
+  name: unknown
+  color?: string
+  formatValue: (value: unknown) => string
+}) {
+  return (
+    <div className="flex flex-1 items-center justify-between gap-4 leading-none">
+      <span className="flex items-center gap-2 text-muted-foreground">
+        {color ? (
+          <span
+            aria-hidden="true"
+            className="size-2 shrink-0 rounded-[2px]"
+            style={{ backgroundColor: color }}
+          />
+        ) : null}
+        {String(name)}
+      </span>
+      <span className="font-mono font-medium text-foreground tabular-nums">
+        {formatValue(value)}
+      </span>
+    </div>
+  )
+}
+
 function ChartLoading() {
   return (
-    <div className="flex flex-col gap-3">
-      <Skeleton className="h-72 w-full rounded-lg" />
+    <div className="flex flex-col gap-3" role="status">
+      <span className="sr-only">Loading chart data</span>
+      <Skeleton className="h-72 w-full rounded-lg motion-reduce:animate-none" />
       <div className="flex justify-center gap-3">
-        <Skeleton className="h-4 w-20" />
-        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-20 motion-reduce:animate-none" />
+        <Skeleton className="h-4 w-24 motion-reduce:animate-none" />
       </div>
     </div>
   )
@@ -343,6 +408,7 @@ function CartesianChart({
 
   const chartData = toCartesianData(props.data, xKey, series)
   const config = toChartConfig(series)
+  const accessibility = getCartesianChartAccessibility(type, props, xKey, series)
 
   return (
     <ChartContainer
@@ -353,6 +419,7 @@ function CartesianChart({
       {type === "line" ? (
         <LineChart
           accessibilityLayer
+          {...accessibility}
           data={chartData}
           margin={{ left: 8, right: 8 }}
         >
@@ -370,7 +437,21 @@ function CartesianChart({
             tickFormatter={formatValue}
             width={48}
           />
-          <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                indicator="line"
+                formatter={(value, name, item) => (
+                  <ChartTooltipValue
+                    value={value}
+                    name={name}
+                    color={item.color}
+                    formatValue={formatValue}
+                  />
+                )}
+              />
+            }
+          />
           <ChartLegend content={<ChartLegendContent />} />
           {series.map((item) => (
             <Line
@@ -388,6 +469,7 @@ function CartesianChart({
       ) : (
         <BarChart
           accessibilityLayer
+          {...accessibility}
           data={chartData}
           margin={{ left: 8, right: 8 }}
         >
@@ -405,7 +487,21 @@ function CartesianChart({
             tickFormatter={formatValue}
             width={48}
           />
-          <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                indicator="dot"
+                formatter={(value, name, item) => (
+                  <ChartTooltipValue
+                    value={value}
+                    name={name}
+                    color={item.color}
+                    formatValue={formatValue}
+                  />
+                )}
+              />
+            }
+          />
           <ChartLegend content={<ChartLegendContent />} />
           {series.map((item) => (
             <Bar
@@ -431,6 +527,11 @@ function PieChartView({ props }: { props: ChartsProps }) {
   }
 
   const chartData = toPieData(props.data, categoryKey, valueKey)
+
+  if (chartData.length === 0) {
+    return <ChartEmpty emptyState={props.emptyState} />
+  }
+
   const config: ChartConfig = {
     [valueKey]: {
       label: titleizeKey(valueKey),
@@ -444,19 +545,22 @@ function PieChartView({ props }: { props: ChartsProps }) {
       className="mx-auto min-h-72 w-full max-w-xl sm:min-h-80"
       initialDimension={{ width: 520, height: 320 }}
     >
-      <PieChart accessibilityLayer>
+      <PieChart
+        accessibilityLayer
+        {...getPieChartAccessibility(props, categoryKey, valueKey)}
+      >
         <ChartTooltip
           content={
             <ChartTooltipContent
               hideLabel
               nameKey="name"
-              formatter={(value, name) => (
-                <div className="flex flex-1 items-center justify-between gap-4 leading-none">
-                  <span className="text-muted-foreground">{String(name)}</span>
-                  <span className="font-mono font-medium text-foreground tabular-nums">
-                    {formatValue(value)}
-                  </span>
-                </div>
+              formatter={(value, name, item) => (
+                <ChartTooltipValue
+                  value={value}
+                  name={name}
+                  color={item.color}
+                  formatValue={formatValue}
+                />
               )}
             />
           }

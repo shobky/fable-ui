@@ -1,5 +1,7 @@
 "use client"
 
+import { useRef, useState } from "react"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,6 +42,22 @@ export function ConfirmationCard({
   onCancel,
 }: ConfirmationCardProps) {
   const isDestructive = variant === "destructive"
+  const actionClaimedIdRef = useRef<string | null>(null)
+  const [claimedActionId, setClaimedActionId] = useState<string | null>(null)
+  const actionsBlocked = Boolean(isLoading || isDisabled || error || claimedActionId === id)
+
+  function claimAction(
+    handler: ConfirmationCardProps["onConfirm"] | ConfirmationCardProps["onCancel"],
+    label: string,
+  ) {
+    if (!handler || actionsBlocked || actionClaimedIdRef.current === id) {
+      return
+    }
+
+    actionClaimedIdRef.current = id
+    setClaimedActionId(id)
+    handler({ id, label })
+  }
 
   return (
     <Card className="w-full max-w-xl" data-fable-ui="confirmation-card" aria-busy={isLoading || undefined}>
@@ -53,9 +71,13 @@ export function ConfirmationCard({
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        {isLoading ? <p className="text-sm text-muted-foreground">Preparing confirmation...</p> : null}
+        {isLoading ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            Preparing confirmation...
+          </p>
+        ) : null}
         {error ? (
-          <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3">
+          <div role="alert" className="rounded-md border border-destructive/20 bg-destructive/5 p-3">
             <p className="text-sm font-medium text-destructive">{error.title}</p>
             {error.description ? <p className="text-sm text-muted-foreground">{error.description}</p> : null}
           </div>
@@ -71,15 +93,20 @@ export function ConfirmationCard({
         ) : null}
       </CardContent>
       <CardFooter className="justify-end gap-2">
-        <Button type="button" variant="outline" disabled={isDisabled} onClick={() => onCancel?.({ id, label: cancelLabel })}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={actionsBlocked || !onCancel}
+          onClick={() => claimAction(onCancel, cancelLabel)}
+        >
           {cancelLabel}
         </Button>
         <Button
           type="button"
           variant={isDestructive ? "destructive" : "default"}
           className={cn(variant === "warning" && "bg-primary text-primary-foreground")}
-          disabled={isDisabled}
-          onClick={() => onConfirm?.({ id, label: confirmLabel })}
+          disabled={actionsBlocked || !onConfirm}
+          onClick={() => claimAction(onConfirm, confirmLabel)}
         >
           {confirmLabel}
         </Button>

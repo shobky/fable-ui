@@ -49,10 +49,10 @@ function ThinkingRow() {
   return (
     <Marker role="status" className="mx-auto w-full max-w-3xl px-4">
       <MarkerIcon>
-        <LoaderCircle className="animate-spin" aria-hidden="true" />
+        <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
       </MarkerIcon>
       <MarkerContent>
-        <span className="inline-flex animate-pulse bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground bg-[length:200%_100%] bg-clip-text text-transparent">
+        <span className="inline-flex animate-pulse bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground bg-[length:200%_100%] bg-clip-text text-transparent motion-reduce:animate-none">
           Thinking...
         </span>
       </MarkerContent>
@@ -188,7 +188,7 @@ export function FableChat() {
         <form onSubmit={handleSubmit} className="border-t bg-background/95 px-4 py-4 sm:px-6">
           <div className="mx-auto max-w-3xl">
             {visibleError ? (
-              <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div role="alert" className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {visibleError}
               </div>
             ) : null}
@@ -213,7 +213,7 @@ export function FableChat() {
                   aria-label="Send message"
                 >
                   {isBusy ? (
-                    <LoaderCircle className="animate-spin" aria-hidden="true" />
+                    <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
                   ) : (
                     <SendHorizontal aria-hidden="true" />
                   )}

@@ -10,6 +10,7 @@ export function GitHubLink() {
   return (
     <Button asChild size="sm" variant="ghost" className="h-8 shadow-none rounded-md">
       <Link href={siteConfig.links.github} target="_blank" rel="noreferrer">
+        <span className="sr-only">GitHub repository</span>
         <Icons.gitHub />
         <React.Suspense fallback={<Skeleton className="h-4 w-10.5" />}>
           <StarsCount />
@@ -25,14 +26,26 @@ export async function StarsCount() {
   })
   const json = await data.json()
 
+  const starCount = json.stargazers_count
+
+  if (typeof starCount !== "number" || !Number.isFinite(starCount)) {
+    return null
+  }
+
   const formattedCount =
-    json.stargazers_count >= 1000
-      ? `${Math.round(json.stargazers_count / 1000)}k`
-      : json.stargazers_count?.toLocaleString()
+    starCount >= 1000
+      ? `${Math.round(starCount / 1000)}k`
+      : starCount.toLocaleString()
 
   return (
-    <span className="w-fit text-xs text-muted-foreground tabular-nums">
-      {formattedCount}
-    </span>
+    <>
+      <span
+        aria-hidden="true"
+        className="w-fit text-xs text-muted-foreground tabular-nums"
+      >
+        {formattedCount}
+      </span>
+      <span className="sr-only">, {formattedCount} stars</span>
+    </>
   )
 }

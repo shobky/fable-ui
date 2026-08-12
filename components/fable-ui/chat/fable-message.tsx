@@ -14,9 +14,9 @@ function MarkdownResponse({ children }: { children: string }) {
       className={cn(
         "flex max-w-none flex-col gap-3 text-sm leading-7",
         "[&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4",
-        "[&_blockquote]:border-l [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground",
+        "[&_blockquote]:border-s [&_blockquote]:ps-4 [&_blockquote]:text-muted-foreground",
         "[&_code]:rounded-md [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-xs",
-        "[&_li]:ml-5 [&_ol]:list-decimal [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-muted [&_pre]:p-4 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_ul]:list-disc",
+        "[&_li]:ms-5 [&_ol]:list-decimal [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-muted [&_pre]:p-4 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_ul]:list-disc",
       )}
     >
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{children}</ReactMarkdown>
@@ -49,7 +49,7 @@ export function FableMessage({
                 <BubbleContent
                   className={cn(
                     "border-none",
-                    isUser ? "rounded-tr-sm" : "w-full max-w-3xl px-0",
+                    isUser ? "rounded-se-sm" : "w-full max-w-3xl px-0",
                   )}
                 >
                   <MarkdownResponse>{part.text}</MarkdownResponse>
