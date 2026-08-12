@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { mdxComponents } from "@/mdx-components"
@@ -5,7 +6,6 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { findNeighbour } from "fumadocs-core/page-tree"
 
 import { source } from "@/lib/source"
-import { absoluteUrl } from "@/lib/utils"
 import { DocsTableOfContents } from "@/components/docs-toc"
 import { Button } from "@/components/ui/button"
 import { PAGES_BETA } from "@/lib/docs"
@@ -21,7 +21,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string[] }>
-}) {
+}): Promise<Metadata> {
   const params = await props.params
   const page = source.getPage(params.slug)
 
@@ -38,31 +38,19 @@ export async function generateMetadata(props: {
   return {
     title: doc.title,
     description: doc.description,
+    alternates: {
+      canonical: page.url,
+    },
     openGraph: {
       title: doc.title,
       description: doc.description,
       type: "article",
-      url: absoluteUrl(page.url),
-      images: [
-        {
-          url: `/og?title=${encodeURIComponent(
-            doc.title
-          )}&description=${encodeURIComponent(doc.description)}`,
-        },
-      ],
+      url: page.url,
     },
     twitter: {
-      card: "summary_large_image",
+      card: "summary",
       title: doc.title,
       description: doc.description,
-      images: [
-        {
-          url: `/og?title=${encodeURIComponent(
-            doc.title
-          )}&description=${encodeURIComponent(doc.description)}`,
-        },
-      ],
-      creator: "@shadcn",
     },
   }
 }
@@ -95,9 +83,12 @@ export default async function Page(props: {
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between md:items-start">
                 <h1 className="scroll-m-24 text-3xl font-semibold tracking-tight sm:text-3xl">
-                  {doc.title} {PAGES_BETA.includes(page.url) && <Badge className="text-base bg-yellow-500/20 text-yellow-500">
-                    Beta
-                  </Badge>}
+                  {doc.title}{" "}
+                  {PAGES_BETA.includes(page.url) && (
+                    <Badge className="bg-yellow-500/20 text-base text-yellow-500">
+                      Beta
+                    </Badge>
+                  )}
                 </h1>
                 <div className="docs-nav flex items-center gap-2">
                   <div className="ml-auto flex gap-2">

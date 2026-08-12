@@ -25,24 +25,19 @@ export const revalidate = false
 export const metadata: Metadata = {
   title,
   description,
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent(
-          title
-        )}&description=${encodeURIComponent(description)}`,
-      },
-    ],
+    type: "website",
+    url: "/",
+    title,
+    description,
   },
   twitter: {
-    card: "summary_large_image",
-    images: [
-      {
-        url: `/og?title=${encodeURIComponent(
-          title
-        )}&description=${encodeURIComponent(description)}`,
-      },
-    ],
+    card: "summary",
+    title,
+    description,
   },
 }
 
