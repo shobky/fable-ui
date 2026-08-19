@@ -5,10 +5,7 @@ import {
 } from "ai"
 import { z } from "zod"
 
-import type {
-  RenderedDataResult,
-  RenderedDataValue,
-} from "@/lib/fable-ui/core"
+import type { RenderedDataResult, RenderedDataValue } from "@/lib/fable-ui/core"
 
 const renderedDataValueSchema: z.ZodType<RenderedDataValue> = z.lazy(() =>
   z.union([
@@ -44,9 +41,7 @@ const renderedDataOutputSchema = z.discriminatedUnion("status", [
           query: z
             .object({
               search: z.string().optional(),
-              filters: z
-                .record(z.string(), renderedDataValueSchema)
-                .optional(),
+              filters: z.record(z.string(), renderedDataValueSchema).optional(),
               sort: z
                 .object({
                   key: z.string(),

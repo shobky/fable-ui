@@ -12,7 +12,7 @@
     "card",
     "badge",
     "skeleton",
-    "shobky/fable-ui/core"
+    "https://fable-ui.shobky.com/r/core.json"
   ],
   "files": [
     {

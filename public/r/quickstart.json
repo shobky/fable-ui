@@ -24,9 +24,9 @@
     "message",
     "bubble",
     "marker",
-    "shobky/fable-ui/core",
-    "shobky/fable-ui/metric-card",
-    "shobky/fable-ui/suggested-actions"
+    "https://fable-ui.shobky.com/r/core.json",
+    "https://fable-ui.shobky.com/r/metric-card.json",
+    "https://fable-ui.shobky.com/r/suggested-actions.json"
   ],
   "files": [
     {
@@ -73,7 +73,7 @@
     },
     {
       "path": "examples/quickstart/README.md",
-      "content": "# Fable UI quickstart\r\n\r\nThis item installs a production-ready AI SDK chat at `/fable-chat` with a route handler at `/api/fable-chat`.\r\n\r\n## Configure the model\r\n\r\nAdd three server-only environment variables to `.env.local`:\r\n\r\n```env\r\nFABLE_AI_PROVIDER=google\r\nFABLE_AI_MODEL=gemini-3-flash-preview\r\nFABLE_AI_API_KEY=your-provider-api-key\r\n```\r\n\r\nSupported `FABLE_AI_PROVIDER` values are `google`, `anthropic`, `openai`, `openrouter`, `mistral`, and `deepseek`.\r\n\r\nRestart the dev server after changing `.env.local`, then open `/fable-chat` and start chatting. If the variables are missing, the chat will respond with a setup message listing the values to add.\r\n\r\n## What it installs\r\n\r\n```txt\r\napp/fable-chat/page.tsx\r\napp/api/fable-chat/route.ts\r\ncomponents/fable-ui/chat/*\r\nlib/fable-ui/quickstart/*\r\n```\r\n\r\nThe quickstart includes `metric-card` and `suggested-actions` tool rendering. Suggested action clicks send the action prompt through the same chat route as a manually typed message. Add more Fable UI registry items when your assistant needs more surfaces, or configure a data source driver when tool calls should read from host-owned data.\r\n",
+      "content": "# Fable UI quickstart\n\nThis item installs a minimal AI SDK chat at `/fable-chat` with a route handler at `/api/fable-chat`.\n\n## Configure the model\n\nAdd three server-only environment variables to `.env.local`:\n\n```env\nFABLE_AI_PROVIDER=google\nFABLE_AI_MODEL=gemini-3-flash-preview\nFABLE_AI_API_KEY=replace-with-the-real-secret\n```\n\nSupported `FABLE_AI_PROVIDER` values are `google`, `anthropic`, `openai`, `openrouter`, `mistral`, and `deepseek`.\n\nDo not write `FABLE_AI_API_KEY=$OPENAI_API_KEY`: `.env.local` does not perform shell-style interpolation. Put the intended secret value directly in `FABLE_AI_API_KEY`, keep `.env.local` ignored, and never print or commit it.\n\nRestart the dev server after changing `.env.local`, then open `/fable-chat` and start chatting. If the variables are missing, the chat responds with a setup message listing the values to add.\n\n## What it installs\n\n```txt\napp/fable-chat/page.tsx\napp/api/fable-chat/route.ts\ncomponents/fable-ui/chat/*\nlib/fable-ui/quickstart/*\ndocs/fable-ui/quickstart.md\n```\n\n## Scope\n\nThe quickstart includes exactly two registered and rendered tools:\n\n- `show_metric` via `metric-card`\n- `show_next_actions` via `suggested-actions`\n\nSuggested-action clicks send the action prompt through the same chat route as a manually typed message.\n\nThis example does not register confirmation, form, chart, text editor, email composer, code block, DataBrowser, REST/Firebase driver, or `get_rendered_data` behavior. In particular, it does not wrap a shared chat/DataBrowser tree in `FableDataProvider` or supply the client `addToolOutput` continuation loop required by `get_rendered_data`.\n\nAdd any extra item deliberately: register its `.tool` in the route, add its complete definition to the client renderer registry, and pass the host callbacks or data resources it needs. See the [AI SDK integration guide](https://fable-ui.shobky.com/docs/ai-sdk-integration).\n",
       "type": "registry:file",
       "target": "~/docs/fable-ui/quickstart.md"
     }

@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from "vitest"
 
 import { DataSourceRegistry } from "./registry"
-import type { DataQueryResult, DataRow } from "./types"
+import type {
+  DataQueryResult,
+  DataRow,
+  DataSourceDriver,
+  ResourceConfig,
+} from "./types"
 
 type TestRow = DataRow & {
   name: string
@@ -66,4 +71,33 @@ describe("DataSourceRegistry list transforms", () => {
       expect(runtimeList).toHaveBeenCalledTimes(path === "runtime" ? 1 : 0)
     }
   )
+
+  it("preserves typed drivers and resources across registry storage", async () => {
+    type OrdersSource = { collection: string }
+    type Order = DataRow & { total: number }
+
+    const driver: DataSourceDriver<OrdersSource, Order> = {
+      list: (resource) => ({
+        rows: [{ id: "order-1", total: resource.source.collection.length }],
+      }),
+    }
+    const resource: ResourceConfig<OrdersSource, Order> = {
+      id: "orders",
+      label: "Orders",
+      entityLabel: "orders",
+      driver: "orders",
+      source: { collection: "orders" },
+      columns: [{ key: "total", label: "Total" }],
+    }
+    const registry = new DataSourceRegistry()
+      .registerDriver("orders", driver)
+      .registerResource(resource)
+
+    expect(
+      registry.getResource<OrdersSource, Order>("orders")?.source.collection
+    ).toBe("orders")
+    await expect(registry.list<Order>("orders")).resolves.toMatchObject({
+      rows: [{ id: "order-1", total: 6 }],
+    })
+  })
 })

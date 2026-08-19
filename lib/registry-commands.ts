@@ -2,12 +2,11 @@ import { siteConfig } from "@/lib/config"
 
 export type PackageManager = "pnpm" | "npm" | "yarn" | "bun"
 
-export function getGithubRegistryItemAddress(itemName: string) {
-  return `${siteConfig.registry.github}/${itemName}`
-}
-
-export function getGithubRegistryItemCommand(itemName: string, packageManager: PackageManager) {
-  const address = getGithubRegistryItemAddress(itemName)
+export function getHostedRegistryItemCommand(
+  itemName: string,
+  packageManager: PackageManager
+) {
+  const address = getHostedRegistryItemUrl(itemName)
 
   switch (packageManager) {
     case "npm":

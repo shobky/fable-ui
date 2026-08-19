@@ -4,83 +4,54 @@ import { z } from "zod"
 import { defineFableComponent } from "@/lib/fable-ui/core/definitions"
 import { FormCard } from "@/components/fable-ui/form-card/form-card"
 
-const baseField = z.object({
+const baseField = {
   name: z.string().min(1),
   label: z.string().min(1),
   required: z.boolean().optional(),
   placeholder: z.string().optional(),
-})
+}
 
-const looseField = z
+const collectInputFieldSchema = z.discriminatedUnion("type", [
+  z.object({ ...baseField, type: z.literal("text") }).strict(),
+  z.object({ ...baseField, type: z.literal("date") }).strict(),
+  z.object({ ...baseField, type: z.literal("textarea") }).strict(),
+  z
+    .object({
+      ...baseField,
+      type: z.literal("number"),
+      min: z.number().optional(),
+      max: z.number().optional(),
+    })
+    .strict(),
+  z
+    .object({
+      ...baseField,
+      type: z.literal("select"),
+      options: z
+        .array(
+          z
+            .object({ label: z.string().min(1), value: z.string().min(1) })
+            .strict()
+        )
+        .min(1)
+        .max(12),
+    })
+    .strict(),
+  z.object({ ...baseField, type: z.literal("toggle") }).strict(),
+])
+
+export const collectInputSchema = z
   .object({
-    name: z.string().optional(),
-    label: z.string().optional(),
-    type: z.string().optional(),
-    required: z.boolean().optional(),
-    placeholder: z.string().optional(),
-    min: z.number().optional(),
-    max: z.number().optional(),
-    options: z
-      .array(
-        z
-          .object({
-            label: z.string().optional(),
-            value: z.union([z.string(), z.number(), z.boolean()]).optional(),
-          })
-          .passthrough()
-      )
-      .optional(),
-  })
-  .passthrough()
-
-export const collectInputSchema = z.object({
-  title: z.string().min(1),
-  description: z.string().optional(),
-  submitLabel: z.string().min(1).optional(),
-  fields: z
-    .array(
-      z.discriminatedUnion("type", [
-        baseField.extend({ type: z.literal("text") }),
-        baseField.extend({ type: z.literal("date") }),
-        baseField.extend({ type: z.literal("textarea") }),
-        baseField.extend({
-          type: z.literal("number"),
-          min: z.number().optional(),
-          max: z.number().optional(),
-        }),
-        baseField.extend({
-          type: z.literal("select"),
-          options: z
-            .array(
-              z.object({ label: z.string().min(1), value: z.string().min(1) })
-            )
-            .min(1)
-            .max(12),
-        }),
-        baseField.extend({ type: z.literal("toggle") }),
-      ])
-    )
-    .min(1)
-    .max(8),
-})
-
-export const collectInputToolSchema = z
-  .object({
-    title: z
-      .string()
-      .optional()
-      .describe("Short title for the form. Required for valid rendering."),
+    title: z.string().min(1),
     description: z.string().optional(),
-    submitLabel: z.string().optional(),
-    fields: z
-      .array(looseField)
-      .max(8)
-      .optional()
-      .describe(
-        "One to eight fields. Valid field types are text, number, select, date, textarea, and toggle. Select fields require non-empty string options."
-      ),
+    submitLabel: z.string().min(1).optional(),
+    fields: z.array(collectInputFieldSchema).min(1).max(8),
   })
-  .passthrough()
+  .strict()
+
+export const collectInputToolSchema = collectInputSchema.describe(
+  "One to eight fields. Valid field types are text, number, select, date, textarea, and toggle. Select fields require non-empty string options."
+)
 
 export type CollectInput = z.infer<typeof collectInputSchema>
 export type CollectInputToolInput = z.infer<typeof collectInputToolSchema>

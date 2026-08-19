@@ -4,7 +4,7 @@
   "title": "REST Data Source Driver",
   "description": "Optional Fable UI data source driver for host-owned REST endpoints.",
   "registryDependencies": [
-    "shobky/fable-ui/core"
+    "https://fable-ui.shobky.com/r/core.json"
   ],
   "files": [
     {

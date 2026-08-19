@@ -34,7 +34,11 @@ import {
 } from "@/components/ui/tooltip"
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard"
 
-import { usePlainTextDraft, type TextDirection } from "./use-plain-text-draft"
+import {
+  resolveTextDirection,
+  usePlainTextDraft,
+  type TextDirection,
+} from "./use-plain-text-draft"
 
 export type TextEditorFormat = "plain" | "markdown"
 
@@ -360,3 +364,8 @@ export function TextEditorCard({
 }
 
 export default TextEditorCard
+
+// shadcn rewrites imports from a registry dependency's barrel to its primary
+// component file. Keep the shared draft contract available at that boundary.
+export { resolveTextDirection, usePlainTextDraft }
+export type { TextDirection }

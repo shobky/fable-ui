@@ -67,7 +67,7 @@
         "card",
         "badge",
         "skeleton",
-        "shobky/fable-ui/core"
+        "https://fable-ui.shobky.com/r/core.json"
       ],
       "files": [
         {
@@ -102,7 +102,7 @@
         "card",
         "button",
         "badge",
-        "shobky/fable-ui/core"
+        "https://fable-ui.shobky.com/r/core.json"
       ],
       "files": [
         {
@@ -137,7 +137,7 @@
         "card",
         "button",
         "badge",
-        "shobky/fable-ui/core"
+        "https://fable-ui.shobky.com/r/core.json"
       ],
       "files": [
         {
@@ -173,7 +173,7 @@
         "button",
         "input",
         "textarea",
-        "shobky/fable-ui/core"
+        "https://fable-ui.shobky.com/r/core.json"
       ],
       "files": [
         {
@@ -212,7 +212,7 @@
         "dialog",
         "drawer",
         "select",
-        "shobky/fable-ui/core"
+        "https://fable-ui.shobky.com/r/core.json"
       ],
       "files": [
         {
@@ -229,6 +229,11 @@
           "path": "lib/fable-ui/tools/get-rendered-data-tool.ts",
           "type": "registry:lib",
           "target": "@lib/fable-ui/tools/get-rendered-data-tool.ts"
+        },
+        {
+          "path": "lib/fable-ui/manifests/get-rendered-data.md",
+          "type": "registry:file",
+          "target": "@lib/fable-ui/manifests/get-rendered-data.md"
         },
         {
           "path": "lib/fable-ui/tools/show-table-tool.ts",
@@ -341,7 +346,7 @@
         "empty",
         "skeleton",
         "tabs",
-        "shobky/fable-ui/core"
+        "https://fable-ui.shobky.com/r/core.json"
       ],
       "files": [
         {
@@ -391,7 +396,7 @@
         "skeleton",
         "textarea",
         "tooltip",
-        "shobky/fable-ui/core"
+        "https://fable-ui.shobky.com/r/core.json"
       ],
       "files": [
         {
@@ -443,8 +448,8 @@
         "skeleton",
         "textarea",
         "tooltip",
-        "shobky/fable-ui/core",
-        "shobky/fable-ui/text-editor-card"
+        "https://fable-ui.shobky.com/r/core.json",
+        "https://fable-ui.shobky.com/r/text-editor-card.json"
       ],
       "files": [
         {
@@ -487,7 +492,7 @@
         "empty",
         "skeleton",
         "tooltip",
-        "shobky/fable-ui/core"
+        "https://fable-ui.shobky.com/r/core.json"
       ],
       "files": [
         {
@@ -522,7 +527,7 @@
       "type": "registry:lib",
       "title": "REST Data Source Driver",
       "description": "Optional Fable UI data source driver for host-owned REST endpoints.",
-      "registryDependencies": ["shobky/fable-ui/core"],
+      "registryDependencies": ["https://fable-ui.shobky.com/r/core.json"],
       "files": [
         {
           "path": "lib/fable-ui/drivers/rest/rest-driver.types.ts",
@@ -547,7 +552,7 @@
       "title": "Firebase Data Source Driver",
       "description": "Optional Fable UI data source driver for allowlisted Firestore resources.",
       "dependencies": ["firebase"],
-      "registryDependencies": ["shobky/fable-ui/core"],
+      "registryDependencies": ["https://fable-ui.shobky.com/r/core.json"],
       "files": [
         {
           "path": "lib/fable-ui/drivers/firebase/firebase-driver.types.ts",
@@ -592,9 +597,9 @@
         "message",
         "bubble",
         "marker",
-        "shobky/fable-ui/core",
-        "shobky/fable-ui/metric-card",
-        "shobky/fable-ui/suggested-actions"
+        "https://fable-ui.shobky.com/r/core.json",
+        "https://fable-ui.shobky.com/r/metric-card.json",
+        "https://fable-ui.shobky.com/r/suggested-actions.json"
       ],
       "files": [
         {

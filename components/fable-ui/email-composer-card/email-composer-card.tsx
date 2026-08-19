@@ -45,7 +45,7 @@ import {
   resolveTextDirection,
   usePlainTextDraft,
   type TextDirection,
-} from "@/components/fable-ui/text-editor-card"
+} from "@/components/fable-ui/text-editor-card/text-editor-card"
 
 export type EmailComposerCardProps = {
   subject: string

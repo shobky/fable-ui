@@ -3,7 +3,6 @@ import {
   queryLocalRows,
   type DataActionInput,
   type DataActionResult,
-  type DataFilter,
   type DataQuery,
   type DataQueryResult,
   type DataRow,

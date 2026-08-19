@@ -9,7 +9,6 @@ import {
 } from "shadcn/utils"
 import { Project, ScriptKind, type SourceFile } from "ts-morph"
 
-
 function getStyleFromStyleName(styleName: string) {
   const parts = styleName.split("-")
   return parts.length > 1 ? parts.slice(1).join("-") : styleName
@@ -94,9 +93,9 @@ export async function formatCode(code: string, styleName: string) {
     })
 
     const transformers: DisplayTransformer[] = [
-      transformIcons as any,
-      transformMenu as any,
-      transformRender as any,
+      transformIcons as unknown as DisplayTransformer,
+      transformMenu as unknown as DisplayTransformer,
+      transformRender as unknown as DisplayTransformer,
     ]
     for (const transformer of transformers) {
       await transformer({
