@@ -81,8 +81,8 @@ export default async function Page(props: {
         <div className="mx-auto flex w-full max-w-160 min-w-0 flex-1 flex-col gap-6 px-4 py-6 text-foreground md:px-0 lg:py-8 dark:text-foreground">
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between md:items-start">
-                <h1 className="scroll-m-24 text-3xl font-semibold tracking-tight sm:text-3xl">
+              <div className="flex flex-wrap items-center justify-between gap-2 md:items-start">
+                <h1 className="min-w-0 scroll-m-24 text-3xl font-semibold tracking-tight sm:text-3xl">
                   {doc.title}{" "}
                   {PAGES_BETA.includes(page.url) && (
                     <Badge className="bg-yellow-500/20 text-base text-yellow-500">
@@ -90,7 +90,7 @@ export default async function Page(props: {
                     </Badge>
                   )}
                 </h1>
-                <div className="docs-nav flex items-center gap-2">
+                <div className="docs-nav flex shrink-0 items-center gap-2">
                   <div className="ml-auto flex gap-2">
                     {neighbours.previous && (
                       <Button

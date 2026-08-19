@@ -65,7 +65,7 @@ function PreviewStateTabs({
       value={value}
       onValueChange={(next) => onValueChange(next as PreviewState)}
     >
-      <TabsList className="flex-wrap">
+      <TabsList className="w-max min-w-max flex-nowrap">
         {previewStates.map((state) => (
           <TabsTrigger key={state.value} value={state.value}>
             {state.label}
@@ -74,6 +74,10 @@ function PreviewStateTabs({
       </TabsList>
     </Tabs>
   )
+}
+
+function PreviewTabsViewport({ children }: { children: React.ReactNode }) {
+  return <div className="max-w-full overflow-x-auto">{children}</div>
 }
 
 function SourceBlock({
@@ -102,8 +106,10 @@ function PreviewFrame({
 }) {
   return (
     <div className="flex w-full flex-col items-center gap-4">
-      <div className="absolute top-4">
-        <PreviewStateTabs value={state} onValueChange={onStateChange} />
+      <div className="absolute inset-x-4 top-4 z-10 flex justify-center">
+        <PreviewTabsViewport>
+          <PreviewStateTabs value={state} onValueChange={onStateChange} />
+        </PreviewTabsViewport>
       </div>
       <div className="flex h-full w-full justify-center pt-10">{children}</div>
     </div>
@@ -121,19 +127,28 @@ function ContentCardPreviewFrame({
 }) {
   return (
     <div className="flex w-full flex-col items-center gap-4">
-      <Tabs
-        value={state}
-        onValueChange={(next) => onStateChange(next as ContentCardPreviewState)}
-      >
-        <TabsList className="flex-wrap">
-          {contentCardPreviewStates.map((previewState) => (
-            <TabsTrigger key={previewState.value} value={previewState.value}>
-              {previewState.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-      <div className="flex h-full w-full justify-center">{children}</div>
+      <div className="absolute inset-x-4 top-4 z-10 flex justify-center">
+        <PreviewTabsViewport>
+          <Tabs
+            value={state}
+            onValueChange={(next) =>
+              onStateChange(next as ContentCardPreviewState)
+            }
+          >
+            <TabsList className="w-max min-w-max flex-nowrap">
+              {contentCardPreviewStates.map((previewState) => (
+                <TabsTrigger
+                  key={previewState.value}
+                  value={previewState.value}
+                >
+                  {previewState.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </PreviewTabsViewport>
+      </div>
+      <div className="flex h-full w-full justify-center pt-10">{children}</div>
     </div>
   )
 }
