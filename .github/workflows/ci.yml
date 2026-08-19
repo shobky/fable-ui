@@ -30,12 +30,16 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+      - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
-      - run: pnpm registry:validate
+      - run: pnpm registry:lint
       - run: pnpm registry:smoke
+      - run: pnpm skill:check
 
   consumer-smoke:
+    # The 13-item consumer build performs a fresh dependency install and a typecheck per item.
+    # Keep it scheduled/manual so normal pull-request feedback remains within the 20-minute budget.
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20

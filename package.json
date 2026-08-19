@@ -11,10 +11,13 @@
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "registry:validate": "node scripts/validate-registry.mjs && shadcn registry validate registry.json",
+    "registry:lint": "pnpm registry:validate && node scripts/lint-registry.mjs",
     "registry:build": "shadcn build registry.json --output public/r",
     "registry:smoke": "node scripts/smoke-shadcn-install.mjs",
     "registry:consumer-smoke": "node scripts/smoke-registry-consumer.mjs",
-    "registry:check": "pnpm registry:validate && pnpm registry:smoke && pnpm typecheck"
+    "registry:check": "pnpm registry:lint && pnpm registry:smoke && pnpm typecheck",
+    "skill:build": "node scripts/build-agent-skill.mjs --replace",
+    "skill:check": "node scripts/build-agent-skill.mjs --check"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.7",
@@ -70,6 +73,8 @@
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "typescript-eslint": "^8.62.1",
     "vitest": "^4.1.10"
-  }
+  },
+  "packageManager": "pnpm@11.10.0+sha512.0b7f8b98060031904c017e3a41eb187a16d40eeb829b95c4f8cb03681761fc4ab53dd219115b9b447f4dce1a05a214764461e7d3703392a9f32f9511ce8c86c8"
 }

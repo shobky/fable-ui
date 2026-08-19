@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process"
+import { execFileSync, spawn } from "node:child_process"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
@@ -10,12 +10,15 @@ const tempRoot = fs.mkdtempSync(
 )
 const consumerDir = path.join(tempRoot, "consumer")
 const builtRegistryDir = path.join(tempRoot, "built-registry")
-const installItemsDir = path.join(tempRoot, "install-items")
+const servedRegistryDir = path.join(tempRoot, "served-registry")
+const registryServerReadyPath = path.join(tempRoot, "registry-server.json")
 const registryPath = path.join(root, "registry.json")
 const rootPackagePath = path.join(root, "package.json")
 const rootLockfilePath = path.join(root, "pnpm-lock.yaml")
 const rootComponentsPath = path.join(root, "components.json")
 const shadcnCli = path.join(root, "node_modules", "shadcn", "dist", "index.js")
+const registryServerCli = path.join(root, "scripts", "serve-registry.mjs")
+const productionRegistryBaseUrl = "https://fable-ui.shobky.com"
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"))
@@ -29,12 +32,6 @@ function writeJson(filePath, value) {
 function writeFile(filePath, contents) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
   fs.writeFileSync(filePath, contents)
-}
-
-function relativePath(from, to) {
-  const value = path.relative(from, to).replaceAll(path.sep, "/")
-
-  return value.startsWith(".") ? value : `./${value}`
 }
 
 function run(label, executable, args, cwd) {
@@ -117,14 +114,52 @@ function cleanupTempRoot() {
   fs.rmSync(tempRoot, { recursive: true, force: true })
 }
 
-function sameRepoDependencies(item) {
-  return (item.registryDependencies ?? []).filter((dependency) =>
-    dependency.startsWith("shobky/fable-ui/")
-  )
+function canonicalRegistryUrl(itemName) {
+  return `${productionRegistryBaseUrl}/r/${itemName}.json`
 }
 
 function sameRepoDependencyName(dependency) {
-  return dependency.slice("shobky/fable-ui/".length).split("#", 1)[0]
+  if (!dependency.startsWith(`${productionRegistryBaseUrl}/r/`)) {
+    return null
+  }
+
+  const match = dependency.match(
+    /^https:\/\/fable-ui\.shobky\.com\/r\/([a-z0-9]+(?:-[a-z0-9]+)*)\.json$/
+  )
+
+  return match?.[1] ?? null
+}
+
+function assertCanonicalHostedDependencies(items) {
+  const knownItems = new Set(items.map((item) => item.name))
+
+  for (const item of items) {
+    for (const dependency of item.registryDependencies ?? []) {
+      if (dependency.startsWith("shobky/fable-ui/")) {
+        throw new Error(
+          `${item.name} uses a legacy same-repository dependency: ${dependency}.`
+        )
+      }
+
+      const dependencyName = sameRepoDependencyName(dependency)
+
+      if (!dependencyName) {
+        continue
+      }
+
+      if (!knownItems.has(dependencyName)) {
+        throw new Error(
+          `${item.name} depends on unknown hosted registry item: ${dependency}.`
+        )
+      }
+
+      if (dependency !== canonicalRegistryUrl(dependencyName)) {
+        throw new Error(
+          `${item.name} has a non-canonical hosted registry dependency: ${dependency}.`
+        )
+      }
+    }
+  }
 }
 
 function itemInstallOrder(items) {
@@ -133,9 +168,9 @@ function itemInstallOrder(items) {
     items.map((item) => [
       item.name,
       new Set(
-        sameRepoDependencies(item).map((dependency) =>
-          sameRepoDependencyName(dependency)
-        )
+        (item.registryDependencies ?? [])
+          .map(sameRepoDependencyName)
+          .filter(Boolean)
       ),
     ])
   )
@@ -218,6 +253,7 @@ function createConsumerConfig(rootPackage, rootComponents) {
     private: true,
     scripts: {
       build: "next build",
+      lint: "eslint .",
       typecheck: "tsc --noEmit",
     },
     dependencies: pickPackages(rootPackage, "dependencies", [
@@ -237,6 +273,8 @@ function createConsumerConfig(rootPackage, rootComponents) {
       "@types/react-dom",
       "tailwindcss",
       "typescript",
+      "eslint",
+      "eslint-config-next",
     ]),
   })
   writeFile(
@@ -290,6 +328,10 @@ function createConsumerConfig(rootPackage, rootComponents) {
     `import type { NextConfig } from "next"\n\nconst nextConfig: NextConfig = {}\n\nexport default nextConfig\n`
   )
   writeFile(
+    path.join(consumerDir, "eslint.config.mjs"),
+    `import { defineConfig, globalIgnores } from "eslint/config"\nimport nextVitals from "eslint-config-next/core-web-vitals"\n\nexport default defineConfig([\n  ...nextVitals,\n  globalIgnores([".next/**", "next-env.d.ts"]),\n])\n`
+  )
+  writeFile(
     path.join(consumerDir, "postcss.config.mjs"),
     `const config = {\n  plugins: {\n    "@tailwindcss/postcss": {},\n  },\n}\n\nexport default config\n`
   )
@@ -315,7 +357,74 @@ function createConsumerConfig(rootPackage, rootComponents) {
   )
 }
 
-function makeInstallCopies(items) {
+function writeConsumerSmokeSurface(installedNames) {
+  const installed = new Set(installedNames)
+  const imports = []
+  const surfaces = []
+  const addSurface = (itemName, statement, surface) => {
+    if (installed.has(itemName)) {
+      imports.push(statement)
+      surfaces.push(surface)
+    }
+  }
+
+  addSurface(
+    "metric-card",
+    'import { MetricCard } from "@/components/fable-ui/metric-card"',
+    '<MetricCard label="Revenue" value="$1" />'
+  )
+  addSurface(
+    "suggested-actions",
+    'import { SuggestedActions } from "@/components/fable-ui/suggested-actions"',
+    '<SuggestedActions title="Next" actions={[]} onAction={() => undefined} />'
+  )
+  addSurface(
+    "confirmation-card",
+    'import { ConfirmationCard } from "@/components/fable-ui/confirmation-card"',
+    '<ConfirmationCard id="confirm" title="Confirm" description="Smoke" />'
+  )
+  addSurface(
+    "form-card",
+    'import { FormCard } from "@/components/fable-ui/form-card"',
+    '<FormCard title="Input" fields={[]} onSubmit={() => undefined} />'
+  )
+  addSurface(
+    "data-browser",
+    'import { DataBrowser } from "@/components/fable-ui/data-browser"',
+    '<DataBrowser title="Rows" entityLabel="row" columns={[{ key: "name", label: "Name" }]} rows={[{ id: "1", name: "Smoke" }]} />'
+  )
+  addSurface(
+    "charts",
+    'import { Charts } from "@/components/fable-ui/charts"',
+    '<Charts title="Chart" data={[{ label: "Smoke", value: 1 }]} categoryKey="label" valueKey="value" defaultChartType="bar" />'
+  )
+  addSurface(
+    "text-editor-card",
+    'import { TextEditorCard } from "@/components/fable-ui/text-editor-card"',
+    '<TextEditorCard label="ملاحظة" content="Smoke" />'
+  )
+  addSurface(
+    "email-composer-card",
+    'import { EmailComposerCard } from "@/components/fable-ui/email-composer-card"',
+    '<EmailComposerCard subject="Smoke" body="Email smoke" to={["smoke@example.com"]} />'
+  )
+  addSurface(
+    "code-block-card",
+    'import { CodeBlockCard } from "@/components/fable-ui/code-block-card"',
+    '<CodeBlockCard language="ts" code="const smoke = true\\n" />'
+  )
+
+  writeFile(
+    path.join(consumerDir, "app", "page.tsx"),
+    `import { RegistrySmoke } from "@/components/registry-smoke"\n\nexport default function Page() {\n  return <RegistrySmoke />\n}\n`
+  )
+  writeFile(
+    path.join(consumerDir, "components", "registry-smoke.tsx"),
+    `"use client"\n\n${imports.join("\n")}\n\nexport function RegistrySmoke() {\n  return <main>${surfaces.join("\n      ") || "Smoke"}</main>\n}\n`
+  )
+}
+
+function makeServedRegistryCopies(items, localRegistryBaseUrl) {
   for (const item of items) {
     const builtItemPath = path.join(builtRegistryDir, `${item.name}.json`)
 
@@ -333,16 +442,85 @@ function makeInstallCopies(items) {
       )
     }
 
-    const installItem = JSON.parse(JSON.stringify(builtItem))
+    const servedItem = JSON.parse(JSON.stringify(builtItem))
 
-    if (Array.isArray(installItem.registryDependencies)) {
-      installItem.registryDependencies =
-        installItem.registryDependencies.filter(
-          (dependency) => !dependency.startsWith("shobky/fable-ui/")
-        )
+    if (Array.isArray(servedItem.registryDependencies)) {
+      servedItem.registryDependencies = servedItem.registryDependencies.map(
+        (dependency) => {
+          const dependencyName = sameRepoDependencyName(dependency)
+
+          return dependencyName
+            ? `${localRegistryBaseUrl}/r/${dependencyName}.json`
+            : dependency
+        }
+      )
     }
 
-    writeJson(path.join(installItemsDir, `${item.name}.json`), installItem)
+    writeJson(
+      path.join(servedRegistryDir, "r", `${item.name}.json`),
+      servedItem
+    )
+  }
+}
+
+function waitForLoopbackRegistryServer(child) {
+  const timeoutAt = Date.now() + 10_000
+
+  while (Date.now() < timeoutAt) {
+    if (fs.existsSync(registryServerReadyPath)) {
+      const { baseUrl } = readJson(registryServerReadyPath)
+
+      if (
+        typeof baseUrl === "string" &&
+        /^http:\/\/127\.0\.0\.1:\d+$/.test(baseUrl)
+      ) {
+        return baseUrl
+      }
+
+      throw new Error("Loopback registry server wrote an invalid ready file.")
+    }
+
+    if (child.exitCode !== null) {
+      throw new Error(
+        `Loopback registry server exited before becoming ready (exit ${child.exitCode}).`
+      )
+    }
+
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25)
+  }
+
+  throw new Error("Timed out waiting for the loopback registry server.")
+}
+
+function startLoopbackRegistryServer() {
+  const child = spawn(
+    process.execPath,
+    [registryServerCli, servedRegistryDir, registryServerReadyPath],
+    {
+      cwd: root,
+      stdio: ["ignore", "ignore", "pipe"],
+      windowsHide: true,
+    }
+  )
+  let stderr = ""
+
+  child.stderr.on("data", (chunk) => {
+    stderr += String(chunk)
+  })
+
+  try {
+    return { child, baseUrl: waitForLoopbackRegistryServer(child) }
+  } catch (error) {
+    child.kill("SIGTERM")
+    throw new Error(
+      `${error instanceof Error ? error.message : error}${stderr ? `\n${stderr}` : ""}`
+    )
+  }
+}
+
+function stopLoopbackRegistryServer(child) {
+  if (child && child.exitCode === null) {
+    child.kill("SIGTERM")
   }
 }
 
@@ -464,6 +642,7 @@ function assertNoSourcePathLeakage() {
     .filter(Boolean)
     .map((value) => new RegExp(escapeRegExp(value), "i"))
   const forbidden = [
+    { pattern: /IconPlaceHolder?/i, reason: "raw shadcn icon placeholder" },
     { pattern: /@\/app\/\(create\)/, reason: "raw shadcn create-app import" },
     { pattern: /@\/app\//, reason: "app route import" },
     { pattern: /@\/registry\//, reason: "registry-internal import/path" },
@@ -502,13 +681,92 @@ function assertNoSourcePathLeakage() {
   }
 }
 
-function main() {
+function assertInstalledSourceContracts() {
+  const required = [
+    [
+      "components/fable-ui/text-editor-card/text-editor-card.tsx",
+      /export function TextEditorCard/,
+      "TextEditorCard export",
+    ],
+    [
+      "components/fable-ui/email-composer-card/email-composer-card.tsx",
+      /from "@\/components\/fable-ui\/text-editor-card(?:\/text-editor-card)?"/,
+      "email-to-text-editor registry wiring",
+    ],
+    [
+      "lib/fable-ui/tools/show-email-composer-tool.ts",
+      /defineFableComponent\(/,
+      "email server tool registry wiring",
+    ],
+    [
+      "components/fable-ui/code-block-card/code-block-card.tsx",
+      /<TooltipProvider>/,
+      "self-contained code-block tooltip provider",
+    ],
+    [
+      "lib/fable-ui/tools/collect-input-tool.ts",
+      /collectInputSchema = z[\s\S]*?\.strict\(\)/,
+      "strict collect_input schema",
+    ],
+    [
+      "components/fable-ui/chat/fable-chat.tsx",
+      /DefaultChatTransport\(\{ api: "\/api\/fable-chat" \}\)/,
+      "quickstart client route wiring",
+    ],
+    [
+      "app/api/fable-chat/route.ts",
+      /export async function POST\(req: Request\)/,
+      "quickstart server route",
+    ],
+  ]
+
+  for (const [relativeFile, pattern, description] of required) {
+    const filePath = path.join(consumerDir, relativeFile)
+
+    if (
+      !fs.existsSync(filePath) ||
+      !pattern.test(fs.readFileSync(filePath, "utf8"))
+    ) {
+      throw new Error(
+        `Installed source is missing ${description}: ${relativeFile}.`
+      )
+    }
+  }
+}
+
+function assertFirebasePnpmPolicy() {
+  const packageManagerUserAgent = process.env.npm_config_user_agent ?? ""
+  const pnpmVersion = /(?:^|\s)pnpm\/(\d+\.\d+\.\d+)/.exec(
+    packageManagerUserAgent
+  )?.[1]
+
+  if (!pnpmVersion || !/^11\./.test(pnpmVersion)) {
+    throw new Error(
+      `Firebase registry installation requires pnpm 11.x; detected ${packageManagerUserAgent || "no package-manager user agent"}.`
+    )
+  }
+
+  const consumerPackage = readJson(path.join(consumerDir, "package.json"))
+
+  if (!consumerPackage.dependencies?.firebase) {
+    throw new Error(
+      "Firebase registry installation did not add firebase to the consumer dependencies under pnpm 11."
+    )
+  }
+
+  console.log(
+    `Firebase pnpm policy passed: pnpm ${pnpmVersion}, firebase resolved in the isolated consumer.`
+  )
+}
+
+async function main() {
   for (const filePath of [
     registryPath,
     rootPackagePath,
     rootLockfilePath,
     rootComponentsPath,
     shadcnCli,
+    registryServerCli,
   ]) {
     if (!fs.existsSync(filePath)) {
       throw new Error(`Missing required local file: ${filePath}`)
@@ -528,79 +786,118 @@ function main() {
     )
   }
   assertSafeItemNames(items)
+  assertCanonicalHostedDependencies(items)
 
   const rootPackage = readJson(rootPackagePath)
   const rootComponents = readJson(rootComponentsPath)
   const installOrder = itemInstallOrder(items)
   const workspaceSnapshot = snapshotWorkspaceFiles()
 
-  createConsumerConfig(rootPackage, rootComponents)
-  runIsolated(
-    "Build current registry into consumer smoke artifacts",
-    process.execPath,
-    [shadcnCli, "build", registryPath, "--output", builtRegistryDir],
-    root,
-    workspaceSnapshot
-  )
-  assertSafeBuiltTargets(installOrder, rootComponents.aliases)
-  makeInstallCopies(installOrder)
+  let registryServer
 
-  for (const item of installOrder) {
-    const installItemPath = path.join(installItemsDir, `${item.name}.json`)
-
-    console.log(`Installing ${item.name} into temporary consumer...`)
+  try {
+    createConsumerConfig(rootPackage, rootComponents)
+    writeConsumerSmokeSurface([])
     runIsolated(
-      `Install ${item.name} into temporary consumer`,
+      "Build current registry into consumer smoke artifacts",
       process.execPath,
-      [shadcnCli, "add", relativePath(consumerDir, installItemPath), "--yes"],
+      [shadcnCli, "build", registryPath, "--output", builtRegistryDir],
+      root,
+      workspaceSnapshot
+    )
+    assertSafeBuiltTargets(installOrder, rootComponents.aliases)
+    fs.mkdirSync(path.join(servedRegistryDir, "r"), { recursive: true })
+    registryServer = startLoopbackRegistryServer()
+    makeServedRegistryCopies(installOrder, registryServer.baseUrl)
+
+    const installedNames = []
+
+    for (const item of installOrder) {
+      const itemUrl = `${registryServer.baseUrl}/r/${item.name}.json`
+
+      console.log(
+        `Installing ${item.name} from ${itemUrl} into temporary consumer...`
+      )
+      runIsolated(
+        `Install ${item.name} into temporary consumer from loopback registry`,
+        process.execPath,
+        [shadcnCli, "add", itemUrl, "--yes"],
+        consumerDir,
+        workspaceSnapshot
+      )
+      installedNames.push(item.name)
+      writeConsumerSmokeSurface(installedNames)
+
+      const consumerTscCli = path.join(
+        consumerDir,
+        "node_modules",
+        "typescript",
+        "bin",
+        "tsc"
+      )
+
+      if (!fs.existsSync(consumerTscCli)) {
+        throw new Error(
+          `Consumer install is missing TypeScript after installing ${item.name}: ${consumerTscCli}`
+        )
+      }
+      runIsolated(
+        `Type-check temporary consumer after ${item.name}`,
+        process.execPath,
+        [consumerTscCli, "--noEmit", "--pretty", "false"],
+        consumerDir,
+        workspaceSnapshot
+      )
+    }
+
+    assertInstalledTargets(installOrder, rootComponents.aliases)
+    assertNoSourcePathLeakage()
+    assertInstalledSourceContracts()
+    assertFirebasePnpmPolicy()
+    const consumerEslintCli = path.join(
+      consumerDir,
+      "node_modules",
+      "eslint",
+      "bin",
+      "eslint.js"
+    )
+    const consumerNextCli = path.join(
+      consumerDir,
+      "node_modules",
+      "next",
+      "dist",
+      "bin",
+      "next"
+    )
+
+    for (const executable of [consumerEslintCli, consumerNextCli]) {
+      if (!fs.existsSync(executable)) {
+        throw new Error(
+          `Consumer install is missing required executable: ${executable}`
+        )
+      }
+    }
+    runIsolated(
+      "Lint installed temporary consumer sources",
+      process.execPath,
+      [consumerEslintCli, "."],
       consumerDir,
       workspaceSnapshot
     )
+    runIsolated(
+      "Build temporary consumer",
+      process.execPath,
+      [
+        consumerNextCli,
+        "build",
+        ...(process.platform === "win32" ? ["--webpack"] : []),
+      ],
+      consumerDir,
+      workspaceSnapshot
+    )
+  } finally {
+    stopLoopbackRegistryServer(registryServer?.child)
   }
-
-  assertInstalledTargets(installOrder, rootComponents.aliases)
-  assertNoSourcePathLeakage()
-  const consumerTscCli = path.join(
-    consumerDir,
-    "node_modules",
-    "typescript",
-    "bin",
-    "tsc"
-  )
-  const consumerNextCli = path.join(
-    consumerDir,
-    "node_modules",
-    "next",
-    "dist",
-    "bin",
-    "next"
-  )
-
-  for (const executable of [consumerTscCli, consumerNextCli]) {
-    if (!fs.existsSync(executable)) {
-      throw new Error(
-        `Consumer install is missing required executable: ${executable}`
-      )
-    }
-  }
-  runIsolated(
-    "Type-check temporary consumer",
-    process.execPath,
-    [consumerTscCli, "--noEmit", "--pretty", "false"],
-    consumerDir,
-    workspaceSnapshot
-  )
-  runIsolated(
-    "Build temporary consumer",
-    process.execPath,
-    [
-      consumerNextCli,
-      "build",
-      ...(process.platform === "win32" ? ["--webpack"] : []),
-    ],
-    consumerDir,
-    workspaceSnapshot
-  )
   cleanupTempRoot()
 
   console.log(
@@ -609,7 +906,7 @@ function main() {
 }
 
 try {
-  main()
+  await main()
 } catch (error) {
   console.error(
     `Consumer registry smoke failed: ${error instanceof Error ? error.message : error}`
