@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fable UI"
+  short_description: "Install and integrate Fable UI safely"
+  default_prompt: "Use $fable-ui to inspect this app and install the smallest complete Fable UI setup for my requested experience."

@@ -1,0 +1,38 @@
+---
+title: Agent setup
+description: Fable UI skill for safe registry installation and host integration.
+---
+
+The Fable UI agent skill lives at `.agents/skills/fable-ui`. It helps an agent inspect a host app, select the smallest complete Fable UI item set, and follow the registry and integration boundaries.
+
+This is documentation for a skill, not an MCP server. No MCP endpoint, tool, credential bridge, or automatic host mutation is implied by this page.
+
+## Install from the repository
+
+Install the named skill into the current project with the Skills CLI:
+
+```bash
+npx skills add shobky/fable-ui --skill fable-ui
+```
+
+The command is intentionally project-scoped by default. Review the CLI's target-agent prompt and the resulting files before committing them. For a global installation or a specific agent, use the Skills CLI options appropriate to that agent.
+
+## Download package
+
+Download the deterministic package here:
+
+[Download `fable-ui.skill`](/skills/fable-ui.skill)
+
+Use the download only with an agent product that supports `.skill` packages. The package and repository skill contain the same guidance; neither installs a registry item, configures a model provider, or grants access to host data by itself.
+
+## Intended workflow
+
+The skill guides an agent to:
+
+1. Inspect the host aliases, existing target files, package manager, and shadcn setup.
+2. Use the hosted Fable URL for each requested registry item.
+3. Dry-run and review collisions before any install; never default to overwrite.
+4. Record pnpm build-script decisions and validate the host after installation.
+5. Add only the required tool registration, trusted renderer mapping, callbacks, and data-provider loop.
+
+The skill links back to [Installation](/docs/installation) and [AI SDK Integration](/docs/ai-sdk-integration) for the public contracts it applies.

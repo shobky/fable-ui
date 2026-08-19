@@ -3,6 +3,7 @@
   "pages": [
     "introduction",
     "installation",
+    "agent-setup",
     "registry",
     "manifests",
     "tool-definitions",

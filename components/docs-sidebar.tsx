@@ -26,6 +26,10 @@ const TOP_LEVEL_SECTIONS = [
     href: "/docs/installation",
   },
   {
+    name: "Agent Skill",
+    href: "/docs/agent-setup",
+  },
+  {
     name: "Registry",
     href: "/docs/registry",
   },
