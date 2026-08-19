@@ -48,6 +48,38 @@ Confirmation UI is not authorization. Host APIs must still enforce authenticatio
 
 The component only captures an explicit user decision. The host decides whether the requested action is allowed and how it is executed.
 
+## Add confirmation callbacks
+
+The tool renderer maps `handlers.onConfirm` and `handlers.onCancel` to the card. Pass them from the host chat layer, where the app can use the confirmation id to call its own protected endpoint:
+
+```tsx
+import type { ToolPartLike, ToolRenderHandlers } from "@/lib/fable-ui/core"
+import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
+import { requestConfirmation } from "@/lib/fable-ui/tools/request-confirmation-tool"
+
+const registry = { request_confirmation: requestConfirmation }
+
+export function ConfirmationToolPart({
+  part,
+  onConfirm,
+  onCancel,
+}: {
+  part: ToolPartLike
+  onConfirm?: ToolRenderHandlers["onConfirm"]
+  onCancel?: ToolRenderHandlers["onCancel"]
+}) {
+  return (
+    <FableToolPart
+      part={part}
+      registry={registry}
+      handlers={{ onConfirm, onCancel }}
+    />
+  )
+}
+```
+
+Both callbacks receive `{ id, label }`. Re-authorize and validate the action on the server, make it idempotent, and do not treat the rendered confirmation as permission to execute it.
+
 ## States
 
 The preview shows ready, loading, empty, error, and disabled states. The disabled state is useful when the host app is still checking permissions or when a previous decision is being processed.
@@ -56,4 +88,8 @@ The preview shows ready, loading, empty, error, and disabled states. The disable
 
 The manifest tells the model to use `request_confirmation` before host side effects, not as proof of authorization. Read the [Manifests guide](/docs/manifests) for the shared format.
 
-<ComponentSource src="lib/fable-ui/manifests/request-confirmation.md" title="lib/fable-ui/manifests/request-confirmation.md" language="md" />
+<ComponentSource
+  src="lib/fable-ui/manifests/request-confirmation.md"
+  title="lib/fable-ui/manifests/request-confirmation.md"
+  language="md"
+/>

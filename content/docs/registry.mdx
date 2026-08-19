@@ -1,62 +1,79 @@
 ---
 title: Registry
-description: How Fable UI registry items are structured.
+description: Understand Fable UI's hosted registry items and their install targets.
 ---
 
-Fable UI is a copy-and-own registry of AI-intent-aware product surfaces. A registry item is not just a React component; it carries the model contract around that component.
+Fable UI is a copy-and-own registry. The canonical public item address is:
 
-## Item Anatomy
+```txt
+https://fable-ui.shobky.com/r/<item>.json
+```
 
-Each installable item can include:
+For example:
 
-- React UI source owned by the installing project.
-- A Zod schema for the tool payload.
-- An AI SDK-compatible tool definition using `tool({ description, inputSchema, execute })`.
-- Model-facing manifest guidance.
-- Eval prompts for tool selection in this repository.
-- Examples or integration glue when useful.
+```bash
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/metric-card.json
+```
 
-The root `registry.json` is the public GitHub source-registry entrypoint. Install commands resolve items from `shobky/fable-ui/<item>`.
+The hosted JSON is the consumer-facing install surface. The repository's `registry.json` is its source definition; do not substitute a GitHub shorthand when you want to install the deployed public item.
 
-Current registry items:
+## Catalog
 
-- `core`
-- `metric-card`
-- `suggested-actions`
-- `confirmation-card`
-- `form-card`
-- `data-browser`
-- `rest-driver`
-- `firebase-driver`
-- `quickstart`
+| Item                  | Registry type        | Installed concern                                                                                    |
+| --------------------- | -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `core`                | `registry:lib`       | Shared Fable core, including the renderer, provider, schemas, and data registry.                     |
+| `metric-card`         | `registry:component` | Metric UI, `show_metric`, and its manifest.                                                          |
+| `suggested-actions`   | `registry:component` | Prompt suggestions, `show_next_actions`, and its manifest.                                           |
+| `confirmation-card`   | `registry:component` | Confirmation UI, `request_confirmation`, and its manifest.                                           |
+| `form-card`           | `registry:component` | Form UI, `collect_input`, and its manifest.                                                          |
+| `data-browser`        | `registry:block`     | Browser and table UI, `show_table`, `show_data_browser`, `get_rendered_data`, and display manifests. |
+| `charts`              | `registry:block`     | Chart UI, `show_chart`, and its manifest.                                                            |
+| `text-editor-card`    | `registry:component` | Draft UI, `show_text_editor`, and its manifest.                                                      |
+| `email-composer-card` | `registry:component` | Email draft UI, `show_email_composer`, and its manifest.                                             |
+| `code-block-card`     | `registry:component` | Code UI, `show_code_block`, and its manifest.                                                        |
+| `rest-driver`         | `registry:lib`       | Host-owned REST resource adapter.                                                                    |
+| `firebase-driver`     | `registry:lib`       | Host-owned Firestore resource adapter.                                                               |
+| `quickstart`          | `registry:block`     | Minimal `/fable-chat` example with metric and suggested-action tools only.                           |
+
+`core` is normally pulled in by a surface. It remains directly installable for a custom renderer or data-source integration.
+
+## What an item can install
+
+An item is more than a React file. Across the public catalog, an item can install all of these target categories:
+
+| Target category          | Examples                                                           |
+| ------------------------ | ------------------------------------------------------------------ |
+| Core libraries           | `@lib/fable-ui/core/*`                                             |
+| Components and blocks    | `@components/fable-ui/<item>/*`                                    |
+| Tool contracts           | `@lib/fable-ui/tools/*`                                            |
+| Model manifests          | `@lib/fable-ui/manifests/*`                                        |
+| Shared hooks             | `@hooks/use-copy-to-clipboard.ts`                                  |
+| Driver adapters          | `@lib/fable-ui/drivers/rest/*`, `@lib/fable-ui/drivers/firebase/*` |
+| shadcn primitives        | Host `components/ui/*` files selected from `registryDependencies`  |
+| Next routes              | `app/fable-chat/page.tsx`, `app/api/fable-chat/route.ts`           |
+| Quickstart client code   | `@components/fable-ui/chat/*`, `@lib/fable-ui/quickstart/*`        |
+| Quickstart documentation | `~/docs/fable-ui/quickstart.md`                                    |
+
+The `@components`, `@lib`, and `@hooks` prefixes are resolved through the host `components.json`; they are not fixed source paths. `app/...` targets are explicit Next route paths. This distinction lets each host keep its own aliases while keeping quickstart routes predictable.
 
 ## Dependencies
 
-Bare `registryDependencies` such as `card` or `button` refer to official shadcn items. Fable-to-Fable dependencies use full GitHub addresses:
+Bare `registryDependencies` such as `card` or `button` are official shadcn items. Fable dependencies are declared as repository references so the CLI installs the required Fable source with the item.
 
-```json
-{
-  "registryDependencies": ["shobky/fable-ui/core"]
-}
+Install the public hosted item URL directly, then let the CLI resolve the source graph:
+
+```bash
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/email-composer-card.json
 ```
 
-This prevents the CLI from treating a Fable item like `core` as a built-in shadcn item.
+Inspect first when the host already owns nearby files:
 
-## Files and Targets
-
-Each file entry has two paths:
-
-- `path` is the source file in this repository.
-- `target` is where shadcn writes the file in the host app.
-
-Use host-aware aliases for reusable source files: `@components/...` for UI, `@lib/...` for shared logic, and `@hooks/...` for hooks when they live outside a component folder. Keep Next route and page files explicit under `app/...`.
-
-Registry items should install the minimum runtime set needed for that item to work. Manifests are installed because they are part of the model-facing product contract. Eval prompts are kept in this repository unless an item intentionally documents them as runtime install files.
+```bash
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/email-composer-card.json --dry-run
+```
 
 ## Boundary
 
-Registry files do not import from `app`, docs routes, playground helpers, or the local `/chat` route. The app can import registry source as evidence, but the product boundary is the public registry.
+Registry installation copies source into the host project. It does not configure authentication, data access, provider credentials, permissions, database access, mail delivery, or side effects. The host must integrate the installed tool definitions and callbacks deliberately.
 
-The host app still owns auth, data access, server-side validation, side effects, and persistence.
-
-`data-browser` installs the generic browsing surface and core data-source types. It does not install REST or Firebase code. Install `rest-driver` or `firebase-driver` separately when the host app needs one of those adapters.
+See [Installation](/docs/installation) for the full hosted command list, [Tool Definitions](/docs/tool-definitions) for the renderer contract, and [AI SDK Integration](/docs/ai-sdk-integration) for additive chat integration recipes.

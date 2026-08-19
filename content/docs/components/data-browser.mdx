@@ -26,6 +26,7 @@ components/fable-ui/data-browser/index.ts
 lib/fable-ui/tools/show-data-browser-tool.ts
 lib/fable-ui/tools/get-rendered-data-tool.ts
 lib/fable-ui/tools/show-table-tool.ts
+lib/fable-ui/manifests/get-rendered-data.md
 components/fable-ui/data-browser/data-browser.tsx
 components/fable-ui/data-browser/data-browser.types.ts
 components/fable-ui/data-browser/show-table.tsx
@@ -223,21 +224,27 @@ Rows with avatar-like fields such as `avatar`, `avatarUrl`, `image`, `imageUrl`,
 
 `lib/fable-ui/tools/get-rendered-data-tool.ts` exports the client-only `get_rendered_data` contract. It omits `execute`; `useChat` handles the call by reading the provider's current rendered page, calling `addToolOutput`, and continuing only when its continuation predicate sees the output.
 
-<ComponentSource src="lib/fable-ui/tools/show-data-browser-tool.ts" title="lib/fable-ui/tools/show-data-browser-tool.ts" />
+<ComponentSource
+  src="lib/fable-ui/tools/show-data-browser-tool.ts"
+  title="lib/fable-ui/tools/show-data-browser-tool.ts"
+/>
 
-<ComponentSource src="lib/fable-ui/tools/get-rendered-data-tool.ts" title="lib/fable-ui/tools/get-rendered-data-tool.ts" />
+<ComponentSource
+  src="lib/fable-ui/tools/get-rendered-data-tool.ts"
+  title="lib/fable-ui/tools/get-rendered-data-tool.ts"
+/>
 
 ## States
 
 The previews above include the same states the tool renderer can produce:
 
-| State | How it renders |
-| --- | --- |
-| Ready | Validated rows, columns, filters, sort, and detail settings render normally. |
-| Loading | Skeleton table UI renders while a tool part streams or the host marks the part as loading. |
-| Empty | The table renders an empty state when no rows are available. |
-| Error | The component receives an error object when the tool errors or schema validation fails. |
-| Disabled | Controls render locked when the host marks the part as disabled. |
+| State    | How it renders                                                                             |
+| -------- | ------------------------------------------------------------------------------------------ |
+| Ready    | Validated rows, columns, filters, sort, and detail settings render normally.               |
+| Loading  | Skeleton table UI renders while a tool part streams or the host marks the part as loading. |
+| Empty    | The table renders an empty state when no rows are available.                               |
+| Error    | The component receives an error object when the tool errors or schema validation fails.    |
+| Disabled | Controls render locked when the host marks the part as disabled.                           |
 
 ## Manifests
 
@@ -245,11 +252,27 @@ Manifests are copyable routing contracts. They tell the model when to pick a com
 
 ### `show_table`
 
-<ComponentSource src="lib/fable-ui/manifests/show-table.md" title="lib/fable-ui/manifests/show-table.md" language="md" />
+<ComponentSource
+  src="lib/fable-ui/manifests/show-table.md"
+  title="lib/fable-ui/manifests/show-table.md"
+  language="md"
+/>
 
 ### `show_data_browser`
 
-<ComponentSource src="lib/fable-ui/manifests/show-data-browser.md" title="lib/fable-ui/manifests/show-data-browser.md" language="md" />
+<ComponentSource
+  src="lib/fable-ui/manifests/show-data-browser.md"
+  title="lib/fable-ui/manifests/show-data-browser.md"
+  language="md"
+/>
+
+### `get_rendered_data`
+
+<ComponentSource
+  src="lib/fable-ui/manifests/get-rendered-data.md"
+  title="lib/fable-ui/manifests/get-rendered-data.md"
+  language="md"
+/>
 
 ## Choosing between them
 

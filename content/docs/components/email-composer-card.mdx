@@ -90,6 +90,32 @@ The AI SDK tool name is `show_email_composer`.
 
 Use it for one user-reviewed plain-text email. Do not use it for automatic delivery, bulk email, attachments, HTML email, tracking, secrets, or host-side sending. The component opens a user-controlled compose handoff; it never sends mail itself.
 
+## Add to a chat
+
+Register only the AI SDK tool in the route, then render the full definition in the chat UI:
+
+```ts
+import { showEmailComposer } from "@/lib/fable-ui/tools/show-email-composer-tool"
+
+const tools = {
+  show_email_composer: showEmailComposer.tool,
+}
+```
+
+```tsx
+import type { ToolPartLike } from "@/lib/fable-ui/core"
+import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
+import { showEmailComposer } from "@/lib/fable-ui/tools/show-email-composer-tool"
+
+const registry = { show_email_composer: showEmailComposer }
+
+export function EmailToolPart({ part }: { part: ToolPartLike }) {
+  return <FableToolPart part={part} registry={registry} />
+}
+```
+
+There is no email-delivery handler in `FableToolPart`. The registered tool renders a user-controlled handoff only. For host-owned draft persistence, render `EmailComposerCard` directly and use its optional `onDraftChange` prop.
+
 <ComponentSource
   src="lib/fable-ui/tools/show-email-composer-tool.ts"
   title="lib/fable-ui/tools/show-email-composer-tool.ts"

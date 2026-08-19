@@ -3,58 +3,48 @@ title: Manifests
 description: Manifests describe when a model should select a Fable UI tool.
 ---
 
-A manifest is the model-selection contract for a Fable UI surface. It is not just prose documentation for humans; it is the boundary description that tells an agent when to use a tool, when to avoid it, and what nearby tool should win in ambiguous cases.
+A manifest is the model-selection contract for a Fable UI surface. It explains when a tool should win, when it should lose to a neighboring tool, and the safety boundary around the resulting UI. It is product behavior, not a permission boundary.
 
-## Current state
+## Current catalog
 
-`MetricCard` currently includes:
+The registry currently ships these model-facing contracts:
 
-```txt
-lib/fable-ui/manifests/show-metric.md
-```
+| Tool                   | Registry item         | Installed manifest or contract                   |
+| ---------------------- | --------------------- | ------------------------------------------------ |
+| `show_metric`          | `metric-card`         | `lib/fable-ui/manifests/show-metric.md`          |
+| `show_next_actions`    | `suggested-actions`   | `lib/fable-ui/manifests/show-next-actions.md`    |
+| `request_confirmation` | `confirmation-card`   | `lib/fable-ui/manifests/request-confirmation.md` |
+| `collect_input`        | `form-card`           | `lib/fable-ui/manifests/collect-input.md`        |
+| `show_chart`           | `charts`              | `lib/fable-ui/manifests/show-chart.md`           |
+| `show_text_editor`     | `text-editor-card`    | `lib/fable-ui/manifests/show-text-editor.md`     |
+| `show_email_composer`  | `email-composer-card` | `lib/fable-ui/manifests/show-email-composer.md`  |
+| `show_code_block`      | `code-block-card`     | `lib/fable-ui/manifests/show-code-block.md`      |
+| `show_table`           | `data-browser`        | `lib/fable-ui/manifests/show-table.md`           |
+| `show_data_browser`    | `data-browser`        | `lib/fable-ui/manifests/show-data-browser.md`    |
+| `get_rendered_data`    | `data-browser`        | `lib/fable-ui/manifests/get-rendered-data.md`    |
 
-Manifest files document intended routing behavior and are installed with their registry items. Eval prompts live in this repository for product review and routing checks; automated manifest eval execution is not implemented in this checkout.
+`get_rendered_data` is installed with DataBrowser because the chat client must register it and provide its output. It reads only the current provider-owned rendered page and never fetches or refetches.
 
 ## What a manifest should define
 
-A useful Fable manifest includes:
+A useful manifest includes:
 
-- Tool name and component name.
-- Use-when rules.
-- Do-not-use-when rules.
-- Neighboring tools to prefer instead.
-- Trigger prompts.
-- Anti-trigger prompts.
-- Eval prompts.
-- Payload shape.
-- Safety notes.
+- Tool and component names.
+- When to use and avoid the tool.
+- Neighboring tools to prefer in ambiguous cases.
+- Representative trigger and anti-trigger prompts.
+- Payload constraints and safety notes.
 
-For `show_metric`, the manifest says to use the tool for one primary number and avoid it for records, forms, browsing, or actions.
+For example, `show_metric` is for one trusted primary number, not a list of records. `show_table` is for a bounded static snapshot, while `show_data_browser` is for a registered host-owned resource with browsing controls. `request_confirmation` precedes a host-owned side effect; it never authorizes one.
 
-## Why it is not just docs
+## Keep contracts aligned
 
-Tool descriptions are short because they travel with the AI SDK tool. Manifests can be more explicit. They help developers test routing decisions and keep tool boundaries stable as more surfaces are added.
+Three layers must agree:
 
-The manifest should be treated as product behavior. If the manifest says `show_metric` should not handle "show the last 10 orders", tests should catch regressions where the model selects the metric card anyway.
+1. The tool definition constrains valid input and output.
+2. The manifest guides model selection.
+3. The host integration validates data, renders the trusted component, and performs any callback or side effect.
 
-## Neighboring tools
+When one layer changes, update the other two and test routing with the installed tool set. Do not place secrets, raw endpoints, private collection paths, handler code, or authorization logic in a manifest.
 
-As the registry grows, neighboring tools matter more:
-
-- Use `show_metric` for one number.
-- Prefer `show_table` for a small row snapshot.
-- Prefer `show_data_browser` for browsing, search, filtering, or pagination.
-- Prefer `request_confirmation` before side effects.
-- Prefer `collect_input` when the user must provide structured input.
-
-The registry ships each manifest with its corresponding installable item.
-
-## Safety notes
-
-Manifests must not contain secrets, tokens, raw endpoints, private collection paths, handler functions, or authorization logic.
-
-Fable UI does not make the model a permission boundary. The model can request a UI or action flow, but the host application must still validate authentication, authorization, input, and side effects on the server.
-
-## Next steps
-
-Read [Agent Routing](/docs/architecture/agent-routing) for routing strategy and [Security](/docs/architecture/security) for the runtime boundary.
+Read [Tool Definitions](/docs/tool-definitions) for the runtime contract and [AI SDK Integration](/docs/ai-sdk-integration) for registration, rendering, callback, and rendered-data-loop recipes.

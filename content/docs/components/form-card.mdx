@@ -51,6 +51,36 @@ Use this for missing structured values, not for long multi-step workflows. The h
 
 The playground's mock credential mode can render a valid `collect_input` tool call without a live provider. Ask for a form, or ask for an invalid form payload to verify the component-level error state.
 
+## Add a submission callback
+
+The tool renderer maps `handlers.onFormSubmit` to `FormCard`:
+
+```tsx
+import type { ToolPartLike, ToolRenderHandlers } from "@/lib/fable-ui/core"
+import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
+import { collectInput } from "@/lib/fable-ui/tools/collect-input-tool"
+
+const registry = { collect_input: collectInput }
+
+export function FormToolPart({
+  part,
+  onFormSubmit,
+}: {
+  part: ToolPartLike
+  onFormSubmit?: ToolRenderHandlers["onFormSubmit"]
+}) {
+  return (
+    <FableToolPart
+      part={part}
+      registry={registry}
+      handlers={{ onFormSubmit }}
+    />
+  )
+}
+```
+
+The callback receives `Record<string, string | number | boolean>`. Keep conversation or request context in the host chat layer; validate the submitted values on the server before storage or any side effect.
+
 ## States
 
 The preview shows ready, loading, empty, error, and disabled states. Disabled form fields are useful when submitted values are being checked or when the host app needs to prevent duplicate submissions.
@@ -59,4 +89,8 @@ The preview shows ready, loading, empty, error, and disabled states. Disabled fo
 
 The manifest tells the model when to ask for a small structured input handoff. Read the [Manifests guide](/docs/manifests) for the shared format.
 
-<ComponentSource src="lib/fable-ui/manifests/collect-input.md" title="lib/fable-ui/manifests/collect-input.md" language="md" />
+<ComponentSource
+  src="lib/fable-ui/manifests/collect-input.md"
+  title="lib/fable-ui/manifests/collect-input.md"
+  language="md"
+/>

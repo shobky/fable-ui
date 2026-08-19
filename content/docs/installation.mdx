@@ -1,152 +1,136 @@
 ---
 title: Installation
-description: Install Fable UI registry items from the public GitHub registry.
+description: Install Fable UI items from the hosted public registry.
 ---
 
-Fable UI ships as a public shadcn registry. Install items into a Next.js + shadcn/ui app and own the copied source.
+Fable UI's canonical public install origin is `https://fable-ui.shobky.com/r/<item>.json`. Install into a Next.js app with shadcn/ui, inspect the proposed changes, and avoid `--overwrite` unless you have reviewed the exact collision.
+
+## Initialize shadcn/ui
+
+If the Next.js app does not yet have `components.json`, initialize the supported Rhea preset first:
+
+```bash
+pnpm dlx shadcn@latest init --preset rhea --base radix --yes
+```
+
+This generates `style: "radix-rhea"` in `components.json`. `radix-rhea` is the generated style name, not a valid value for the CLI's `--preset` option. On Windows, use `pnpm.cmd` if PowerShell blocks the pnpm shim.
 
 ## Quickstart
 
-Install the production quickstart chat. It creates `/fable-chat` and `/api/fable-chat`; it does not overwrite `/chat` or `/api/chat`.
+Install the minimal example chat:
 
 <RegistryInstallCommand itemName="quickstart" />
 
-If your app already has shadcn primitives such as `button`, `input`, `card`, `badge`, or `skeleton`, answer `no` when the CLI asks whether to overwrite them.
+It creates `/fable-chat` and `/api/fable-chat`; it does not replace `/chat` or `/api/chat`.
 
-### Troubleshooting: missing shadcn registry item
+### What the quickstart includes
 
-You may see an error like this during installation:
+The stock quickstart registers and renders exactly two tools:
 
-```txt
-The item at https://ui.shadcn.com/r/styles/new-york/message-scroller.json was not found.
-```
+- `show_metric`
+- `show_next_actions`
 
-This usually means your app's components.json is pointing the shadcn CLI to a style that does not include one of the newer chat primitives used by the Fable UI quickstart.
+It is intentionally not a complete integration. It does not register confirmation, form, chart, editor, email, code, DataBrowser, driver, or `get_rendered_data` behavior. Add those surfaces through the [AI SDK integration guide](/docs/ai-sdk-integration) after defining the host callbacks, data access, and authorization boundary.
 
-The quickstart depends on newer shadcn chat components such as message-scroller, so the CLI needs to resolve them from a compatible shadcn style.
-
-Check your components.json:
-
-```json
-{
-  "style": "radix-rhea"
-}
-```
-
-Avoid styles that cannot resolve the chat components in your current setup:
-
-```json
-{
-  "style": "new-york"
-}
-```
-
-After updating components.json, run the quickstart install command again.
-
-Fable UI does not control this error directly. The shadcn CLI reads your local components.json to decide which upstream style registry to use when resolving shadcn dependencies.
-
-### Troubleshooting: raw shadcn placeholders
-
-Some raw shadcn registry views can show implementation-only helpers such as `IconPlaceholder` or paths like `@/app/(create)/components/icon-placeholder`. Those should not appear in files installed by `shadcn add`; the add command transforms icons and paths for your app's `components.json`.
-
-Use the install preview path when checking what will land in your app:
-
-```bash
-pnpm dlx shadcn@latest add shobky/fable-ui/data-browser --dry-run --view
-```
-
-If installed files still contain `IconPlaceholder`, `IconPlaceHolder`, `@/app/(create)`, or `@/registry/`, upgrade to `shadcn@latest` and rerun the add command. Do not copy raw `shadcn view` output into your app.
-
-Fable registry items do not declare shadcn primitive implementation packages such as `radix-ui`, `@radix-ui/react-slot`, or Base UI packages. The shadcn CLI resolves `button`, `card`, `dialog`, `select`, and other UI dependencies from the host app's `components.json`, then installs the packages required by those resolved components. If your host app keeps existing primitives, make sure those local files already have their own imports backed by installed dependencies.
-
-Add the model configuration to `.env.local`:
+Add server-only provider settings to `.env.local`:
 
 ```env
 FABLE_AI_PROVIDER=google
 FABLE_AI_MODEL=gemini-3-flash-preview
-FABLE_AI_API_KEY=your-provider-api-key
+FABLE_AI_API_KEY=replace-with-the-real-secret
 ```
 
-Supported providers are `google`, `anthropic`, `openai`, `openrouter`, `mistral`, and `deepseek`. The quickstart uses one API key variable no matter which provider you choose. Restart your dev server, open `/fable-chat`, and start chatting.
+Do not write `FABLE_AI_API_KEY=$OPENAI_API_KEY`: `.env.local` does not expand shell variables. Put the actual intended value in `FABLE_AI_API_KEY`, keep it out of version control, and never print it.
 
-When the variables are missing, the chat responds with a setup message that lists the exact variables to add.
+## Full catalog
 
-## Individual Components
+All 13 public items use the hosted URL form below. `core` is directly installable, but surface items normally bring it in transitively.
 
-Install one surface at a time:
-
-<RegistryInstallCommand itemName="metric-card" />
-
-Other installable items:
-
-<RegistryInstallCommand itemName="suggested-actions" />
-
-<RegistryInstallCommand itemName="confirmation-card" />
-
-<RegistryInstallCommand itemName="form-card" />
-
-<RegistryInstallCommand itemName="data-browser" />
-
-## Optional Data Drivers
-
-`DataBrowser` works with static rows out of the box. Install a driver only when the host app wants registered resources backed by its own APIs or Firestore.
-
-<RegistryInstallCommand itemName="rest-driver" />
-
-<RegistryInstallCommand itemName="firebase-driver" />
-
-## What Gets Installed
-
-Fable items copy source into host-safe locations:
-
-```txt
-components/fable-ui/<item>/*
-lib/fable-ui/tools/*
-lib/fable-ui/manifests/*
-```
-
-In `registry.json`, `path` is the source file in this repository and `target` is where the file lands in the host app. Component and library files use shadcn-aware aliases such as `@components/...`, `@lib/...`, and `@hooks/...` so the CLI can map them through the host app's `components.json`. Next routes and pages target explicit `app/...` paths.
-
-Eval prompts live in this repository for product review and routing checks. They are not installed by default unless a future item explicitly marks them as runtime files.
-
-Quickstart routes install to:
-
-```txt
-app/fable-chat/page.tsx
-app/api/fable-chat/route.ts
-components/fable-ui/chat/*
-lib/fable-ui/quickstart/*
-```
-
-The quickstart includes `metric-card` and `suggested-actions` tool rendering. Driver routes, auth, API keys, databases, and permissions stay in the host app. Registry items install UI, tool contracts, manifests, and optional driver adapters.
-
-## Next Steps
-
-Add more Fable UI surfaces as the assistant needs them:
-
-<RegistryInstallCommand itemName="confirmation-card" />
-
-<RegistryInstallCommand itemName="form-card" />
-
-Configure a data source when tool calls need to browse host-owned data:
-
-<RegistryInstallCommand itemName="data-browser" />
-
-<RegistryInstallCommand itemName="rest-driver" />
-
-## Inspect First
-
-Use shadcn to inspect or dry-run before accepting changes:
+| Item                  | Category      | Tool or role                                                  |
+| --------------------- | ------------- | ------------------------------------------------------------- |
+| `core`                | Foundation    | Shared renderer, schemas, provider, and data-source registry. |
+| `metric-card`         | Surface       | `show_metric`                                                 |
+| `suggested-actions`   | Surface       | `show_next_actions`                                           |
+| `confirmation-card`   | Surface       | `request_confirmation`                                        |
+| `form-card`           | Surface       | `collect_input`                                               |
+| `charts`              | Block         | `show_chart`                                                  |
+| `text-editor-card`    | Surface       | `show_text_editor`                                            |
+| `email-composer-card` | Surface       | `show_email_composer`                                         |
+| `code-block-card`     | Surface       | `show_code_block`                                             |
+| `data-browser`        | Block         | `show_table`, `show_data_browser`, `get_rendered_data`        |
+| `rest-driver`         | Driver        | Host-owned REST adapter                                       |
+| `firebase-driver`     | Driver        | Host-owned Firestore adapter                                  |
+| `quickstart`          | Example block | Minimal two-tool chat                                         |
 
 ```bash
-pnpm dlx shadcn@latest view shobky/fable-ui/metric-card
-pnpm dlx shadcn@latest add shobky/fable-ui/metric-card --dry-run
+# Foundation
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/core.json
+
+# Surfaces and blocks
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/metric-card.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/suggested-actions.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/confirmation-card.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/form-card.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/charts.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/text-editor-card.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/email-composer-card.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/code-block-card.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/data-browser.json
+
+# Optional data drivers
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/rest-driver.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/firebase-driver.json
+
+# Minimal example chat
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/quickstart.json
 ```
 
-## Tags Later
+## Installed target categories
 
-Current docs use unpinned GitHub install commands. Once releases exist, pin a tag:
+The CLI maps `@components`, `@lib`, and `@hooks` targets through your host `components.json`. Confirm those aliases first. Every public item can install one or more of these categories:
+
+| Category                 | Typical installed target                                           |
+| ------------------------ | ------------------------------------------------------------------ |
+| Foundation               | `lib/fable-ui/core/*`                                              |
+| Surface and block source | `components/fable-ui/<item>/*`                                     |
+| Tool contract            | `lib/fable-ui/tools/*`                                             |
+| Model manifest           | `lib/fable-ui/manifests/*`                                         |
+| Shared hook              | `hooks/*`                                                          |
+| Driver adapter           | `lib/fable-ui/drivers/rest/*` or `lib/fable-ui/drivers/firebase/*` |
+| shadcn UI primitive      | Host `components/ui/*` files resolved from item dependencies       |
+| Quickstart route         | `app/fable-chat/page.tsx`, `app/api/fable-chat/route.ts`           |
+| Quickstart UI and config | `components/fable-ui/chat/*`, `lib/fable-ui/quickstart/*`          |
+| Quickstart notes         | `docs/fable-ui/quickstart.md`                                      |
+
+`app/...` route targets are explicit. The short aliases are intentionally host-resolved so an installed item follows the destination configured by that app.
+
+## Before and after install
+
+Preview a hosted item before accepting changes:
 
 ```bash
-pnpm dlx shadcn@latest add shobky/fable-ui/metric-card#v0.1.0
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/metric-card.json --dry-run
 ```
+
+After each item, run the host app's TypeScript check. This catches alias, existing primitive, and transitive dependency problems close to the installation that caused them.
+
+```bash
+pnpm exec tsc --noEmit
+```
+
+On Windows, if PowerShell blocks `pnpm.ps1`, use the executable shim instead:
+
+```powershell
+pnpm.cmd dlx shadcn@latest add https://fable-ui.shobky.com/r/metric-card.json
+pnpm.cmd exec tsc --noEmit
+```
+
+## Firebase and pnpm 11
+
+Installing `firebase-driver` can stop with `ERR_PNPM_IGNORED_BUILDS` for `@firebase/util` and `protobufjs`. Do not approve build scripts automatically. Review the scripts and deployment runtime, record an explicit `allowBuilds` decision, then retry. A compile-only mock can deny both scripts, but that is not proof that a production Firebase application should do the same. See [Firebase](/docs/data-sources/firebase) for the complete policy example.
+
+## Troubleshooting shadcn dependencies
+
+If a chat primitive cannot be resolved, confirm that your `components.json` uses a shadcn style compatible with the installed dependencies. The quickstart uses current chat primitives such as `message-scroller`, `message`, `bubble`, and `marker`.
+
+Use `shadcn add --dry-run` rather than copying raw registry view output. The CLI transforms item aliases and resolved primitive dependencies for your host app.

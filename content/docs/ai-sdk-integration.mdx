@@ -122,6 +122,57 @@ await sendMessage(
 
 The selected action is user intent, not an automatic side effect. The model receives the prompt, then decides whether to answer in text or call another registered Fable tool.
 
+## Add email, confirmation, or form
+
+The quickstart does not include these tools. Add each one to the server route with its AI SDK tool object:
+
+```ts
+import { collectInput } from "@/lib/fable-ui/tools/collect-input-tool"
+import { requestConfirmation } from "@/lib/fable-ui/tools/request-confirmation-tool"
+import { showEmailComposer } from "@/lib/fable-ui/tools/show-email-composer-tool"
+
+const tools = {
+  show_email_composer: showEmailComposer.tool,
+  request_confirmation: requestConfirmation.tool,
+  collect_input: collectInput.tool,
+}
+```
+
+Map the complete definitions in the client renderer. The email definition needs no host callback: it renders a user-controlled compose handoff and never sends mail.
+
+```tsx
+import type { ToolPartLike, ToolRenderHandlers } from "@/lib/fable-ui/core"
+import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
+import { collectInput } from "@/lib/fable-ui/tools/collect-input-tool"
+import { requestConfirmation } from "@/lib/fable-ui/tools/request-confirmation-tool"
+import { showEmailComposer } from "@/lib/fable-ui/tools/show-email-composer-tool"
+
+const registry = {
+  show_email_composer: showEmailComposer,
+  request_confirmation: requestConfirmation,
+  collect_input: collectInput,
+}
+
+type InteractiveHandlers = Pick<
+  ToolRenderHandlers,
+  "onConfirm" | "onCancel" | "onFormSubmit"
+>
+
+export function ChatToolPart({
+  part,
+  handlers,
+}: {
+  part: ToolPartLike
+  handlers: InteractiveHandlers
+}) {
+  return <FableToolPart part={part} registry={registry} handlers={handlers} />
+}
+```
+
+`onConfirm` and `onCancel` receive `{ id, label }`; `onFormSubmit` receives `Record<string, string | number | boolean>`. Define those callbacks in the host chat layer, where you can associate them with the current conversation and call a server endpoint. On the server, authenticate, authorize, validate the values again, and make side effects idempotent. A confirmation card is a user decision, not authorization; a form submission is untrusted input, not a completed action.
+
+If the host needs to observe a user-edited email draft, render `EmailComposerCard` directly with its `onDraftChange` prop. `FableToolPart` intentionally has no email-delivery callback.
+
 ## DataBrowser Tools
 
 `show_table` and `show_data_browser` are display tools. `show_data_browser` should receive a `resourceId`, not database details. Register resources in host code, then add the safe manifest to your system prompt:
@@ -146,15 +197,31 @@ The model can select a resource id from that manifest. It must not pass raw SQL,
 
 Register `get_rendered_data` alongside those display tools when the model may need to reason about a resource-backed browser after it renders. In AI SDK 7 it is a client tool: its definition has no `execute`, so the route registers the tool while `useChat` supplies the output.
 
+```ts
+import { getRenderedDataTool } from "@/lib/fable-ui/tools/get-rendered-data-tool"
+import { showDataBrowser } from "@/lib/fable-ui/tools/show-data-browser-tool"
+
+const tools = {
+  show_data_browser: showDataBrowser.tool,
+  get_rendered_data: getRenderedDataTool,
+}
+```
+
 `FableDataProvider` must wrap the shared chat and rendered DataBrowser tree. Register resources on the same registry passed to this provider; without it, no rendered snapshot is published and the client tool correctly returns `not-rendered`.
 
 ```tsx
 import type { ReactNode } from "react"
 
-import { FableDataProvider } from "@/lib/fable-ui/core"
+import { FableDataProvider, type DataSourceRegistry } from "@/lib/fable-ui/core"
 
-export function FableDataRoot({ children }: { children: ReactNode }) {
-  return <FableDataProvider>{children}</FableDataProvider>
+export function FableDataRoot({
+  children,
+  registry,
+}: {
+  children: ReactNode
+  registry: DataSourceRegistry
+}) {
+  return <FableDataProvider registry={registry}>{children}</FableDataProvider>
 }
 ```
 
