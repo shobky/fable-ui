@@ -1,11 +1,34 @@
 # RFC: Fable UI 2.0 — Agent-First, Composable, Data-Optional UI
 
-Status: **Proposed for Codex architectural review; implementation staged**
-Date: 2026-10-22
+Status: **Architecture reviewed; experimental additive vertical slice implemented**
+Date: 2026-10-30
 Base repository: https://github.com/shobky/fable-ui
 Owner: Fable UI
 Decision authority: repository maintainer
 Working branch: planning/fable-ui-2-agent-first
+
+## Review update — 2026-10-30
+
+The protocol and trust-boundary decision is recorded in
+[`fable-ui-v2-decisions.md`](./fable-ui-v2-decisions.md). The first v2 slice
+uses the framework-neutral `@json-render/core` stream compiler behind Fable's
+own strict catalog and React renderer; it does not use `@json-render/react`.
+OpenUI Lang remains a benchmarked alternative. The current benchmark uses
+deterministic fixtures, not model-generated output, so model quality and
+semantic selection remain unmeasured.
+
+The model-facing spec selects bounded display structure and explanatory copy.
+Metrics, entities, tables, chart series, filters, and media resolve through
+host-owned result or asset IDs. v2 begins with already-authorized host data;
+the new generic server resource API and reactive query mode are deferred.
+All v1 components, integrations, registry entries, drivers, and routes remain
+available without migration.
+
+This checkpoint is an experimental slice, not completion of PR-1 or PR-2.
+It adds a deterministic stream playground, strict Fable validation/rendering,
+host-owned result references, local filtering, and two additive registry
+items. Live model output, the wider layout/state catalog, general server
+resources, and stable-release gates remain open.
 
 ## 0. Executive decision
 
@@ -111,31 +134,45 @@ UI components accept conventional props and callbacks and may be consumed as Rea
 
 No static data component invokes fetch directly. Client-only interactions (sorting already-present rows) are allowed.
 
-### ADR-02: UI language isolated behind adapter — PROVISIONAL
+### ADR-02: UI language isolated behind adapter — ACCEPT WITH BOUNDARY
 
-Fable-specific presentation components and Zod props are stable. Protocol integration lives behind a thin adapter interface. The chosen parser must never leak into base component public props.
-
-    interface FableRendererAdapter {
-      render(response: string, streaming: boolean): React.ReactNode
-    }
-
-That interface is illustrative, not final API. Codex must test actual streaming APIs and decide on exact types.
+Fable presentation components and strict per-component schemas are stable.
+The selected stream parser is an optional integration module and must not
+leak into base component props. The stream adapter accepts bounded chunks,
+emits progressive validated snapshots from its current root, preserves
+element IDs, and exposes loading, invalid, canceled, and error states. A root
+swap keeps the previous valid snapshot until its replacement node arrives;
+unresolved child references fail on completion. The exact exported API is
+specified by the implementation and consumer smoke test; a boolean
+`streaming` flag alone is not an adequate stream contract.
 
 Catalog groupings: layout, typography, media, information, charts, forms/actions. Inject only relevant groups into each prompt to reduce output cost and confusion.
 
 ### ADR-03: Three data modes — ACCEPT
 
-**A. Inline/default.** Model tool result or model-authored spec contains display-ready validated rows/cards/chart values. UI renders from props. No Fable data provider.
+**A. Inline/default.** Ordinary React components render values supplied by
+the host in typed props. A model-facing v2 spec may contain bounded text and
+layout, but business values resolve from host-owned result IDs. UI rendering
+does not require a Fable data provider.
 
-**B. Server-sourced/model-visible.** A host-owned authorized server tool returns a validated business-data snapshot; model receives the same snapshot and produces a view referring to it or embedding a safe reduced projection. No client re-fetch of the same result. Snapshot should carry source, capturedAt, scope, and stable identity when useful.
+**B. Server-sourced/model-visible.** Deferred for a later consumer-backed
+design. If adopted, a host-owned authorized server tool returns a validated
+business-data result; the UI reuses that result through opaque IDs and must
+not re-fetch it. Any model-visible projection, provenance, and bounds remain
+host-owned policy decisions.
 
-**C. Optional reactive query.** The UI uses a host-exposed allowlisted query ID and validated query arguments. Browser hits an app API route or server action with auth and policy enforced server-side. Cache optionally supplied by host (TanStack Query/SWR/AI SDK transport), not an opaque mandatory Fable cache.
+**C. Optional reactive query.** Deferred beyond the first v2 slice. Any
+future implementation requires a host-exposed allowlisted query ID and
+validated arguments, server-enforced auth and policy, and host-provided
+caching. The browser must not supply a resource name, URL, SQL, or database
+path.
 
 For B/C: **model awareness and UI awareness are different**. A browser-only query result is not automatically model-visible. On user request, run the corresponding authorized server query or provide a size-bounded current-view snapshot intentionally.
 
-### ADR-04: Server resource contract — ACCEPT IN PRINCIPLE
+### ADR-04: Server resource contract — DEFER
 
-Prefer an application-owned handler over generic Firebase/REST abstractions:
+Do not introduce `defineFableResource` in the first v2 slice. The following
+signature remains a proposal only:
 
     const orders = defineFableResource({
       id: "orders.list",
@@ -148,7 +185,12 @@ Prefer an application-owned handler over generic Firebase/REST abstractions:
       }
     })
 
-This is a design sketch; Codex should settle library signatures once a real consumer use case passes. Context and DB are injected by the host server, never sent by the model. Dynamic resource name, raw URL, raw SQL or Firestore collection path from model are rejected.
+The v1 driver/resource integrations remain unchanged. A v2 server contract
+requires a real consumer use case, host authorization review, tenant-bound
+tests, and proof that the same authorized result is reused without an
+unnecessary second fetch. Context and DB would be injected by the host server,
+never sent by the model. Dynamic resource names, raw URLs, SQL, or Firestore
+paths from model output remain prohibited.
 
 Resource output passed to model and client must have a safe public projection, bounds, and an explicit consent/policy decision for sensitive data. Avoid serializing unbounded datasets into token context. For large datasets the model receives summaries, available aggregations, and controlled follow-up tools.
 
@@ -234,13 +276,19 @@ Define light/dark token values, 200/400% zoom behavior, reduced motion, RTL, and
 
 Charts: no arbitrary categorical line smoothing; zero baseline for bars; legible axes; right sized top/bottom margins; readable legend wrapping; accessible data summary; disabled/unavailable states; formatter for compact/currency/percent/large numbers; no invented data interpolation.
 
-Media: URLs sanitized and constrained, alt text mandatory except decorative, no automatic external image lookup from unknown model-provided query strings; parent controls hosts/sources. Grayscale/filter options must retain focus indicators and accessible contrast.
+Media: v2 model output selects only a host-curated `assetId`; arbitrary URLs
+and external image lookup are not accepted. The host owns each asset source,
+alternative text, and decorative status. Grayscale/filter options must retain
+focus indicators and accessible contrast.
 
 Use Playwright screenshots at 360, 768, 1280 widths and light/dark; approve representative composition snapshots rather than rely on subjective reviews.
 
 ## 6. P0 protocol spike — must happen before migration
 
-Build two isolated prototypes of the **same** constrained catalog and examples:
+The deterministic PR-0 baseline has compared two isolated protocol encodings
+for 12 authored fixtures. It does not satisfy the separate model-quality
+benchmark below. Build two isolated prototypes of the **same** constrained
+catalog and examples before making model-quality or adoption claims:
 
 - A: OpenUI Lang + its React renderer, without gateway dependency.
 - B: json-render + corresponding React renderer.
@@ -261,7 +309,12 @@ Test at least 3 full runs per case using GPT-6.1 Sol high reasoning and one low-
 - accessibility and testability;
 - licenses and maintenance risk.
 
-Decision gate: both must pass zero arbitrary code/URL execution, deterministic action allowlisting, no paid gateway dependency, stable rerender state, and consumer build. Prefer the simplest high-scoring solution. Document a signed ADR with measured results and a fallback path, not just vendor benchmark numbers.
+Decision gate: before a stable model-driven release, the candidate must pass
+zero arbitrary code/URL execution, deterministic action allowlisting, no paid
+gateway dependency, stable rerender state, and consumer build. The current
+deterministic benchmark selects json-render core only as an optional stream
+compiler; it does not select a model-facing protocol on model-quality
+evidence. Keep that claim provisional until repeated model runs are available.
 
 Initial target goals (tune after baseline): >=95% syntactically valid final renders in the 12-fixture benchmark; >=90% semantic usefulness; no unapproved mutations; all fixtures satisfy screen-reader checks; single small component install requires no Firebase/AI SDK.
 
@@ -272,21 +325,39 @@ Initial target goals (tune after baseline): >=95% syntactically valid final rend
 - Review actual source and correct outdated assumptions.
 - Implement isolated OpenUI and json-render examples behind unlinked playground routes.
 - Document protocol and license decision; do not modify v1 runtime.
-**Done:** benchmark report, ADR and screenshot/video of same 12 fixtures on both runtimes.
+**Done:** deterministic fixture benchmark and ADR recorded in
+`fable-ui-v2-decisions.md`. Same-runtime browser screenshots and model-quality
+runs remain separate verification items; do not imply either was completed
+by the parser benchmark.
 
 ### PR-1 — Foundation (M)
 - Scoped design tokens and typography opt-in.
 - Pure layout primitives (Stack, Inline, Grid, Container, Section, Surface, ScrollArea).
 - Zod props library and render/empty/loading states.
 - DOM/accessibility/reduced-motion tests.
-**Done:** standalone Next+shadcn consumer imports components without AI SDK/data provider, with passing typecheck.
+**Acceptance:** standalone Next+shadcn consumer imports components without AI SDK/data provider, with passing typecheck.
+
+**Current progress (not PR-1 complete):** the experimental `v2-primitives`
+and `v2-renderer` entries install in an isolated consumer without adding an
+AI SDK or provider. The complete v1+v2 registry consumer smoke is recorded in
+the implementation checkpoint. Scoped theme tokens, the full proposed layout
+set, richer empty/loading/error states, and broad keyboard/reduced-motion/RTL
+coverage remain open.
 
 ### PR-2 — First real composition (M)
 - Selected protocol adapter and catalog mapping.
-- Five polished components: RichContent, MetricCard, MediaImage, EntityCard, Chart.
-- One vertically integrated streamed response: heading + 3 entity cards + chart + filter.
+- Pure components for typography/rich text, MetricCard, MediaImage, EntityCard, and Chart.
+- One vertically integrated streamed response: heading + 3 entity references + chart + local filter.
+- Resolve values and filter options only through host-owned, typed IDs; no model-supplied business values or server actions.
 - Stable state/ID tests, model parsing tests and fallback to readable text.
-**Done:** model-driven demo works on 360–1440px widths and both themes, with stable inputs.
+**Acceptance:** a model-driven demo works on 360–1440px widths and both themes, with stable inputs.
+
+**Current progress (not PR-2 complete):** the local playground renders a
+deterministic eight-patch stream with readable text, metrics, host-owned
+entities, a chart, and a local filter. Cancellation keeps the last valid
+snapshot. Browser review covered 320, 390, 768, and 1280px in light and dark
+themes. This is not a live-model demo; model quality, image composition, and
+the full 360–1440px acceptance range remain unverified.
 
 ### PR-3 — Server data contract (M)
 - defineFableResource with input/output Zod and host context.

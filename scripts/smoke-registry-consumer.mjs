@@ -9,6 +9,7 @@ const tempRoot = fs.mkdtempSync(
   path.join(systemTempRoot, "fable-ui-registry-consumer-")
 )
 const consumerDir = path.join(tempRoot, "consumer")
+const v2OnlyConsumerDir = path.join(tempRoot, "consumer-v2-only")
 const builtRegistryDir = path.join(tempRoot, "built-registry")
 const servedRegistryDir = path.join(tempRoot, "served-registry")
 const registryServerReadyPath = path.join(tempRoot, "registry-server.json")
@@ -19,6 +20,22 @@ const rootComponentsPath = path.join(root, "components.json")
 const shadcnCli = path.join(root, "node_modules", "shadcn", "dist", "index.js")
 const registryServerCli = path.join(root, "scripts", "serve-registry.mjs")
 const productionRegistryBaseUrl = "https://fable-ui.shobky.com"
+const requiredV1RegistryItems = [
+  "core",
+  "metric-card",
+  "suggested-actions",
+  "confirmation-card",
+  "form-card",
+  "data-browser",
+  "charts",
+  "text-editor-card",
+  "email-composer-card",
+  "code-block-card",
+  "rest-driver",
+  "firebase-driver",
+  "quickstart",
+]
+const requiredV2RegistryItems = ["v2-primitives", "v2-renderer"]
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"))
@@ -34,7 +51,7 @@ function writeFile(filePath, contents) {
   fs.writeFileSync(filePath, contents)
 }
 
-function run(label, executable, args, cwd) {
+function run(label, executable, args, cwd, { shell = false } = {}) {
   try {
     return execFileSync(executable, args, {
       cwd,
@@ -44,6 +61,7 @@ function run(label, executable, args, cwd) {
         CI: "1",
         NEXT_TELEMETRY_DISABLED: "1",
       },
+      shell,
       stdio: ["ignore", "pipe", "pipe"],
     })
   } catch (error) {
@@ -90,9 +108,16 @@ function assertWorkspaceFilesUnchanged(snapshot) {
   }
 }
 
-function runIsolated(label, executable, args, cwd, workspaceSnapshot) {
+function runIsolated(
+  label,
+  executable,
+  args,
+  cwd,
+  workspaceSnapshot,
+  options = {}
+) {
   try {
-    return run(label, executable, args, cwd)
+    return run(label, executable, args, cwd, options)
   } finally {
     assertWorkspaceFilesUnchanged(workspaceSnapshot)
   }
@@ -232,7 +257,12 @@ function pickPackages(rootPackage, section, names) {
   return selected
 }
 
-function createConsumerConfig(rootPackage, rootComponents) {
+function createConsumerConfig(
+  rootPackage,
+  rootComponents,
+  targetDir = consumerDir,
+  { v2Only = false } = {}
+) {
   const requiredAliases = ["components", "utils", "ui", "lib", "hooks"]
 
   for (const alias of requiredAliases) {
@@ -247,7 +277,7 @@ function createConsumerConfig(rootPackage, rootComponents) {
     )
   }
 
-  writeJson(path.join(consumerDir, "package.json"), {
+  writeJson(path.join(targetDir, "package.json"), {
     name: "fable-ui-registry-consumer-smoke",
     version: "0.0.0",
     private: true,
@@ -256,16 +286,30 @@ function createConsumerConfig(rootPackage, rootComponents) {
       lint: "eslint .",
       typecheck: "tsc --noEmit",
     },
-    dependencies: pickPackages(rootPackage, "dependencies", [
-      "next",
-      "radix-ui",
-      "react",
-      "react-dom",
-      "clsx",
-      "tailwind-merge",
-      "tw-animate-css",
-      "shadcn",
-    ]),
+    dependencies: pickPackages(
+      rootPackage,
+      "dependencies",
+      v2Only
+        ? [
+            "next",
+            "react",
+            "react-dom",
+            "clsx",
+            "tailwind-merge",
+            "tw-animate-css",
+            "shadcn",
+          ]
+        : [
+            "next",
+            "radix-ui",
+            "react",
+            "react-dom",
+            "clsx",
+            "tailwind-merge",
+            "tw-animate-css",
+            "shadcn",
+          ]
+    ),
     devDependencies: pickPackages(rootPackage, "devDependencies", [
       "@tailwindcss/postcss",
       "@types/node",
@@ -278,11 +322,11 @@ function createConsumerConfig(rootPackage, rootComponents) {
     ]),
   })
   writeFile(
-    path.join(consumerDir, "pnpm-workspace.yaml"),
-    `packages:\n  - "."\n`
+    path.join(targetDir, "pnpm-workspace.yaml"),
+    `packages:\n  - "."\n\nallowBuilds:\n  sharp: true\n  unrs-resolver: true\n  msw: false\n  esbuild: true\n`
   )
 
-  writeJson(path.join(consumerDir, "components.json"), {
+  writeJson(path.join(targetDir, "components.json"), {
     $schema: rootComponents.$schema,
     style: rootComponents.style,
     rsc: rootComponents.rsc,
@@ -296,7 +340,7 @@ function createConsumerConfig(rootPackage, rootComponents) {
     registries: {},
   })
 
-  writeJson(path.join(consumerDir, "tsconfig.json"), {
+  writeJson(path.join(targetDir, "tsconfig.json"), {
     compilerOptions: {
       target: "ES2017",
       lib: ["dom", "dom.iterable", "esnext"],
@@ -320,44 +364,44 @@ function createConsumerConfig(rootPackage, rootComponents) {
   })
 
   writeFile(
-    path.join(consumerDir, "next-env.d.ts"),
+    path.join(targetDir, "next-env.d.ts"),
     `/// <reference types="next" />\n/// <reference types="next/image-types/global" />\n\n// This file is generated for the temporary consumer smoke app.\n`
   )
   writeFile(
-    path.join(consumerDir, "next.config.ts"),
+    path.join(targetDir, "next.config.ts"),
     `import type { NextConfig } from "next"\n\nconst nextConfig: NextConfig = {}\n\nexport default nextConfig\n`
   )
   writeFile(
-    path.join(consumerDir, "eslint.config.mjs"),
+    path.join(targetDir, "eslint.config.mjs"),
     `import { defineConfig, globalIgnores } from "eslint/config"\nimport nextVitals from "eslint-config-next/core-web-vitals"\n\nexport default defineConfig([\n  ...nextVitals,\n  globalIgnores([".next/**", "next-env.d.ts"]),\n])\n`
   )
   writeFile(
-    path.join(consumerDir, "postcss.config.mjs"),
+    path.join(targetDir, "postcss.config.mjs"),
     `const config = {\n  plugins: {\n    "@tailwindcss/postcss": {},\n  },\n}\n\nexport default config\n`
   )
   writeFile(
-    path.join(consumerDir, "app", "layout.tsx"),
+    path.join(targetDir, "app", "layout.tsx"),
     `import type { ReactNode } from "react"\n\nimport "./globals.css"\n\nexport default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {\n  return (\n    <html lang="ar" dir="rtl">\n      <body>{children}</body>\n    </html>\n  )\n}\n`
   )
   writeFile(
-    path.join(consumerDir, "app", "page.tsx"),
+    path.join(targetDir, "app", "page.tsx"),
     `import { RegistrySmoke } from "@/components/registry-smoke"\nimport * as chartTools from "@/lib/fable-ui/tools/show-chart-tool"\nimport * as codeBlockTools from "@/lib/fable-ui/tools/show-code-block-tool"\nimport * as confirmationTools from "@/lib/fable-ui/tools/request-confirmation-tool"\nimport * as dataBrowserTools from "@/lib/fable-ui/tools/show-data-browser-tool"\nimport * as emailComposerTools from "@/lib/fable-ui/tools/show-email-composer-tool"\nimport * as formTools from "@/lib/fable-ui/tools/collect-input-tool"\nimport * as metricTools from "@/lib/fable-ui/tools/show-metric-tool"\nimport * as renderedDataTools from "@/lib/fable-ui/tools/get-rendered-data-tool"\nimport * as suggestedActionTools from "@/lib/fable-ui/tools/show-next-actions-tool"\nimport * as tableTools from "@/lib/fable-ui/tools/show-table-tool"\nimport * as textEditorTools from "@/lib/fable-ui/tools/show-text-editor-tool"\n\nconst installedToolModules = [chartTools, codeBlockTools, confirmationTools, dataBrowserTools, emailComposerTools, formTools, metricTools, renderedDataTools, suggestedActionTools, tableTools, textEditorTools]\n\nexport default function Page() {\n  void installedToolModules\n  return <RegistrySmoke />\n}\n`
   )
   writeFile(
-    path.join(consumerDir, "components", "registry-smoke.tsx"),
+    path.join(targetDir, "components", "registry-smoke.tsx"),
     `"use client"\n\nimport { Charts } from "@/components/fable-ui/charts"\nimport { CodeBlockCard } from "@/components/fable-ui/code-block-card"\nimport { ConfirmationCard } from "@/components/fable-ui/confirmation-card"\nimport { DataBrowser } from "@/components/fable-ui/data-browser"\nimport { EmailComposerCard } from "@/components/fable-ui/email-composer-card"\nimport { FormCard } from "@/components/fable-ui/form-card"\nimport { MetricCard } from "@/components/fable-ui/metric-card"\nimport { SuggestedActions } from "@/components/fable-ui/suggested-actions"\nimport { TextEditorCard } from "@/components/fable-ui/text-editor-card"\nimport { DataSourceRegistry } from "@/lib/fable-ui/core"\nimport { createFirebaseDriver } from "@/lib/fable-ui/drivers/firebase"\nimport { createRestDriver } from "@/lib/fable-ui/drivers/rest"\n\nconst registry = new DataSourceRegistry()\nconst restDriver = createRestDriver()\n\nexport function RegistrySmoke() {\n  void registry\n  void restDriver\n  void createFirebaseDriver\n\n  return (\n    <main>\n      <MetricCard label="Revenue" value="$1" />\n      <SuggestedActions title="Next" actions={[]} onAction={() => undefined} />\n      <ConfirmationCard id="confirm" title="Confirm" description="Smoke" />\n      <FormCard title="Input" fields={[]} onSubmit={() => undefined} />\n      <DataBrowser title="Rows" entityLabel="row" columns={[{ key: "name", label: "Name" }]} rows={[{ id: "1", name: "Smoke" }]} />\n      <Charts title="Chart" data={[{ label: "Smoke", value: 1 }]} categoryKey="label" valueKey="value" defaultChartType="bar" />\n      <TextEditorCard label="ملاحظة" content="Smoke" />\n      <EmailComposerCard subject="Smoke" body="Email smoke" to={["smoke@example.com"]} />\n      <CodeBlockCard language="ts" code="const smoke = true\\n" />\n    </main>\n  )\n}\n`
   )
   writeFile(
-    path.join(consumerDir, "app", "globals.css"),
+    path.join(targetDir, "app", "globals.css"),
     `@import "tailwindcss";\n@import "tw-animate-css";\n@import "shadcn/tailwind.css";\n\n@custom-variant dark (&:is(.dark *));\n\n:root {\n  --radius: 0.625rem;\n  --background: oklch(1 0 0);\n  --foreground: oklch(0.145 0 0);\n  --card: oklch(1 0 0);\n  --card-foreground: oklch(0.145 0 0);\n  --popover: oklch(1 0 0);\n  --popover-foreground: oklch(0.145 0 0);\n  --primary: oklch(0.205 0 0);\n  --primary-foreground: oklch(0.985 0 0);\n  --secondary: oklch(0.97 0 0);\n  --secondary-foreground: oklch(0.205 0 0);\n  --muted: oklch(0.97 0 0);\n  --muted-foreground: oklch(0.556 0 0);\n  --accent: oklch(0.97 0 0);\n  --accent-foreground: oklch(0.205 0 0);\n  --destructive: oklch(0.577 0.245 27.325);\n  --border: oklch(0.922 0 0);\n  --input: oklch(0.922 0 0);\n  --ring: oklch(0.708 0 0);\n  --chart-1: oklch(0.646 0.222 41.116);\n  --chart-2: oklch(0.6 0.118 184.704);\n  --chart-3: oklch(0.398 0.07 227.392);\n  --chart-4: oklch(0.828 0.189 84.429);\n  --chart-5: oklch(0.769 0.188 70.08);\n  --sidebar: oklch(0.985 0 0);\n  --sidebar-foreground: oklch(0.145 0 0);\n  --sidebar-primary: oklch(0.205 0 0);\n  --sidebar-primary-foreground: oklch(0.985 0 0);\n  --sidebar-accent: oklch(0.97 0 0);\n  --sidebar-accent-foreground: oklch(0.205 0 0);\n  --sidebar-border: oklch(0.922 0 0);\n  --sidebar-ring: oklch(0.708 0 0);\n}\n\n.dark {\n  --background: oklch(0.145 0 0);\n  --foreground: oklch(0.985 0 0);\n  --card: oklch(0.205 0 0);\n  --card-foreground: oklch(0.985 0 0);\n  --popover: oklch(0.205 0 0);\n  --popover-foreground: oklch(0.985 0 0);\n  --primary: oklch(0.922 0 0);\n  --primary-foreground: oklch(0.205 0 0);\n  --secondary: oklch(0.269 0 0);\n  --secondary-foreground: oklch(0.985 0 0);\n  --muted: oklch(0.269 0 0);\n  --muted-foreground: oklch(0.708 0 0);\n  --accent: oklch(0.269 0 0);\n  --accent-foreground: oklch(0.985 0 0);\n  --destructive: oklch(0.704 0.191 22.216);\n  --border: oklch(1 0 0 / 10%);\n  --input: oklch(1 0 0 / 15%);\n  --ring: oklch(0.556 0 0);\n  --sidebar: oklch(0.205 0 0);\n  --sidebar-foreground: oklch(0.985 0 0);\n  --sidebar-primary: oklch(0.488 0.243 264.376);\n  --sidebar-primary-foreground: oklch(0.985 0 0);\n  --sidebar-accent: oklch(0.269 0 0);\n  --sidebar-accent-foreground: oklch(0.985 0 0);\n  --sidebar-border: oklch(1 0 0 / 10%);\n  --sidebar-ring: oklch(0.439 0 0);\n}\n\n@theme inline {\n  --color-background: var(--background);\n  --color-foreground: var(--foreground);\n  --color-card: var(--card);\n  --color-card-foreground: var(--card-foreground);\n  --color-popover: var(--popover);\n  --color-popover-foreground: var(--popover-foreground);\n  --color-primary: var(--primary);\n  --color-primary-foreground: var(--primary-foreground);\n  --color-secondary: var(--secondary);\n  --color-secondary-foreground: var(--secondary-foreground);\n  --color-muted: var(--muted);\n  --color-muted-foreground: var(--muted-foreground);\n  --color-accent: var(--accent);\n  --color-accent-foreground: var(--accent-foreground);\n  --color-destructive: var(--destructive);\n  --color-border: var(--border);\n  --color-input: var(--input);\n  --color-ring: var(--ring);\n  --color-chart-1: var(--chart-1);\n  --color-chart-2: var(--chart-2);\n  --color-chart-3: var(--chart-3);\n  --color-chart-4: var(--chart-4);\n  --color-chart-5: var(--chart-5);\n  --color-sidebar: var(--sidebar);\n  --color-sidebar-foreground: var(--sidebar-foreground);\n  --color-sidebar-primary: var(--sidebar-primary);\n  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);\n  --color-sidebar-accent: var(--sidebar-accent);\n  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);\n  --color-sidebar-border: var(--sidebar-border);\n  --color-sidebar-ring: var(--sidebar-ring);\n  --radius-sm: calc(var(--radius) - 4px);\n  --radius-md: calc(var(--radius) - 2px);\n  --radius-lg: var(--radius);\n  --radius-xl: calc(var(--radius) + 4px);\n}\n\n@layer base {\n  * {\n    @apply border-border outline-ring/50;\n  }\n\n  body {\n    @apply bg-background text-foreground;\n  }\n}\n`
   )
   writeFile(
-    path.join(consumerDir, "lib", "utils.ts"),
+    path.join(targetDir, "lib", "utils.ts"),
     `import { type ClassValue, clsx } from "clsx"\nimport { twMerge } from "tailwind-merge"\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs))\n}\n`
   )
 }
 
-function writeConsumerSmokeSurface(installedNames) {
+function writeConsumerSmokeSurface(installedNames, targetDir = consumerDir) {
   const installed = new Set(installedNames)
   const imports = []
   const surfaces = []
@@ -413,13 +457,23 @@ function writeConsumerSmokeSurface(installedNames) {
     'import { CodeBlockCard } from "@/components/fable-ui/code-block-card"',
     '<CodeBlockCard language="ts" code="const smoke = true\\n" />'
   )
+  addSurface(
+    "v2-primitives",
+    'import { FableGrid, FableMetricCard, FableRichText } from "@/components/fable-ui/v2"',
+    '<FableGrid columns={1}><FableMetricCard label="Bookings" value={12} format="number" /><FableRichText spans={[{ text: "Host-owned value", mark: "strong" }]} /></FableGrid>'
+  )
+  addSurface(
+    "v2-renderer",
+    'import { FableSpecRenderer } from "@/components/fable-ui/v2/renderer"',
+    '<FableSpecRenderer spec={{ root: "title", elements: { title: { type: "Text", props: { content: "Consumer", level: "heading" }, children: [] } } }} data={{}} />'
+  )
 
   writeFile(
-    path.join(consumerDir, "app", "page.tsx"),
+    path.join(targetDir, "app", "page.tsx"),
     `import { RegistrySmoke } from "@/components/registry-smoke"\n\nexport default function Page() {\n  return <RegistrySmoke />\n}\n`
   )
   writeFile(
-    path.join(consumerDir, "components", "registry-smoke.tsx"),
+    path.join(targetDir, "components", "registry-smoke.tsx"),
     `"use client"\n\n${imports.join("\n")}\n\nexport function RegistrySmoke() {\n  return <main>${surfaces.join("\n      ") || "Smoke"}</main>\n}\n`
   )
 }
@@ -718,6 +772,21 @@ function assertInstalledSourceContracts() {
       /export async function POST\(req: Request\)/,
       "quickstart server route",
     ],
+    [
+      "components/fable-ui/v2/catalog.ts",
+      /export const FableViewSpecSchema/,
+      "strict v2 view schema",
+    ],
+    [
+      "components/fable-ui/v2/stream.ts",
+      /createSpecStreamCompiler/,
+      "v2 bounded stream compiler",
+    ],
+    [
+      "components/fable-ui/v2/renderer.tsx",
+      /data-fable-ui="v2-renderer"/,
+      "v2 React renderer",
+    ],
   ]
 
   for (const [relativeFile, pattern, description] of required) {
@@ -759,6 +828,143 @@ function assertFirebasePnpmPolicy() {
   )
 }
 
+function assertProviderFreeV2Consumer() {
+  const packageJson = readJson(path.join(v2OnlyConsumerDir, "package.json"))
+  const dependencyNames = Object.keys(packageJson.dependencies ?? {})
+  const providerDependencies = dependencyNames.filter(
+    (name) =>
+      name === "ai" ||
+      name.startsWith("@ai-sdk/") ||
+      name === "firebase" ||
+      name.startsWith("firebase-") ||
+      name === "@openrouter/ai-sdk-provider"
+  )
+
+  if (providerDependencies.length > 0) {
+    throw new Error(
+      `The v2-only consumer unexpectedly depends on provider packages: ${providerDependencies.join(", ")}.`
+    )
+  }
+
+  if (packageJson.dependencies?.["@json-render/core"] !== "0.21.3") {
+    throw new Error(
+      `The v2-only consumer must pin @json-render/core@0.21.3; received ${packageJson.dependencies?.["@json-render/core"] ?? "no dependency"}.`
+    )
+  }
+}
+
+function runV2OnlyConsumerSmoke(
+  items,
+  rootPackage,
+  rootComponents,
+  registryBaseUrl,
+  workspaceSnapshot
+) {
+  createConsumerConfig(rootPackage, rootComponents, v2OnlyConsumerDir, {
+    v2Only: true,
+  })
+  writeConsumerSmokeSurface([], v2OnlyConsumerDir)
+  runIsolated(
+    "Install baseline dependencies for clean v2-only consumer",
+    "pnpm",
+    ["install"],
+    v2OnlyConsumerDir,
+    workspaceSnapshot,
+    { shell: process.platform === "win32" }
+  )
+
+  const v2InstallOrder = items.filter((item) =>
+    requiredV2RegistryItems.includes(item.name)
+  )
+  const installedNames = []
+
+  for (const item of v2InstallOrder) {
+    const itemUrl = `${registryBaseUrl}/r/${item.name}.json`
+
+    console.log(
+      `Installing ${item.name} into a clean v2-only consumer from ${itemUrl}...`
+    )
+    runIsolated(
+      `Install ${item.name} into clean v2-only consumer`,
+      process.execPath,
+      [shadcnCli, "add", itemUrl, "--yes"],
+      v2OnlyConsumerDir,
+      workspaceSnapshot
+    )
+    installedNames.push(item.name)
+    writeConsumerSmokeSurface(installedNames, v2OnlyConsumerDir)
+
+    const consumerTscCli = path.join(
+      v2OnlyConsumerDir,
+      "node_modules",
+      "typescript",
+      "bin",
+      "tsc"
+    )
+
+    if (!fs.existsSync(consumerTscCli)) {
+      throw new Error(
+        `The v2-only install is missing TypeScript after ${item.name}: ${consumerTscCli}`
+      )
+    }
+    runIsolated(
+      `Type-check v2-only consumer after ${item.name}`,
+      process.execPath,
+      [consumerTscCli, "--noEmit", "--pretty", "false"],
+      v2OnlyConsumerDir,
+      workspaceSnapshot
+    )
+  }
+
+  assertProviderFreeV2Consumer()
+
+  const consumerEslintCli = path.join(
+    v2OnlyConsumerDir,
+    "node_modules",
+    "eslint",
+    "bin",
+    "eslint.js"
+  )
+  const consumerNextCli = path.join(
+    v2OnlyConsumerDir,
+    "node_modules",
+    "next",
+    "dist",
+    "bin",
+    "next"
+  )
+
+  for (const executable of [consumerEslintCli, consumerNextCli]) {
+    if (!fs.existsSync(executable)) {
+      throw new Error(
+        `The v2-only consumer is missing required executable: ${executable}`
+      )
+    }
+  }
+  runIsolated(
+    "Lint clean v2-only consumer sources",
+    process.execPath,
+    [consumerEslintCli, "."],
+    v2OnlyConsumerDir,
+    workspaceSnapshot
+  )
+  runIsolated(
+    "Build clean v2-only consumer",
+    process.execPath,
+    [
+      consumerNextCli,
+      "build",
+      ...(process.platform === "win32" ? ["--webpack"] : []),
+    ],
+    v2OnlyConsumerDir,
+    workspaceSnapshot
+  )
+
+  console.log(
+    "Clean v2-only consumer smoke passed without v1 AI SDK or Firebase dependencies."
+  )
+}
+
 async function main() {
   for (const filePath of [
     registryPath,
@@ -776,8 +982,14 @@ async function main() {
   const rootRegistry = readJson(registryPath)
   const items = rootRegistry.items ?? []
 
-  if (items.length !== 13) {
-    throw new Error(`Expected 13 registry items, found ${items.length}.`)
+  const currentNames = new Set(items.map((item) => item.name))
+  const missingV1Items = requiredV1RegistryItems.filter((name) => !currentNames.has(name))
+  const missingV2Items = requiredV2RegistryItems.filter((name) => !currentNames.has(name))
+  if (missingV1Items.length > 0) {
+    throw new Error(`Registry removed v1 items: ${missingV1Items.join(", ")}.`)
+  }
+  if (missingV2Items.length > 0) {
+    throw new Error(`Registry is missing experimental v2 items: ${missingV2Items.join(", ")}.`)
   }
 
   if (new Set(items.map((item) => item.name)).size !== items.length) {
@@ -809,6 +1021,14 @@ async function main() {
     fs.mkdirSync(path.join(servedRegistryDir, "r"), { recursive: true })
     registryServer = startLoopbackRegistryServer()
     makeServedRegistryCopies(installOrder, registryServer.baseUrl)
+
+    runV2OnlyConsumerSmoke(
+      installOrder,
+      rootPackage,
+      rootComponents,
+      registryServer.baseUrl,
+      workspaceSnapshot
+    )
 
     const installedNames = []
 

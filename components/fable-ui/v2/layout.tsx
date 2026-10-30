@@ -23,6 +23,8 @@ const gaps: Record<Space, string> = {
 export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   gap?: Space
   align?: "start" | "center" | "end" | "stretch"
+  direction?: "vertical" | "horizontal"
+  wrap?: boolean
 }
 
 const aligns = {
@@ -32,8 +34,28 @@ const aligns = {
   stretch: "items-stretch",
 }
 
-export function Stack({ gap = 4, align = "stretch", className, ...props }: StackProps) {
-  return <div data-fable-ui="v2-stack" className={cn("flex min-w-0 flex-col", gaps[gap], aligns[align], className)} {...props} />
+export function Stack({
+  gap = 4,
+  align = "stretch",
+  direction = "vertical",
+  wrap = true,
+  className,
+  ...props
+}: StackProps) {
+  return (
+    <div
+      data-fable-ui="v2-stack"
+      className={cn(
+        "flex min-w-0",
+        direction === "vertical" ? "flex-col" : "flex-row",
+        direction === "horizontal" && wrap && "flex-wrap",
+        gaps[gap],
+        aligns[align],
+        className
+      )}
+      {...props}
+    />
+  )
 }
 
 export interface InlineProps extends React.HTMLAttributes<HTMLDivElement> {

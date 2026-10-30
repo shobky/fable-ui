@@ -1,0 +1,133 @@
+---
+title: Fable UI v2 (Experimental)
+description: Provider-free React components and a strict optional renderer for host-owned results.
+---
+
+import { Callout } from "fumadocs-ui/components/callout"
+
+Fable UI v2 is an additive, experimental component set for Next.js apps that need readable agent responses, composable layouts, compact data views, and local interactions. Its components work as ordinary React components without an AI SDK, a Fable data provider, or a Fable server service.
+
+<Callout type="warn">
+  The preview uses a deterministic sample. It does not call a model or a data provider. Model transport, server resources, and privileged actions are not part of this release.
+</Callout>
+
+<Callout type="info">
+  These registry entries are part of this draft branch. Their canonical install URLs become available after the branch's registry files are deployed; this draft has not published them to the production registry.
+</Callout>
+
+## Install
+
+Install the pure component set:
+
+```bash
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/v2-primitives.json
+```
+
+Add the optional strict streamed renderer when you need a declarative model-facing view:
+
+```bash
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/v2-renderer.json
+```
+
+The renderer installs `v2-primitives` and the pinned framework-neutral `@json-render/core` stream compiler. Neither v2 item changes the 13 v1 registry entries or their behavior.
+
+## Compose ordinary components
+
+```tsx
+import {
+  FableGrid,
+  FableMetricCard,
+  FableRichText,
+} from "@/components/fable-ui/v2"
+
+export function BookingSummary() {
+  return (
+    <FableGrid columns={2}>
+      <FableMetricCard
+        label="Direct bookings"
+        value={2194}
+        format="number"
+        unit="bookings"
+      />
+      <FableRichText
+        spans={[
+          { text: "Values come from the host dataset.", mark: "strong" },
+          { text: " Fable renders them as ordinary text and React components.", mark: "plain" },
+        ]}
+      />
+    </FableGrid>
+  )
+}
+```
+
+The available primitives are `Stack`, `Inline`, `FableGrid`, `Surface`, `Section`, and `FableText`. The data components include `FableMetricCard`, `FableEntityCard`, and `FableBarChart`; `FableFilterBar` is a native, labeled select. `FableMediaImage` accepts a local asset path and rejects remote and protocol-relative URLs. In the renderer, the host asset catalog also owns alt text and decorative-image status.
+
+## Render a bounded view
+
+`FableSpecRenderer` accepts a small `root`/`elements` tree. The model selects composition and result IDs. Metric/chart/entity/filter labels, values, filter options, image alt text, and decorative status come from the host data and asset maps, so a model cannot relabel a booking metric as profit:
+
+```tsx
+import { FableSpecRenderer } from "@/components/fable-ui/v2/renderer"
+
+const spec = {
+  root: "answer",
+  elements: {
+    answer: {
+      type: "Metric",
+      props: { resultId: "bookings-30d" },
+      children: [],
+    },
+  },
+}
+
+const data = {
+  "bookings-30d": {
+    kind: "metric",
+    label: "Direct bookings",
+    value: 2194,
+    format: "number",
+    unit: "bookings",
+  },
+}
+
+export function Answer() {
+  return <FableSpecRenderer spec={spec} data={data} />
+}
+```
+
+The spec and each component's props are checked against strict Zod schemas. Result IDs must resolve to a host-provided value of the expected kind. Unknown IDs render an unavailable state and never trigger a fetch.
+
+The host asset catalog uses local paths and carries both alternative text and decorative-image status. Asset IDs from the spec cannot supply or override that accessibility metadata.
+
+## Stream JSONL patches
+
+The optional adapter checks each JSONL patch before it reaches the compiler. It accepts only `add` or `replace` for `/root` and complete `/elements/<id>` entries, enforces byte, element, depth, and text bounds, and retains the last valid snapshot when an update fails.
+
+```tsx
+import { createFableSpecStream } from "@/components/fable-ui/v2/stream"
+
+const stream = createFableSpecStream()
+
+for await (const chunk of responseChunks) {
+  const update = stream.push(chunk)
+  if (update.spec) {
+    // Keep the same FableSpecRenderer mounted as `spec` changes so local state survives.
+    setSpec(update.spec)
+  }
+}
+
+const final = stream.finish()
+if (final.spec) setSpec(final.spec)
+```
+
+On `AbortSignal` or request replacement, call `stream.cancel()`. It closes the parser and returns the last validated snapshot so the host can keep showing it.
+
+Keep `FableSpecRenderer` mounted while applying patches. For a control whose element ID and parent remain stable, local state and focus stay in place across prop updates and Stack direction changes. Reparenting or replacing the root can remount DOM; the filter value is keyed by its host filter ID, but focus across a structural move is not guaranteed.
+
+Fable does not interpret arbitrary JSX, HTML, CSS, URLs, callback names, server actions, or database queries from a spec. The renderer has no action path. Local filters only work over the already-provided result data.
+
+## Preview and current boundary
+
+Open the [v2 playground](/v2/playground) to see a deterministic streamed composition with rich text, a host-owned metric, three filterable entities, and a chart. The page labels the fixture clearly and makes no provider request.
+
+This slice does not include a model transport, a generic Fable server-resource API, cross-request data caching, external links, or privileged actions. All v1 integrations remain available; see [Installation](/docs/installation) for the complete catalog.

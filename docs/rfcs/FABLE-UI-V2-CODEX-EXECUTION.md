@@ -5,6 +5,17 @@ You are acting as principal engineer, design systems architect, and AI UX resear
 Branch: \`planning/fable-ui-2-agent-first\`
 Start with: \`docs/rfcs/2026-10-fable-ui-v2.md\`
 Date of brief: 2026-10-22
+Review update: 2026-10-30
+
+The accepted decision record is `docs/rfcs/fable-ui-v2-decisions.md`. The
+first implementation is additive: host-owned typed result IDs, strict Fable
+validation and rendering, and an optional json-render core stream compiler.
+OpenUI Lang remains a measured alternative. A deterministic 12-fixture
+protocol baseline is recorded; it does not claim GPT-generated quality,
+browser paint, state persistence, accessibility, bundle size, or consumer
+compatibility. The first playground uses a visibly labeled deterministic
+stream fixture and requires no model key. Server resources, model transport,
+and privileged actions remain outside this slice.
 
 ## Assignment and autonomy
 
@@ -72,28 +83,28 @@ Then amend the RFC where necessary and proceed. If a decision is still uncertain
 
 ### Step 4: Implement minimal protocol benchmark
 
-Implement two isolated adapters or examples for OpenUI Lang vs json-render using the SAME 12 fixtures described in the RFC. Do not bake runtime decisions into base React props. Keep this experiment out of the production quickstart and hosted registry until proven.
+Run the same 12 authored fixtures through OpenUI Lang and json-render in an
+isolated benchmark. Keep protocol dependencies out of the pure component
+entry point. The selected v2 stream path uses `@json-render/core` only as an
+optional compiler behind Fable-owned strict validation and rendering; do not
+ship either third-party React renderer in the base component surface.
 
-Measure with the same prompts and catalog:
-- parse success and invalid payload fallback;
-- streamed incremental render and stable control state;
-- total prompt+output token size and first useful paint;
-- node limits, depth limits, URL handling and action denylist;
-- bundle and install dependencies;
-- license and gateway independence;
-- keyboard, a11y and theme integration.
+For deterministic fixture runs, record encoded bytes, structural/strict
+validation, parser/patch behavior, and known invalid payloads. Do not label
+bytes as model tokens. Browser paint, stable control state, package bundle,
+keyboard/a11y, and real model quality require separate checks and are not
+proven by the protocol script.
 
 If live GPT-6.1 Sol API credentials are unavailable, test deterministic parser/stream fixtures and clearly mark model quality benchmark as unverified. Never fabricate token or latency numbers. Record experimental results and select a protocol only with evidence.
 
 ### Step 5: First useful vertical slice
 
-Once the protocol choice is documented, add a set of **pure** design primitives under an experimental \`v2\` namespace:
+Once the protocol boundary is documented, add a set of **pure** design primitives under an experimental `v2` namespace:
 - Stack, Inline, Grid, Surface, Section and Typography;
 - scoped Fable theme CSS (preserve host theme);
 - polished metric component and at least one image/entity component;
-- a demonstrator with title, three entity cards, chart and local filter (chart can reuse existing v1 implementation initially if v2 chart isn't ready);
-- static deterministic demo without model key;
-- optional model-driven streaming demo gated behind user-provided API key/host env without leaking it.
+- a demonstrator with title, three host-owned entity references, chart and local filter, rendered from the Fable spec;
+- an explicitly labeled deterministic stream fixture without a model key.
 
 Give each component an ordinary React public API and a Zod model-facing schema created from the same semantics. Do not couple the UI to model transport. Do not register experimental components as stable shadcn items until registry validations pass.
 
@@ -102,11 +113,13 @@ Give each component an ordinary React public API and a Zod model-facing schema c
 Add automated tests:
 - React render without AI SDK/data provider;
 - empty/loading/error states;
-- invalid/malicious URLs, oversized/deeply nested render tree;
+- unknown components/props/IDs, malformed patches, oversized/deeply nested render tree;
 - focus/value persistence when partial UI streams;
 - keyboard traversal, reduced-motion, light/dark and basic RTL;
-- data flow: exactly one authorized fetch for model + UI when mode B;
-- tenant boundaries and denied actions for optional resource proof.
+- host data-kind checks fail closed; no renderer-side fetch or action path.
+
+Keep v1 regression tests and verify all 13 current registry items remain
+available when the experimental v2 registry entry is added.
 
 Run all scripts again. If some can't run in this environment, say so precisely. Prepare a clean-consumer smoke test that dry-runs a minimal shadcn registry install and exercises a real import.
 
@@ -132,6 +145,28 @@ Produce:
 6. Open security or model-integration risks.
 
 Commit changes on a feature branch and open a draft PR; **do not merge**. Stop only for genuinely external blockers (permissions, credentials or upstream limitations). Otherwise make progress on the highest-confidence slice.
+
+## Execution result — 2026-10-30
+
+- Latest `planning/fable-ui-2-agent-first` was fetched and fast-forward pulled
+  before implementation. Work stayed on this non-main branch.
+- Protocol decision: use `@json-render/core` only as an optional JSONL patch
+  compiler behind Fable's strict schema, fixed React renderer, and
+  host-owned result/asset IDs. OpenUI Lang remains an evaluated alternative;
+  no model-quality conclusion is claimed from deterministic fixtures.
+- Added an experimental `/v2/playground` composition with text, rich text,
+  host-backed metrics/entities/chart, local filtering, validated stream
+  replay, and cancellation that preserves the last valid snapshot. The demo
+  uses a clearly labeled deterministic fixture and makes no model/provider
+  request.
+- Kept all 13 v1 registry entries and added `v2-primitives` and
+  `v2-renderer`. Consumer, registry, build, and test outcomes are recorded
+  in the pull request and this decision record; no stable release or merge
+  is part of this work.
+- The local preview is `http://127.0.0.1:3002/v2/playground`. It was reviewed
+  at 320, 390, 768, and 1280px in light and dark modes, with filter and
+  cancellation interactions. Final review notes and remaining limitations
+  are in the pull request.
 
 ## Evaluation rubric
 
