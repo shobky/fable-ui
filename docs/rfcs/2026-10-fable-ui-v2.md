@@ -116,6 +116,52 @@ https://github.com/vercel-labs/json-render
 **A2UI** — cross-platform declarative protocol and catalogs. Useful later for portability; not needed for initial React/shadcn-first delivery:
 https://a2ui.org/
 
+### Current interoperability research — 2026-10-30
+
+- OpenUI's current `@openuidev/react-lang` release is 1.0.2 (MIT), requires
+  React 19 or newer, and supports Zod 3.25 or 4. Its telemetry defaults to
+  install-time collection while runtime collection is off; consumers can opt
+  out. This makes it a viable optional integration, but it still brings a
+  separate language/runtime surface and should not own Fable's host data
+  contract.
+- The installed `@json-render/core` is 0.21.3 (Apache-2.0, Zod 4). It adds
+  `experimental_composeSpec` candidate-based composition and
+  `experimental_createEvaluator`; these APIs are marked experimental, and
+  the convenience evaluator uses Vercel AI Gateway by default. The evaluator
+  can be supplied by the host, but the current slice does not exercise model
+  composition or infer factual values. Keep the API out of the stable Fable
+  contract until prompt quality and host-result boundaries are measured.
+- The separate `@json-render/react` renderer declares a React `^19.2.3`
+  peer range. The current React 19.2.4 consumer matches it, but older Next.js
+  applications may not; keeping Fable on the framework-neutral core avoids
+  taking that renderer peer range into its base surface.
+- A2UI's current production protocol is 0.9.1, with 1.0 still a candidate.
+  Its versioned, cross-platform catalogs are a future portability option; the
+  added catalog negotiation is not needed for a React/Next-only vertical
+  slice.
+- Vercel AI SDK 7 exposes typed tool results and custom UI data parts in its
+  message stream. A later adapter can carry validated Fable specs through
+  those host-owned messages while keeping AI SDK optional in the component
+  entry point.
+- GPT-6 Intelligent UI's public announcement describes native streamable
+  components and training for clarity, usefulness, and completeness. The
+  public GPT-6.1 Sol model documentation does not describe an embeddable
+  Intelligent UI runtime; that is an inference from the published API docs.
+  Fable's differentiator should be copy-and-own Next.js primitives and
+  host-owned evidence, with a model-quality benchmark before any claim that
+  its generated layouts surpass GPT-6 Intelligent UI.
+
+The live model-quality gate in the execution handoff calls for 12 fixtures,
+three runs, and two models (72 prompts). The local evaluation configuration
+is capped at 25 prompts, so this implementation records model-quality results
+as unverified and does not exceed that cap. The deterministic protocol
+benchmark compares encoding, validation, and stream behavior only.
+
+The consumer smoke currently proves Next.js 16.2.6, React 19.2.4, and the
+installed Tailwind stack. “Works in any Next.js app” remains a product goal,
+not a verified compatibility claim; document the tested support floor and
+smoke-test older supported Next/React combinations before making that claim.
+
 Do not uncritically use vendor performance claims. OpenUI's published benchmark uses serializations derived from a shared format and some latency is estimated from token throughput; independently test real Fable prompts/providers:
 https://www.openui.com/docs/openui-lang/benchmarks
 

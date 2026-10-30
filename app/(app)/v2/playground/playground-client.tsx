@@ -152,10 +152,10 @@ export function PlaygroundClient() {
               <FableSpecRenderer spec={spec} data={demoData} />
             ) : (
               <div className="space-y-4" aria-hidden="true">
-                <div className="h-7 w-4/5 animate-pulse rounded-lg bg-muted sm:w-2/3" />
-                <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                <div className="h-4 w-4/5 animate-pulse rounded bg-muted" />
-                <div className="h-28 animate-pulse rounded-2xl bg-muted" />
+                <div className="h-7 w-4/5 animate-pulse motion-reduce:animate-none rounded-lg bg-muted sm:w-2/3" />
+                <div className="h-4 w-full animate-pulse motion-reduce:animate-none rounded bg-muted" />
+                <div className="h-4 w-4/5 animate-pulse motion-reduce:animate-none rounded bg-muted" />
+                <div className="h-28 animate-pulse motion-reduce:animate-none rounded-2xl bg-muted" />
               </div>
             )}
           </div>

@@ -148,8 +148,8 @@ Commit changes on a feature branch and open a draft PR; **do not merge**. Stop o
 
 ## Execution result — 2026-10-30
 
-- Latest `planning/fable-ui-2-agent-first` was fetched and fast-forward pulled
-  before implementation. Work stayed on this non-main branch.
+- Latest `planning/fable-ui-2-agent-first` was fetched and verified against
+  the open draft PR before implementation. Work stayed on this non-main branch.
 - Protocol decision: use `@json-render/core` only as an optional JSONL patch
   compiler behind Fable's strict schema, fixed React renderer, and
   host-owned result/asset IDs. OpenUI Lang remains an evaluated alternative;
@@ -167,6 +167,13 @@ Commit changes on a feature branch and open a draft PR; **do not merge**. Stop o
   at 320, 390, 768, and 1280px in light and dark modes, with filter and
   cancellation interactions. Final review notes and remaining limitations
   are in the pull request.
+- A GPT-6.1 Sol high-reasoning architecture pass challenged the slice and
+  identified the missing reduced-motion behavior on skeletons; the classes
+  and focused regression test are now part of the final verification.
+- Current OpenUI Lang 1.0.2, json-render core 0.21.3, A2UI 0.9.1, and AI SDK 7
+  integration paths are documented in the RFC and decision record. The full
+  live model-quality design requires 72 prompts, while the local cap is 25;
+  no live comparative model-quality claim is made.
 
 ## Evaluation rubric
 

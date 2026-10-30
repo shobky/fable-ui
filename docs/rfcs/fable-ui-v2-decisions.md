@@ -281,22 +281,47 @@ strategy to keep a protocol package.
 ## Sources reviewed
 
 - OpenAI, [GPT-6 for Everyone](https://openai.com/index/gpt-6-for-everyone/) and [GPT-6.1 Sol API model docs](https://developers.openai.com/api/docs/models/gpt-6.1-sol).
-- OpenUI Lang [overview](https://www.openui.com/docs/openui-lang/overview), [renderer](https://www.openui.com/docs/openui-lang/renderer), [telemetry](https://www.openui.com/docs/openui-lang/telemetry), and [React API](https://www.openui.com/docs/api-reference/react-lang).
-- json-render [streaming](https://json-render.dev/docs/streaming), [catalog](https://json-render.dev/docs/catalog), [specs](https://json-render.dev/docs/specs), and [`@json-render/react` package metadata](https://www.npmjs.com/package/%40json-render/react).
+- OpenUI Lang [overview](https://www.openui.com/docs/openui-lang/overview), [renderer](https://www.openui.com/docs/openui-lang/renderer), [telemetry](https://www.openui.com/docs/openui-lang/telemetry), [React API](https://www.openui.com/docs/api-reference/react-lang), and [`@openuidev/react-lang` 1.0.2 package metadata](https://www.npmjs.com/package/%40openuidev/react-lang).
+- json-render [streaming](https://json-render.dev/docs/streaming), [catalog](https://json-render.dev/docs/catalog), [specs](https://json-render.dev/docs/specs), [core README and experimental composition APIs](https://github.com/vercel-labs/json-render/blob/main/packages/core/README.md), and [`@json-render/react` package metadata](https://www.npmjs.com/package/%40json-render/react).
+- A2UI [v0.9.1 protocol](https://a2ui.org/specification/v0.9.1-a2ui/), [overview](https://a2ui.org/concepts/overview/), and [catalogs](https://a2ui.org/concepts/catalogs/).
+- Vercel AI SDK 7 [chatbot tool usage](https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-tool-usage) and [streaming custom data](https://ai-sdk.dev/docs/ai-sdk-ui/streaming-data).
 - Next.js 16.2.6 installed local docs: `node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md` and `node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-client.md`.
+
+## Recommended next four PRs
+
+These are follow-up boundaries after the experimental vertical slice in draft
+PR #6. Owners are roles because no additional team assignment has been made.
+
+| PR | Owner | Dependency | Acceptance criteria |
+| --- | --- | --- | --- |
+| Complete typesetting and rich content | Fable UI maintainer, with accessibility review | Draft PR #6 accepted; keep all current v1 exports | Add bounded block-level headings, paragraphs, lists, quotes, links, and code; never accept raw HTML or unrestricted URLs; preserve host typography tokens; verify keyboard, RTL, reduced motion, and narrow layouts. |
+| Add an optional AI SDK 7 stream adapter | Fable UI maintainer, with one Next.js consumer maintainer | Typesetting contract and host result map from the prior PR | Carry versioned Fable specs through typed UI message data; test abort, malformed chunks, replay, and stable IDs; keep AI SDK out of base exports; never let model output supply factual values or invoke actions. |
+| Run comparative live model evaluation | Fable UI maintainer | Adapter contract; explicit evaluation budget of at least 72 prompts | Run the same 12 tasks through OpenUI Lang and json-render, three times each with GPT-6.1 Sol and a low-cost model; report schema validity, task usefulness, retries, latency, and tokens/cost; keep deterministic protocol measurements separate. |
+| Prove a host-authorized Next.js integration | Fable UI maintainer and the selected consumer-app maintainer | Optional adapter and evaluation contract | Build one real consumer example that reuses a server-authorized result through opaque IDs; verify auth/tenant boundaries, no duplicate fetch, no cross-request cache, and v1 regression; document exact supported Next/React versions. |
+
+The 72-prompt evaluation is intentionally not included in draft PR #6: the
+local evaluation cap is 25 prompts. Do not raise it silently or publish a
+quality conclusion from a smaller exploratory sample.
 
 ## Final implementation verification — 2026-10-30
 
 | Check | Result |
 | --- | --- |
-| `pnpm test` | Passed: 19 files, 89 tests. |
+| `pnpm exec vitest run --pool=threads --maxWorkers=2 --reporter=dot` | Passed: 20 files, 90 tests. The default `pnpm test` run hit Windows sandbox `EPERM` while Vitest renamed parallel worker temp files and collected no tests; the two-worker run passed. |
 | `pnpm typecheck` | Passed. |
 | `pnpm lint` | Passed with 0 errors and 39 warnings; the baseline had 40 warnings, and no v2 source file added a warning. |
 | `pnpm registry:validate` | Passed: all 15 registry items validated. |
 | `pnpm registry:check` | Passed: 82 published source files linted, `quickstart` and `data-browser` install smoke checks passed, then root typecheck passed. |
 | `pnpm registry:consumer-smoke` | Passed: all 15 items installed into a clean combined consumer and type-checked after each item; final consumer lint and production build passed. A separate clean v2-only Next consumer installed both v2 entries, type-checked after each, linted, production-built, and verified no direct AI SDK, OpenRouter, or Firebase dependency. `@json-render/core` resolved at the pinned `0.21.3`. |
-| Root production build | Default Next build compiled, then its seven page-data workers ran out of memory. Retried with `CIRCLE_NODE_TOTAL=2` (one Next worker); `pnpm build` passed and generated all 37 routes, including `/v2/playground`. The project config skips build-time TypeScript validation, so the separate passing `pnpm typecheck` is required evidence. |
-| Browser review | `http://127.0.0.1:3002/v2/playground` reloaded with the sample ready at eight validated patches. Selecting Cairo left only the Cairo property. At 320, 390, 768, and 1280 CSS pixels, document widths were 305, 375, 753, and 1265 pixels respectively (no horizontal overflow); the property grid used 1, 1, 2, and 3 columns. Light/dark themes and stream recovery were also reviewed. |
+| Root production build | A prior branch commit built successfully with `CIRCLE_NODE_TOTAL=2` and generated 37 routes. After this reduced-motion/docs update, MDX generation completed but two `pnpm build` attempts stopped at “Creating an optimized production build” without emitting a completion or error; both were interrupted. The final post-change build is unverified. The project config skips build-time TypeScript validation, so the separate passing `pnpm typecheck` remains required evidence. |
+| Browser review | `http://127.0.0.1:3002/v2/playground` is open in Chrome and ready at eight validated patches. Keyboard ArrowDown selected Dahab and showed its two properties; Home restored all three. Reduced-motion classes are present and the generated CSS contains `@media (prefers-reduced-motion: reduce)`. The earlier responsive pass at 320, 390, 768, and 1280 CSS pixels found document widths 305, 375, 753, and 1265 pixels and 1, 1, 2, and 3 property columns. Light/dark themes and stream recovery were also reviewed. Current console error/warning query returned no entries. |
+
+The four skeleton placeholders carry Tailwind's reduced-motion override and
+the focused regression test passes. Production model quality remains
+unverified because the configured prompt cap is below the handoff's 72-call
+test design. The final production build is also unverified after the small
+post-change update; the earlier successful build is retained as historical
+branch evidence only.
 
 The preview remains a deterministic local fixture: no model, production data
 provider, authorization service, or deployment was exercised. The browser
