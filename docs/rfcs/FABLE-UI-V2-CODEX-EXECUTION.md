@@ -175,6 +175,78 @@ Commit changes on a feature branch and open a draft PR; **do not merge**. Stop o
   live model-quality design requires 72 prompts, while the local cap is 25;
   no live comparative model-quality claim is made.
 
+### Follow-on implementation — semantic rich content
+
+The broad product target remains a composable Next.js UI kit for agent chat:
+typeset prose and rich text, compose layouts and components, stream validated
+UI, and help hosts review existing components. This follow-on adds one useful
+vertical slice to that foundation; it does not claim the entire target is
+complete.
+
+- Added an additive `RichContent` renderer primitive while preserving the
+  existing `Text` and `RichText` APIs. Its bounded semantic blocks are
+  paragraphs, level-two/three headings, ordered/unordered lists, quotes, and
+  literal code blocks. Inline content is text marks or references to host links.
+- The host owns link IDs, labels, and destinations. The model can only refer to
+  an ID; destinations are limited to same-origin absolute paths or HTTPS URLs.
+  Paths whose dot-segment normalization would become protocol-relative are
+  rejected too. Invalid and unknown link references render as unavailable.
+  Rich content does not interpret HTML, Markdown, or model-authored URLs.
+- The schema bounds the payload to 12 blocks, 16 inline children per text block
+  or list item, 12 list items, 240 characters per text span, 4,000 code
+  characters, 8,000 aggregate text characters, 24 host links, and a 12 KiB
+  serialized element.
+  These limits keep a single escaped JSONL patch line below the 16 KiB stream
+  line cap and are covered by catalog, renderer, and stream tests.
+- The deterministic playground fixture now composes rich paragraphs, a
+  heading, a list, and a host-owned guide link alongside its existing metric
+  and chart surfaces. Registry metadata includes the new standalone primitive
+  and renderer-backed surface; the 13 v1 entries remain in place.
+
+### Baseline and follow-on verification
+
+Before the rich-content edits, the branch baseline passed 20 Vitest files and
+90 tests, `pnpm typecheck`, and `pnpm lint` (0 errors, 39 existing warnings).
+`pnpm registry:validate` accepted all 15 registry items. The documented
+deterministic protocol benchmark remains 12 authored fixtures, 1,995 bytes for
+OpenUI Lang 1.0.2 versus 5,661 bytes for json-render core 0.21.3, with 36 nodes
+and 48 patches. Those are serialized wire bytes, not model tokens, quality, or
+latency. A fresh benchmark invocation in this shell was not reproduced because
+the script requires an isolated `FABLE_PROTOCOL_BENCH_ROOT` environment.
+
+The 72-prompt live model comparison was not run because the configured local
+cap is 25; there is no new model-quality claim. The follow-on results are:
+
+- Full Vitest run passed: 21 files and 98 tests. `pnpm typecheck` passed.
+  `pnpm lint` passed with 0 errors and 39 warnings.
+- `pnpm registry:validate` passed all 15 entries, `pnpm registry:build`
+  produced all 15 entries, and registry source lint passed for 84 published
+  files. `pnpm registry:check` stopped during the quickstart dry-run because
+  `ui.shadcn.com` failed DNS resolution (`ENOTFOUND`). The clean consumer
+  smoke also remains unverified: after switching to a task-local pnpm store,
+  package resolution at `registry.npmjs.org` failed with `ENOTFOUND`.
+- `pnpm build` remained at “Creating an optimized production build” for about
+  three minutes and was canceled after no progress. The explicit
+  `pnpm exec next build --webpack` fallback failed with `EPERM` while creating
+  `.next/static/chunks/app/(app)/docs`. No post-change production build passed.
+- The live preview was reloaded at `http://127.0.0.1:3002/v2/playground` and
+  completed all eight validated patches with the new semantic content and
+  host-owned guide link. Browser inspection at 320, 390, 768, and 1280 CSS
+  pixels found no horizontal overflow; the layout used one, one, two, and
+  three property columns. ArrowDown selected Dahab and Home restored all
+  destinations. A current browser console-log check was not completed.
+- The protocol-size record above is from the earlier isolated deterministic
+  benchmark. Re-running the script here stopped before measurement because
+  `FABLE_PROTOCOL_BENCH_ROOT` was not configured; do not present a new run as
+  completed.
+- Static review of the earlier PR security finding confirmed branch commit
+  `102e2cb` removed the obfuscated loader, VS Code auto-run task, and `.orc`
+  payload, and restored the `.env*` ignore rule. Current package hooks are
+  ordinary Next.js commands and the PostCSS config only installs Tailwind. This
+  follow-on also removes a remaining `npm run lint` folder-open task from
+  `.vscode/settings.json`. The current security review inspected source only
+  and executed no payload.
+
 ## Evaluation rubric
 
 Total 100 points:

@@ -26,9 +26,10 @@ available without migration.
 
 This checkpoint is an experimental slice, not completion of PR-1 or PR-2.
 It adds a deterministic stream playground, strict Fable validation/rendering,
-host-owned result references, local filtering, and two additive registry
-items. Live model output, the wider layout/state catalog, general server
-resources, and stable-release gates remain open.
+host-owned result references, local filtering, semantic block rich content,
+and host-approved links selected by opaque IDs. Live model output, the wider
+layout/state catalog, general server resources, and stable-release gates
+remain open.
 
 ## 0. Executive decision
 
@@ -385,10 +386,13 @@ by the parser benchmark.
 
 **Current progress (not PR-1 complete):** the experimental `v2-primitives`
 and `v2-renderer` entries install in an isolated consumer without adding an
-AI SDK or provider. The complete v1+v2 registry consumer smoke is recorded in
-the implementation checkpoint. Scoped theme tokens, the full proposed layout
-set, richer empty/loading/error states, and broad keyboard/reduced-motion/RTL
-coverage remain open.
+AI SDK or provider in the earlier checkpoint. `FableRichContent` now supplies
+bounded paragraphs, h2/h3 headings, ordered/unordered lists, quotes, literal
+code, and host-approved links. A clean consumer smoke for this follow-on is
+unverified because package resolution failed at the npm registry during DNS
+lookup. Scoped theme tokens, the full proposed layout set, richer
+empty/loading/error states, and broad keyboard/reduced-motion/RTL coverage
+remain open.
 
 ### PR-2 — First real composition (M)
 - Selected protocol adapter and catalog mapping.
@@ -399,11 +403,12 @@ coverage remain open.
 **Acceptance:** a model-driven demo works on 360–1440px widths and both themes, with stable inputs.
 
 **Current progress (not PR-2 complete):** the local playground renders a
-deterministic eight-patch stream with readable text, metrics, host-owned
-entities, a chart, and a local filter. Cancellation keeps the last valid
-snapshot. Browser review covered 320, 390, 768, and 1280px in light and dark
-themes. This is not a live-model demo; model quality, image composition, and
-the full 360–1440px acceptance range remain unverified.
+deterministic stream with readable text, metrics, host-owned entities, a
+chart, a local filter, block-rich explanatory content, and a host-owned guide
+link. Cancellation keeps the last valid snapshot. Browser review covered
+320, 390, 768, and 1280px in light and dark themes. This is not a live-model
+demo; model quality, image composition, and the full 360–1440px acceptance
+range remain unverified.
 
 ### PR-3 — Server data contract (M)
 - defineFableResource with input/output Zod and host context.

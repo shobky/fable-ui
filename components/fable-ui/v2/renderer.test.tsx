@@ -1,7 +1,17 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { demoData, demoSpec } from "../../../app/(app)/v2/playground/fixture"
+import {
+  demoData,
+  demoLinks,
+  demoSpec,
+} from "../../../app/(app)/v2/playground/fixture"
 import { FableSpecRenderer } from "./renderer"
 
 afterEach(() => {
@@ -11,48 +21,93 @@ afterEach(() => {
 
 describe("Fable UI v2 renderer", () => {
   it("renders a composed response and filters host-owned entities locally", () => {
-    render(<FableSpecRenderer spec={demoSpec} data={demoData} />)
+    render(
+      <FableSpecRenderer spec={demoSpec} data={demoData} links={demoLinks} />
+    )
 
-    expect(screen.getByRole("heading", { name: /coral house leads direct bookings/i })).toBeTruthy()
+    expect(
+      screen.getByRole("heading", {
+        name: /coral house leads direct bookings/i,
+      })
+    ).toBeTruthy()
+    expect(
+      screen.getByRole("heading", { name: "Quick read", level: 3 })
+    ).toBeTruthy()
+    const richContent = screen.getByRole("heading", {
+      name: "Quick read",
+      level: 3,
+    }).parentElement
+    expect(
+      within(richContent as HTMLElement)
+        .getByRole("list")
+        .querySelectorAll("li")
+    ).toHaveLength(2)
+    expect(
+      screen
+        .getByRole("link", { name: /fable ui v2 guide/i })
+        .getAttribute("href")
+    ).toBe("/docs/components/v2")
     expect(screen.getByText("Direct bookings · 30 days")).toBeTruthy()
     expect(screen.getByText("Filter properties by destination")).toBeTruthy()
     expect(screen.getByText("2,194")).toBeTruthy()
     expect(screen.getByText("Blue Dune Studio")).toBeTruthy()
     expect(screen.getByText("Cedar Town Hotel")).toBeTruthy()
     expect(screen.getAllByText("Direct bookings").length).toBeGreaterThan(0)
-    expect(screen.getByRole("img", { name: "Direct bookings by week" })).toBeTruthy()
+    expect(
+      screen.getByRole("img", { name: "Direct bookings by week" })
+    ).toBeTruthy()
     expect(screen.getByText("691", { exact: true })).toBeTruthy()
     expect(screen.getByText("345.5", { exact: true })).toBeTruthy()
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Filter properties by destination" }), {
-      target: { value: "cairo" },
-    })
+    fireEvent.change(
+      screen.getByRole("combobox", {
+        name: "Filter properties by destination",
+      }),
+      {
+        target: { value: "cairo" },
+      }
+    )
 
     expect(screen.queryByText("Coral House")).toBeNull()
     expect(screen.getByText("Cedar Town Hotel")).toBeTruthy()
   })
 
   it("preserves the local filter selection when the same view receives an update", () => {
-    const { rerender } = render(<FableSpecRenderer spec={demoSpec} data={demoData} />)
-    const filter = screen.getByRole("combobox", { name: "Filter properties by destination" })
+    const { rerender } = render(
+      <FableSpecRenderer spec={demoSpec} data={demoData} links={demoLinks} />
+    )
+    const filter = screen.getByRole("combobox", {
+      name: "Filter properties by destination",
+    })
     fireEvent.change(filter, { target: { value: "dahab" } })
     expect(screen.getByText("Blue Dune Studio")).toBeTruthy()
     expect(screen.queryByText("Cedar Town Hotel")).toBeNull()
 
     const updatedSpec = structuredClone(demoSpec) as unknown as {
       root: string
-      elements: Record<string, { type: string; props: Record<string, unknown>; children: string[] }>
+      elements: Record<
+        string,
+        { type: string; props: Record<string, unknown>; children: string[] }
+      >
     }
     updatedSpec.elements.headline.props.content = "Coral House remains ahead."
     rerender(<FableSpecRenderer spec={updatedSpec} data={demoData} />)
 
-    expect((screen.getByRole("combobox", { name: "Filter properties by destination" }) as HTMLSelectElement).value).toBe("dahab")
+    expect(
+      (
+        screen.getByRole("combobox", {
+          name: "Filter properties by destination",
+        }) as HTMLSelectElement
+      ).value
+    ).toBe("dahab")
     expect(screen.getByText("Coral House remains ahead.")).toBeTruthy()
     expect(screen.queryByText("Cedar Town Hotel")).toBeNull()
   })
 
   it("preserves the focused filter when its stable stack changes direction", () => {
-    const { rerender } = render(<FableSpecRenderer spec={demoSpec} data={demoData} />)
+    const { rerender } = render(
+      <FableSpecRenderer spec={demoSpec} data={demoData} links={demoLinks} />
+    )
     const filter = screen.getByRole("combobox", {
       name: "Filter properties by destination",
     }) as HTMLSelectElement
@@ -61,7 +116,10 @@ describe("Fable UI v2 renderer", () => {
 
     const updatedSpec = structuredClone(demoSpec) as unknown as {
       root: string
-      elements: Record<string, { type: string; props: Record<string, unknown>; children: string[] }>
+      elements: Record<
+        string,
+        { type: string; props: Record<string, unknown>; children: string[] }
+      >
     }
     updatedSpec.elements.response.props.direction = "horizontal"
     rerender(<FableSpecRenderer spec={updatedSpec} data={demoData} />)
@@ -79,16 +137,26 @@ describe("Fable UI v2 renderer", () => {
     vi.stubGlobal("fetch", fetchMock)
     const invalidSpec = structuredClone(demoSpec) as unknown as {
       root: string
-      elements: Record<string, { type: string; props: Record<string, unknown>; children: string[] }>
+      elements: Record<
+        string,
+        { type: string; props: Record<string, unknown>; children: string[] }
+      >
     }
     invalidSpec.elements.headline.props.style = { color: "red" }
-    const invalidRender = render(<FableSpecRenderer spec={invalidSpec} data={demoData} />)
-    expect(screen.getByText("This response layout could not be displayed safely.")).toBeTruthy()
+    const invalidRender = render(
+      <FableSpecRenderer spec={invalidSpec} data={demoData} />
+    )
+    expect(
+      screen.getByText("This response layout could not be displayed safely.")
+    ).toBeTruthy()
     invalidRender.unmount()
 
     const missingDataSpec = structuredClone(demoSpec) as unknown as {
       root: string
-      elements: Record<string, { type: string; props: Record<string, unknown>; children: string[] }>
+      elements: Record<
+        string,
+        { type: string; props: Record<string, unknown>; children: string[] }
+      >
     }
     missingDataSpec.elements.metric.props.resultId = "not-authorized"
     render(<FableSpecRenderer spec={missingDataSpec} data={demoData} />)

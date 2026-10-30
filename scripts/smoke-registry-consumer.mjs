@@ -8,6 +8,7 @@ const systemTempRoot = fs.realpathSync(os.tmpdir())
 const tempRoot = fs.mkdtempSync(
   path.join(systemTempRoot, "fable-ui-registry-consumer-")
 )
+const consumerSmokeStoreDir = process.env.FABLE_REGISTRY_SMOKE_STORE_DIR
 const consumerDir = path.join(tempRoot, "consumer")
 const v2OnlyConsumerDir = path.join(tempRoot, "consumer-v2-only")
 const builtRegistryDir = path.join(tempRoot, "built-registry")
@@ -53,7 +54,12 @@ function writeFile(filePath, contents) {
 
 function run(label, executable, args, cwd, { shell = false } = {}) {
   try {
-    return execFileSync(executable, args, {
+    const commandArgs =
+      consumerSmokeStoreDir && executable === "pnpm"
+        ? [...args, "--store-dir", consumerSmokeStoreDir]
+        : args
+
+    return execFileSync(executable, commandArgs, {
       cwd,
       encoding: "utf8",
       env: {
@@ -459,13 +465,13 @@ function writeConsumerSmokeSurface(installedNames, targetDir = consumerDir) {
   )
   addSurface(
     "v2-primitives",
-    'import { FableGrid, FableMetricCard, FableRichText } from "@/components/fable-ui/v2"',
-    '<FableGrid columns={1}><FableMetricCard label="Bookings" value={12} format="number" /><FableRichText spans={[{ text: "Host-owned value", mark: "strong" }]} /></FableGrid>'
+    'import { FableGrid, FableMetricCard, FableRichContent, FableRichText } from "@/components/fable-ui/v2"',
+    '<FableGrid columns={1}><FableMetricCard label="Bookings" value={12} format="number" /><FableRichText spans={[{ text: "Host-owned value", mark: "strong" }]} /><FableRichContent blocks={[{ type: "paragraph", spans: [{ type: "text", text: "Consumer rich content", mark: "plain" }] }]} /></FableGrid>'
   )
   addSurface(
     "v2-renderer",
     'import { FableSpecRenderer } from "@/components/fable-ui/v2/renderer"',
-    '<FableSpecRenderer spec={{ root: "title", elements: { title: { type: "Text", props: { content: "Consumer", level: "heading" }, children: [] } } }} data={{}} />'
+    '<FableSpecRenderer spec={{ root: "title", elements: { title: { type: "RichContent", props: { blocks: [{ type: "paragraph", spans: [{ type: "text", text: "Consumer", mark: "plain" }] }] }, children: [] } } }} data={{}} links={{}} />'
   )
 
   writeFile(

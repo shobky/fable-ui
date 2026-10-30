@@ -62,6 +62,68 @@ export function BookingSummary() {
 
 The available primitives are `Stack`, `Inline`, `FableGrid`, `Surface`, `Section`, and `FableText`. The data components include `FableMetricCard`, `FableEntityCard`, and `FableBarChart`; `FableFilterBar` is a native, labeled select. `FableMediaImage` accepts a local asset path and rejects remote and protocol-relative URLs. In the renderer, the host asset catalog also owns alt text and decorative-image status.
 
+## Typeset longer responses
+
+`FableRichContent` renders semantic paragraphs, h2/h3 headings, ordered and unordered lists, quotes, and literal code blocks. Inline text supports plain, strong, emphasis, and code marks. It renders ordinary React text; it does not parse Markdown or HTML.
+
+```tsx
+import { FableRichContent } from "@/components/fable-ui/v2"
+
+const links = {
+  guide: { href: "/docs/components/v2", label: "Fable UI v2 guide" },
+}
+
+export function AgentMessage() {
+  return (
+    <FableRichContent
+      links={links}
+      blocks={[
+        {
+          type: "heading",
+          level: 2,
+          spans: [{ type: "text", text: "Booking summary", mark: "plain" }],
+        },
+        {
+          type: "paragraph",
+          spans: [
+            { type: "text", text: "Direct bookings rose ", mark: "plain" },
+            { type: "text", text: "16%", mark: "strong" },
+            { type: "text", text: " in the selected sample.", mark: "plain" },
+          ],
+        },
+        {
+          type: "list",
+          ordered: true,
+          items: [
+            [
+              {
+                type: "text",
+                text: "Compare the host-provided property values.",
+                mark: "plain",
+              },
+            ],
+            [{ type: "link", linkId: "guide" }],
+          ],
+        },
+        {
+          type: "quote",
+          spans: [
+            {
+              type: "text",
+              text: "A source quotation can be kept distinct from analysis.",
+              mark: "plain",
+            },
+          ],
+        },
+        { type: "code", language: "ts", code: 'const range = "30d"' },
+      ]}
+    />
+  )
+}
+```
+
+For a model-facing `RichContent` element, the model may select a `linkId` only. The host supplies the link catalog and owns each visible label and destination. Fable accepts same-origin absolute paths or credential-free HTTPS destinations; missing or unsafe IDs render as `Link unavailable`. The host remains responsible for authorizing each destination.
+
 ## Render a bounded view
 
 `FableSpecRenderer` accepts a small `root`/`elements` tree. The model selects composition and result IDs. Metric/chart/entity/filter labels, values, filter options, image alt text, and decorative status come from the host data and asset maps, so a model cannot relabel a booking metric as profit:
@@ -124,10 +186,10 @@ On `AbortSignal` or request replacement, call `stream.cancel()`. It closes the p
 
 Keep `FableSpecRenderer` mounted while applying patches. For a control whose element ID and parent remain stable, local state and focus stay in place across prop updates and Stack direction changes. Reparenting or replacing the root can remount DOM; the filter value is keyed by its host filter ID, but focus across a structural move is not guaranteed.
 
-Fable does not interpret arbitrary JSX, HTML, CSS, URLs, callback names, server actions, or database queries from a spec. The renderer has no action path. Local filters only work over the already-provided result data.
+Fable does not interpret arbitrary JSX, HTML, CSS, URLs, callback names, server actions, or database queries from a spec. A rich-content link can resolve only through the host catalog. The renderer has no action path. Local filters only work over the already-provided result data.
 
 ## Preview and current boundary
 
-Open the [v2 playground](/v2/playground) to see a deterministic streamed composition with rich text, a host-owned metric, three filterable entities, and a chart. The page labels the fixture clearly and makes no provider request.
+Open the [v2 playground](/v2/playground) to see a deterministic streamed composition with block rich content, a host-owned metric, three filterable entities, and a chart. The page labels the fixture clearly and makes no provider request.
 
-This slice does not include a model transport, a generic Fable server-resource API, cross-request data caching, external links, or privileged actions. All v1 integrations remain available; see [Installation](/docs/installation) for the complete catalog.
+This slice does not include a model transport, a generic Fable server-resource API, cross-request data caching, unrestricted model-authored links, or privileged actions. All v1 integrations remain available; see [Installation](/docs/installation) for the complete catalog.

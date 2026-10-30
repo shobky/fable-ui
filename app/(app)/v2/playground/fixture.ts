@@ -1,4 +1,8 @@
-import type { FableViewData, FableViewSpec } from "@/components/fable-ui/v2/catalog"
+import type {
+  FableViewData,
+  FableViewSpec,
+} from "@/components/fable-ui/v2/catalog"
+import type { FableLinkCatalog } from "@/components/fable-ui/v2/rich-content-utils"
 
 export const demoSpec: FableViewSpec = {
   root: "response",
@@ -6,7 +10,14 @@ export const demoSpec: FableViewSpec = {
     response: {
       type: "Stack",
       props: { direction: "vertical", gap: 4 },
-      children: ["headline", "summary", "metric", "destination-filter", "properties", "trend"],
+      children: [
+        "headline",
+        "summary",
+        "metric",
+        "destination-filter",
+        "properties",
+        "trend",
+      ],
     },
     headline: {
       type: "Text",
@@ -17,11 +28,60 @@ export const demoSpec: FableViewSpec = {
       children: [],
     },
     summary: {
-      type: "RichText",
+      type: "RichContent",
       props: {
-        spans: [
-          { text: "Review the 30-day booking trend, then use the destination filter to compare properties. ", mark: "plain" },
-          { text: "Values below come from the host dataset.", mark: "strong" },
+        blocks: [
+          {
+            type: "paragraph",
+            spans: [
+              {
+                type: "text",
+                text: "Review the 30-day booking trend, then use the destination filter to compare properties. ",
+                mark: "plain",
+              },
+              {
+                type: "text",
+                text: "Values below come from the host dataset.",
+                mark: "strong",
+              },
+            ],
+          },
+          {
+            type: "heading",
+            level: 3,
+            spans: [{ type: "text", text: "Quick read", mark: "plain" }],
+          },
+          {
+            type: "list",
+            ordered: false,
+            items: [
+              [
+                {
+                  type: "text",
+                  text: "Compare the property cards by destination.",
+                  mark: "plain",
+                },
+              ],
+              [
+                {
+                  type: "text",
+                  text: "The chart and headline values are host supplied.",
+                  mark: "plain",
+                },
+              ],
+            ],
+          },
+          {
+            type: "paragraph",
+            spans: [
+              {
+                type: "text",
+                text: "See the installation and component API: ",
+                mark: "plain",
+              },
+              { type: "link", linkId: "v2-guide" },
+            ],
+          },
         ],
       },
       children: [],
@@ -52,6 +112,13 @@ export const demoSpec: FableViewSpec = {
   },
 }
 
+export const demoLinks: FableLinkCatalog = {
+  "v2-guide": {
+    href: "/docs/components/v2",
+    label: "Fable UI v2 guide",
+  },
+}
+
 export const demoData: FableViewData = {
   "direct-bookings": {
     kind: "metric",
@@ -70,7 +137,8 @@ export const demoData: FableViewData = {
         id: "coral-house",
         name: "Coral House",
         location: "Dahab",
-        description: "A quiet stay near the lagoon, popular with longer visits.",
+        description:
+          "A quiet stay near the lagoon, popular with longer visits.",
         value: 962,
         unit: "bookings",
         changePercent: 16,

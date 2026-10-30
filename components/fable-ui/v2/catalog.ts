@@ -1,6 +1,18 @@
 import { z } from "zod"
 
 import { isSafeLocalAssetPath } from "@/components/fable-ui/v2/asset-utils"
+import {
+  isSafeFableLinkHref,
+  MAX_FABLE_HOST_LINKS,
+  MAX_FABLE_LINK_HREF_CHARS,
+  MAX_FABLE_RICH_CONTENT_BLOCKS,
+  MAX_FABLE_RICH_CONTENT_CODE_CHARS,
+  MAX_FABLE_RICH_CONTENT_ELEMENT_BYTES,
+  MAX_FABLE_RICH_CONTENT_LIST_ITEMS,
+  MAX_FABLE_RICH_CONTENT_SPANS,
+  MAX_FABLE_RICH_CONTENT_TEXT_CHARS,
+  MAX_FABLE_RICH_CONTENT_TOTAL_CHARS,
+} from "./rich-content-utils"
 
 const reservedIds = new Set(["__proto__", "prototype", "constructor"])
 
@@ -56,6 +68,100 @@ const richTextPropsSchema = z
       .max(16),
   })
   .strict()
+
+const richContentInlineSchema = z.discriminatedUnion("type", [
+  z
+    .object({
+      type: z.literal("text"),
+      text: z.string().max(MAX_FABLE_RICH_CONTENT_TEXT_CHARS),
+      mark: z.enum(["plain", "strong", "emphasis", "code"]),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("link"),
+      linkId: FableIdSchema,
+    })
+    .strict(),
+])
+
+const richContentSpansSchema = z
+  .array(richContentInlineSchema)
+  .min(1)
+  .max(MAX_FABLE_RICH_CONTENT_SPANS)
+
+const richContentBlockSchema = z.discriminatedUnion("type", [
+  z
+    .object({
+      type: z.literal("paragraph"),
+      spans: richContentSpansSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("heading"),
+      level: z.union([z.literal(2), z.literal(3)]),
+      spans: richContentSpansSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("list"),
+      ordered: z.boolean(),
+      items: z
+        .array(richContentSpansSchema)
+        .min(1)
+        .max(MAX_FABLE_RICH_CONTENT_LIST_ITEMS),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("quote"),
+      spans: richContentSpansSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("code"),
+      code: z.string().min(1).max(MAX_FABLE_RICH_CONTENT_CODE_CHARS),
+      language: z
+        .string()
+        .regex(/^[A-Za-z0-9+#.-]{1,24}$/)
+        .optional(),
+    })
+    .strict(),
+])
+
+const richContentPropsSchema = z
+  .object({
+    blocks: z
+      .array(richContentBlockSchema)
+      .min(1)
+      .max(MAX_FABLE_RICH_CONTENT_BLOCKS),
+  })
+  .strict()
+  .superRefine((props, context) => {
+    const totalChars = props.blocks.reduce((total, block) => {
+      if (block.type === "code") return total + block.code.length
+      const spans = block.type === "list" ? block.items.flat() : block.spans
+      return (
+        total +
+        spans.reduce(
+          (spanTotal, span) =>
+            spanTotal + (span.type === "text" ? span.text.length : 0),
+          0
+        )
+      )
+    }, 0)
+
+    if (totalChars > MAX_FABLE_RICH_CONTENT_TOTAL_CHARS) {
+      context.addIssue({
+        code: "custom",
+        message: "rich_content_total_text_too_large",
+        path: ["blocks"],
+      })
+    }
+  })
 
 const metricPropsSchema = z
   .object({
@@ -116,7 +222,7 @@ const surfacePropsSchema = z
   })
   .strict()
 
-export const FableElementSchema = z.discriminatedUnion("type", [
+const fableElementSchema = z.discriminatedUnion("type", [
   z
     .object({
       type: z.literal("Text"),
@@ -128,6 +234,13 @@ export const FableElementSchema = z.discriminatedUnion("type", [
     .object({
       type: z.literal("RichText"),
       props: richTextPropsSchema,
+      children: leafChildrenSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("RichContent"),
+      props: richContentPropsSchema,
       children: leafChildrenSchema,
     })
     .strict(),
@@ -196,6 +309,23 @@ export const FableElementSchema = z.discriminatedUnion("type", [
     .strict(),
 ])
 
+export const FableElementSchema = fableElementSchema.superRefine(
+  (element, context) => {
+    if (element.type !== "RichContent") return
+
+    const elementBytes = new TextEncoder().encode(
+      JSON.stringify(element)
+    ).byteLength
+    if (elementBytes > MAX_FABLE_RICH_CONTENT_ELEMENT_BYTES) {
+      context.addIssue({
+        code: "custom",
+        message: "rich_content_element_too_large",
+        path: ["props", "blocks"],
+      })
+    }
+  }
+)
+
 export const FableViewSpecSchema = z
   .object({
     root: FableIdSchema,
@@ -209,12 +339,17 @@ const metricResultSchema = z
     label: shortText(120),
     value: z.number().finite(),
     format: z.enum(["number", "currency", "percent"]),
-    currency: z.string().regex(/^[A-Z]{3}$/).optional(),
+    currency: z
+      .string()
+      .regex(/^[A-Z]{3}$/)
+      .optional(),
     unit: z.string().max(40).optional(),
     locale: localeSchema.optional(),
   })
   .strict()
-  .refine((result) => result.format !== "currency" || result.currency !== undefined)
+  .refine(
+    (result) => result.format !== "currency" || result.currency !== undefined
+  )
 
 const entityItemSchema = z
   .object({
@@ -264,11 +399,16 @@ const chartResultSchema = z
       .min(1)
       .max(12),
     format: z.enum(["number", "currency", "percent"]).default("number"),
-    currency: z.string().regex(/^[A-Z]{3}$/).optional(),
+    currency: z
+      .string()
+      .regex(/^[A-Z]{3}$/)
+      .optional(),
     locale: localeSchema.optional(),
   })
   .strict()
-  .refine((result) => result.format !== "currency" || result.currency !== undefined)
+  .refine(
+    (result) => result.format !== "currency" || result.currency !== undefined
+  )
 
 const filterResultSchema = z
   .object({
@@ -342,11 +482,27 @@ export const FableAssetCatalogSchema = z
     }
   })
 
+const hostLinkSchema = z
+  .object({
+    href: z.string().max(MAX_FABLE_LINK_HREF_CHARS).refine(isSafeFableLinkHref),
+    label: shortText(120),
+  })
+  .strict()
+
+export const FableLinkCatalogSchema = z
+  .record(FableIdSchema, hostLinkSchema)
+  .superRefine((links, context) => {
+    if (Object.keys(links).length > MAX_FABLE_HOST_LINKS) {
+      context.addIssue({ code: "custom", message: "too_many_host_links" })
+    }
+  })
+
 export type FableElement = z.infer<typeof FableElementSchema>
 export type FableViewSpec = z.infer<typeof FableViewSpecSchema>
 export type FableViewDataResult = z.infer<typeof FableViewDataResultSchema>
 export type FableViewData = z.infer<typeof FableViewDataSchema>
 export type FableAssetCatalog = z.infer<typeof FableAssetCatalogSchema>
+export type FableHostLinkCatalog = z.infer<typeof FableLinkCatalogSchema>
 export type FableMetricResult = z.infer<typeof metricResultSchema>
 export type FableEntityListResult = z.infer<typeof entityListResultSchema>
 export type FableChartResult = z.infer<typeof chartResultSchema>
@@ -354,8 +510,7 @@ export type FableFilterResult = z.infer<typeof filterResultSchema>
 export type FableEntityItem = z.infer<typeof entityItemSchema>
 
 export type FableSpecValidation =
-  | { success: true; data: FableViewSpec }
-  | { success: false; issues: string[] }
+  { success: true; data: FableViewSpec } | { success: false; issues: string[] }
 
 export function validateFableViewSpec(input: unknown): FableSpecValidation {
   const parsed = FableViewSpecSchema.safeParse(input)

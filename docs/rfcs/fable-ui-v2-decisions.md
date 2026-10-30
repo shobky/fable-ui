@@ -172,7 +172,7 @@ replace one stable element. This slice accepts only a bounded tree:
 
 ```ts
 type FableElement = {
-  type: "Text" | "RichText" | "Metric" | "EntityList" | "Chart" |
+  type: "Text" | "RichText" | "RichContent" | "Metric" | "EntityList" | "Chart" |
         "Filter" | "Media" | "Stack" | "Grid" | "Section" | "Surface"
   props: unknown // parsed against the exact schema for `type`
   children: string[]
@@ -195,7 +195,30 @@ type FableAssetCatalog = Record<string, {
   alt: string // host-owned alternative text
   decorative: boolean
 }>
+
+type FableLinkCatalog = Record<string, {
+  href: string // host-approved same-origin path or credential-free HTTPS URL
+  label: string // host-owned visible text; never supplied by the model
+}>
 ```
+
+The follow-on `RichContent` element is a bounded, nonrecursive leaf. It
+supports paragraphs, h2/h3 headings, ordered or unordered lists with inline
+items, quotes, and literal code. Inline text supports plain, strong, emphasis,
+and code marks. An inline link is only `{ type: "link", linkId }`; Fable
+resolves that ID through the optional host link catalog and displays the
+host-owned label. Missing or unsafe references become readable “Link
+unavailable” text. Model content cannot include HTML, Markdown, arbitrary
+attributes, link destinations, or link labels.
+
+The rich-content catalog limits an element to 12 blocks, 16 inline spans per
+prose or list item, 12 list items, 240 characters per text span, 4,000 code
+characters, and 8,000 total text characters. It also caps serialized element
+JSON at 12 KiB so the JSONL patch envelope stays below the existing 16 KiB
+line cap even when JSON escaping expands content. Host links are capped at 24;
+only same-origin absolute paths and credential-free HTTPS URLs are accepted.
+External links stay in the same tab. Host applications remain responsible for
+authorizing destinations, open-redirect routes, and any protected resources.
 
 For `Metric`, `EntityList`, `Chart`, and `Filter`, the model-facing props
 carry only a bounded `resultId` or `filterId`; the host-supplied map must
@@ -231,7 +254,7 @@ render the same components directly with their own typed values and callbacks.
 | Threat | Control in this phase | Deferred boundary |
 | --- | --- | --- |
 | Prompt injection in model or row text | Treat all copy as inert text; no interpretation, links, or tool calls from it; display source labels separately. | Product-specific trust UX and content review policy. |
-| Arbitrary URL, HTML, CSS, or code execution | No URL, raw HTML, CSS, expression, `eval`, or component-name lookup outside the fixed catalog. `assetId` resolves only in a host catalog. | Optional HTTPS links require a separately reviewed URL policy and user affordance. |
+| Arbitrary URL, HTML, CSS, or code execution | No model-authored URL, raw HTML, CSS, expression, `eval`, or component-name lookup. Rich-content links resolve only through a host catalog with same-origin path or credential-free HTTPS validation. | Hosts must authorize destinations, open-redirect routes, and protected resources. |
 | Authorization or tenant bypass | Renderer performs no fetch, authorization, or action. Host passes already-authorized values; unknown IDs fail closed. | Any server adapter requires host authZ/tenant review before implementation. |
 | Unauthorized mutation/replay | No actions or server mutations are in the first slice. Local filter is read-only and scoped to the current view. | Confirmations, idempotency, replay defense, and action audit before any future action catalog. |
 | Cross-request caching or data leakage | No module-level data cache; demo data is static and non-sensitive. Per-view state stays in the component instance. | Any cache requires tenant/session key review, expiry, invalidation, and no cross-tenant reuse proof. |
@@ -290,11 +313,13 @@ strategy to keep a protocol package.
 ## Recommended next four PRs
 
 These are follow-up boundaries after the experimental vertical slice in draft
-PR #6. Owners are roles because no additional team assignment has been made.
+PR #6. The branch now includes a first bounded rich-content renderer and a
+host-owned link catalog; the inline `FableRichText` API remains unchanged.
+Owners are roles because no additional team assignment has been made.
 
 | PR | Owner | Dependency | Acceptance criteria |
 | --- | --- | --- | --- |
-| Complete typesetting and rich content | Fable UI maintainer, with accessibility review | Draft PR #6 accepted; keep all current v1 exports | Add bounded block-level headings, paragraphs, lists, quotes, links, and code; never accept raw HTML or unrestricted URLs; preserve host typography tokens; verify keyboard, RTL, reduced motion, and narrow layouts. |
+| Finish v2 foundation and accessibility | Fable UI maintainer, with accessibility review | Draft PR #6 rich-content contract; keep all current v1 exports | Add opt-in scoped theme tokens and remaining layout primitives; complete keyboard, RTL, reduced-motion, and narrow-layout review of rich content; keep raw HTML and model-authored URLs out of the contract. |
 | Add an optional AI SDK 7 stream adapter | Fable UI maintainer, with one Next.js consumer maintainer | Typesetting contract and host result map from the prior PR | Carry versioned Fable specs through typed UI message data; test abort, malformed chunks, replay, and stable IDs; keep AI SDK out of base exports; never let model output supply factual values or invoke actions. |
 | Run comparative live model evaluation | Fable UI maintainer | Adapter contract; explicit evaluation budget of at least 72 prompts | Run the same 12 tasks through OpenUI Lang and json-render, three times each with GPT-6.1 Sol and a low-cost model; report schema validity, task usefulness, retries, latency, and tokens/cost; keep deterministic protocol measurements separate. |
 | Prove a host-authorized Next.js integration | Fable UI maintainer and the selected consumer-app maintainer | Optional adapter and evaluation contract | Build one real consumer example that reuses a server-authorized result through opaque IDs; verify auth/tenant boundaries, no duplicate fetch, no cross-request cache, and v1 regression; document exact supported Next/React versions. |
@@ -303,7 +328,7 @@ The 72-prompt evaluation is intentionally not included in draft PR #6: the
 local evaluation cap is 25 prompts. Do not raise it silently or publish a
 quality conclusion from a smaller exploratory sample.
 
-## Final implementation verification — 2026-10-30
+## Initial slice verification — 2026-10-30
 
 | Check | Result |
 | --- | --- |
@@ -329,3 +354,28 @@ console retains nine earlier hot-reload errors/warnings from 09:28 UTC, before
 the fixture and host-owned data corrections. After the final reload, the page
 rendered all eight patches and the console returned no newer entries. This is
 historical development evidence, not a current rendering failure.
+
+## Rich-content follow-on verification — 2026-10-30
+
+- Full Vitest run passed: 21 files and 98 tests. `pnpm typecheck` passed.
+  `pnpm lint` passed with 0 errors and 39 warnings.
+- `pnpm registry:validate` accepted all 15 items, `pnpm registry:build`
+  generated all 15, and registry source lint passed for 84 files.
+  `pnpm registry:check` stopped in the quickstart dry-run when DNS lookup for
+  `ui.shadcn.com` failed. The new clean consumer smoke also remains
+  unverified: package resolution at `registry.npmjs.org` failed with
+  `ENOTFOUND` after the task-local pnpm store workaround.
+- `pnpm build` remained at the optimized-build step for about three minutes
+  and was canceled. `pnpm exec next build --webpack` failed with
+  `EPERM` while creating `.next/static/chunks/app/(app)/docs`. The post-change
+  production build is unverified.
+- The preview at `http://127.0.0.1:3002/v2/playground` was reloaded and
+  rendered all eight validated patches, semantic rich content, and the
+  host-owned guide link. The responsive review covered 320, 390, 768, and
+  1280 CSS pixels without horizontal overflow. The filter keyboard test
+  selected Dahab with ArrowDown and restored all destinations with Home.
+  Current console logs were not checked.
+- The live model-quality comparison and a fresh protocol benchmark were not
+  completed. The live design requires 72 prompts against a configured cap of
+  25; the benchmark script requires `FABLE_PROTOCOL_BENCH_ROOT`, which was not
+  configured for this attempt.

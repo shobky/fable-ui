@@ -648,7 +648,7 @@
       "name": "v2-primitives",
       "type": "registry:component",
       "title": "Fable UI v2 Primitives (Experimental)",
-      "description": "Provider-free React layout, typography, metric, entity, chart, filter, and local-image components.",
+      "description": "Provider-free React layout, semantic rich content, typography, metric, entity, chart, filter, and local-image components.",
       "files": [
         {
           "path": "components/fable-ui/v2/index.ts",
@@ -669,6 +669,16 @@
           "path": "components/fable-ui/v2/typography.tsx",
           "type": "registry:component",
           "target": "@components/fable-ui/v2/typography.tsx"
+        },
+        {
+          "path": "components/fable-ui/v2/rich-content-utils.ts",
+          "type": "registry:lib",
+          "target": "@components/fable-ui/v2/rich-content-utils.ts"
+        },
+        {
+          "path": "components/fable-ui/v2/rich-content.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/rich-content.tsx"
         },
         {
           "path": "components/fable-ui/v2/metric-card.tsx",
@@ -701,11 +711,8 @@
       "name": "v2-renderer",
       "type": "registry:lib",
       "title": "Fable UI v2 Renderer (Experimental)",
-      "description": "Strict host-data resolver and bounded JSONL patch renderer for Fable UI v2.",
-      "dependencies": [
-        "@json-render/core@0.21.3",
-        "zod"
-      ],
+      "description": "Strict host-data, host-link, rich-content, and bounded JSONL patch renderer for Fable UI v2.",
+      "dependencies": ["@json-render/core@0.21.3", "zod"],
       "registryDependencies": [
         "https://fable-ui.shobky.com/r/v2-primitives.json"
       ],

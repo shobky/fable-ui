@@ -5,6 +5,7 @@ import { useState } from "react"
 import { FableBarChart } from "@/components/fable-ui/v2/chart"
 import {
   FableAssetCatalogSchema,
+  FableLinkCatalogSchema,
   FableViewDataSchema,
   validateFableViewSpec,
   type FableElement,
@@ -14,8 +15,17 @@ import { FableEntityCard } from "@/components/fable-ui/v2/entity-card"
 import { FableFilterBar } from "@/components/fable-ui/v2/filter-bar"
 import { FableMediaImage } from "@/components/fable-ui/v2/media-image"
 import { FableMetricCard } from "@/components/fable-ui/v2/metric-card"
-import { FableGrid, Section, Stack, Surface } from "@/components/fable-ui/v2/layout"
-import { FableRichText, FableTypography } from "@/components/fable-ui/v2/typography"
+import {
+  FableGrid,
+  Section,
+  Stack,
+  Surface,
+} from "@/components/fable-ui/v2/layout"
+import {
+  FableRichText,
+  FableTypography,
+} from "@/components/fable-ui/v2/typography"
+import { FableRichContent } from "@/components/fable-ui/v2/rich-content"
 import { cn } from "@/lib/utils"
 
 export interface FableSpecRendererProps {
@@ -25,12 +35,17 @@ export interface FableSpecRendererProps {
   data: unknown
   /** Local, host-curated image paths. Remote and protocol-relative paths fail closed. */
   assets?: unknown
+  /** Host-authorized link destinations and their visible labels. */
+  links?: unknown
   className?: string
 }
 
 function Unavailable({ label }: { label: string }) {
   return (
-    <p role="status" className="rounded-xl border border-dashed border-border px-3 py-3 text-sm text-muted-foreground">
+    <p
+      role="status"
+      className="rounded-xl border border-dashed border-border px-3 py-3 text-sm text-muted-foreground"
+    >
       {label} is unavailable.
     </p>
   )
@@ -41,26 +56,33 @@ function filterSelection(
   currentValue: string | undefined
 ) {
   const allowedValues = new Set(filter.options.map((option) => option.value))
-  return currentValue && allowedValues.has(currentValue) ? currentValue : filter.allValue
+  return currentValue && allowedValues.has(currentValue)
+    ? currentValue
+    : filter.allValue
 }
 
 export function FableSpecRenderer({
   spec,
   data,
   assets,
+  links,
   className,
 }: FableSpecRendererProps) {
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
   const parsedSpec = validateFableViewSpec(spec)
   const parsedData = FableViewDataSchema.safeParse(data)
   const parsedAssets = FableAssetCatalogSchema.safeParse(assets ?? {})
+  const parsedLinks = FableLinkCatalogSchema.safeParse(links ?? {})
 
   if (!parsedSpec.success) {
     return (
       <div
         role="status"
         data-fable-ui-error="invalid-spec"
-        className={cn("rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground", className)}
+        className={cn(
+          "rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground",
+          className
+        )}
       >
         This response layout could not be displayed safely.
       </div>
@@ -72,7 +94,10 @@ export function FableSpecRenderer({
       <div
         role="status"
         data-fable-ui-error="invalid-data"
-        className={cn("rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground", className)}
+        className={cn(
+          "rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground",
+          className
+        )}
       >
         Supporting data is unavailable.
       </div>
@@ -82,6 +107,7 @@ export function FableSpecRenderer({
   const specValue = parsedSpec.data
   const dataValue = parsedData.data
   const assetValue = parsedAssets.success ? parsedAssets.data : {}
+  const linkValue = parsedLinks.success ? parsedLinks.data : {}
 
   const renderNode = (id: string, depth = 0): React.ReactNode => {
     if (depth > 6 || !Object.hasOwn(specValue.elements, id)) return null
@@ -98,6 +124,14 @@ export function FableSpecRenderer({
       }
       case "RichText":
         return <FableRichText key={id} spans={element.props.spans} />
+      case "RichContent":
+        return (
+          <FableRichContent
+            key={id}
+            blocks={element.props.blocks}
+            links={linkValue}
+          />
+        )
       case "Metric": {
         const result = Object.hasOwn(dataValue, element.props.resultId)
           ? dataValue[element.props.resultId]
@@ -134,18 +168,30 @@ export function FableSpecRenderer({
 
         const currentFilter =
           filterResult?.kind === "filter"
-            ? filterSelection(filterResult, filterValues[element.props.filterId ?? ""])
+            ? filterSelection(
+                filterResult,
+                filterValues[element.props.filterId ?? ""]
+              )
             : undefined
         const allFilterValue =
           filterResult?.kind === "filter" ? filterResult.allValue : undefined
         const items = result.items.filter((item) => {
-          if (!element.props.filterId || currentFilter === allFilterValue) return true
+          if (!element.props.filterId || currentFilter === allFilterValue)
+            return true
           return item.filterValues?.[element.props.filterId] === currentFilter
         })
 
         return (
-          <section key={id} aria-label={result.label} className="min-w-0 space-y-3">
-            <FableTypography as="h3" level="heading" className="text-base sm:text-lg">
+          <section
+            key={id}
+            aria-label={result.label}
+            className="min-w-0 space-y-3"
+          >
+            <FableTypography
+              as="h3"
+              level="heading"
+              className="text-base sm:text-lg"
+            >
               {result.label}
             </FableTypography>
             {items.length > 0 ? (
@@ -165,7 +211,10 @@ export function FableSpecRenderer({
                 ))}
               </FableGrid>
             ) : (
-              <p role="status" className="rounded-xl bg-muted/50 px-4 py-5 text-sm text-muted-foreground">
+              <p
+                role="status"
+                className="rounded-xl bg-muted/50 px-4 py-5 text-sm text-muted-foreground"
+              >
                 No items match this filter.
               </p>
             )}
@@ -197,7 +246,10 @@ export function FableSpecRenderer({
         if (!result || result.kind !== "filter") {
           return <Unavailable key={id} label="Filter options" />
         }
-        const currentValue = filterSelection(result, filterValues[element.props.filterId])
+        const currentValue = filterSelection(
+          result,
+          filterValues[element.props.filterId]
+        )
         return (
           <FableFilterBar
             key={id}
@@ -206,7 +258,10 @@ export function FableSpecRenderer({
             value={currentValue}
             onValueChange={(value) => {
               if (result.options.some((option) => option.value === value)) {
-                setFilterValues((current) => ({ ...current, [element.props.filterId]: value }))
+                setFilterValues((current) => ({
+                  ...current,
+                  [element.props.filterId]: value,
+                }))
               }
             }}
           />
@@ -227,7 +282,9 @@ export function FableSpecRenderer({
         )
       }
       case "Stack": {
-        const children = element.children.map((childId) => renderNode(childId, depth + 1))
+        const children = element.children.map((childId) =>
+          renderNode(childId, depth + 1)
+        )
         return (
           <Stack
             key={id}
@@ -240,15 +297,27 @@ export function FableSpecRenderer({
       }
       case "Grid":
         return (
-          <FableGrid key={id} gap={element.props.gap} columns={element.props.columns}>
+          <FableGrid
+            key={id}
+            gap={element.props.gap}
+            columns={element.props.columns}
+          >
             {element.children.map((childId) => renderNode(childId, depth + 1))}
           </FableGrid>
         )
       case "Section":
         return (
-          <Section key={id} gap={element.props.gap} aria-label={element.props.title}>
+          <Section
+            key={id}
+            gap={element.props.gap}
+            aria-label={element.props.title}
+          >
             {element.props.title ? (
-              <FableTypography as="h3" level="heading" className="text-base sm:text-lg">
+              <FableTypography
+                as="h3"
+                level="heading"
+                className="text-base sm:text-lg"
+              >
                 {element.props.title}
               </FableTypography>
             ) : null}
@@ -257,7 +326,11 @@ export function FableSpecRenderer({
         )
       case "Surface":
         return (
-          <Surface key={id} variant={element.props.variant} padding={element.props.padding}>
+          <Surface
+            key={id}
+            variant={element.props.variant}
+            padding={element.props.padding}
+          >
             {element.children.map((childId) => renderNode(childId, depth + 1))}
           </Surface>
         )

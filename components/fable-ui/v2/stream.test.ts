@@ -20,6 +20,73 @@ const validSpec: FableViewSpec = {
 }
 
 describe("Fable UI v2 stream adapter", () => {
+  it("round-trips semantic rich content within the patch byte limit", () => {
+    const richSpec: FableViewSpec = {
+      root: "answer",
+      elements: {
+        answer: {
+          type: "RichContent",
+          props: {
+            blocks: [
+              {
+                type: "heading",
+                level: 2,
+                spans: [{ type: "text", text: "Résumé", mark: "strong" }],
+              },
+              {
+                type: "paragraph",
+                spans: [
+                  { type: "text", text: "東京 & Montréal", mark: "plain" },
+                ],
+              },
+              {
+                type: "code",
+                language: "ts",
+                code: "const answer = 42;\n",
+              },
+            ],
+          },
+          children: [],
+        },
+      },
+    }
+    const encoded = encodeFableSpecStream(richSpec)
+    const maxLineBytes = Math.max(
+      ...encoded
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => new TextEncoder().encode(line).byteLength)
+    )
+    const stream = createFableSpecStream()
+    for (let offset = 0; offset < encoded.length; offset += 31) {
+      stream.push(encoded.slice(offset, offset + 31))
+    }
+    const complete = stream.finish()
+
+    expect(maxLineBytes).toBeLessThan(16 * 1024)
+    expect(complete.complete).toBe(true)
+    expect(complete.spec).toEqual(richSpec)
+  })
+
+  it("refuses a rich element whose escaped JSON would exceed the wire limit", () => {
+    const oversizedEscapedContent = {
+      root: "answer",
+      elements: {
+        answer: {
+          type: "RichContent",
+          props: {
+            blocks: [{ type: "code", code: "\u0001".repeat(3000) }],
+          },
+          children: [],
+        },
+      },
+    } as unknown as FableViewSpec
+
+    expect(() => encodeFableSpecStream(oversizedEscapedContent)).toThrow(
+      "Cannot encode invalid Fable spec"
+    )
+  })
+
   it("compiles split JSONL chunks into validated progressive snapshots", () => {
     const stream = createFableSpecStream()
     const encoded = encodeFableSpecStream(validSpec)
@@ -42,13 +109,17 @@ describe("Fable UI v2 stream adapter", () => {
 
   it("retains the last valid view and rejects unknown props before compilation", () => {
     const stream = createFableSpecStream()
-    stream.push(`${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`)
+    stream.push(
+      `${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`
+    )
     const root = {
       type: "Stack",
       props: { direction: "vertical", gap: 2 },
       children: [],
     }
-    const valid = stream.push(`${JSON.stringify({ op: "add", path: "/elements/root", value: root })}\n`)
+    const valid = stream.push(
+      `${JSON.stringify({ op: "add", path: "/elements/root", value: root })}\n`
+    )
     expect(valid.spec?.root).toBe("root")
 
     const invalid = stream.push(
@@ -57,7 +128,11 @@ describe("Fable UI v2 stream adapter", () => {
         path: "/elements/answer",
         value: {
           type: "Text",
-          props: { content: "Unsafe style", level: "body", style: { color: "red" } },
+          props: {
+            content: "Unsafe style",
+            level: "body",
+            style: { color: "red" },
+          },
           children: [],
         },
       })}\n`
@@ -79,7 +154,9 @@ describe("Fable UI v2 stream adapter", () => {
 
   it("keeps partial content when the completed tree has a dangling reference", () => {
     const stream = createFableSpecStream()
-    stream.push(`${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`)
+    stream.push(
+      `${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`
+    )
     const partial = stream.push(
       `${JSON.stringify({
         op: "add",
@@ -101,7 +178,9 @@ describe("Fable UI v2 stream adapter", () => {
 
   it("keeps the current snapshot while a replacement root arrives", () => {
     const stream = createFableSpecStream()
-    stream.push(`${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`)
+    stream.push(
+      `${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`
+    )
     stream.push(
       `${JSON.stringify({
         op: "add",
@@ -141,7 +220,9 @@ describe("Fable UI v2 stream adapter", () => {
 
   it("bounds the current tree rather than accumulating nodes from prior roots", () => {
     const stream = createFableSpecStream()
-    stream.push(`${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`)
+    stream.push(
+      `${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`
+    )
     stream.push(
       `${JSON.stringify({
         op: "add",
@@ -182,7 +263,9 @@ describe("Fable UI v2 stream adapter", () => {
 
   it("cancels without discarding the last validated snapshot", () => {
     const stream = createFableSpecStream()
-    stream.push(`${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`)
+    stream.push(
+      `${JSON.stringify({ op: "add", path: "/root", value: "root" })}\n`
+    )
     stream.push(
       `${JSON.stringify({
         op: "add",
