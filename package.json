@@ -28,6 +28,7 @@
     "@ai-sdk/react": "^4.0.15",
     "@hugeicons/core-free-icons": "^4.2.2",
     "@hugeicons/react": "^1.1.9",
+    "@json-render/core": "0.21.3",
     "@openrouter/ai-sdk-provider": "^2.10.0",
     "@shadcn/react": "^0.2.0",
     "@tabler/icons-react": "^3.44.0",
