@@ -4,7 +4,7 @@ export const siteConfig = {
   name: "fable-ui",
   url: siteUrl,
   description:
-    "Copy-and-own AI-intent-aware UI components and blocks for Next.js, shadcn/ui, and the Vercel AI SDK.",
+    "Generative UI for your AI agent: copy-and-own shadcn/ui blocks your model streams as articles, tables, charts, forms, drafts and galleries.",
   links: {
     twitter: "",
     github: "https://github.com/shobky/fable-ui",
@@ -16,17 +16,9 @@ export const siteConfig = {
     hostedBaseUrl: process.env.NEXT_PUBLIC_FABLE_REGISTRY_URL ?? `${siteUrl}/r`,
   },
   navItems: [
-    {
-      href: "/",
-      label: "Home",
-    },
-    {
-      href: "/docs/introduction",
-      label: "Docs",
-    },
-    {
-      href: "/docs/components",
-      label: "Components",
-    },
+    { href: "/", label: "Home" },
+    { href: "/docs/introduction", label: "Docs" },
+    { href: "/docs/blocks", label: "Blocks" },
+    { href: "/playground", label: "Playground" },
   ],
 }

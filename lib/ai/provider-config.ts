@@ -33,8 +33,8 @@ export type ProviderReadiness = ProviderOption & {
 
 const providerOptions: ProviderOption[] = [
   { id: "google", label: "Google", defaultModel: "gemini-3.1-pro", envKey: "GOOGLE_GENERATIVE_AI_API_KEY" },
-  { id: "anthropic", label: "Anthropic", defaultModel: "claude-sonnet-5", envKey: "ANTHROPIC_API_KEY" },
-  { id: "openai", label: "OpenAI", defaultModel: "gpt-5.5-pro", envKey: "OPENAI_API_KEY" },
+  { id: "anthropic", label: "Anthropic", defaultModel: "claude-sonnet-5-5", envKey: "ANTHROPIC_API_KEY" },
+  { id: "openai", label: "OpenAI", defaultModel: "gpt-5.5", envKey: "OPENAI_API_KEY" },
   { id: "openrouter", label: "OpenRouter", defaultModel: "meta-llama/llama-4-maverick", envKey: "OPENROUTER_API_KEY" },
   { id: "mistral", label: "Mistral", defaultModel: "mistral-large-3", envKey: "MISTRAL_API_KEY" },
   { id: "deepseek", label: "DeepSeek", defaultModel: "deepseek-r1", envKey: "DEEPSEEK_API_KEY" },
@@ -43,23 +43,20 @@ const providerOptions: ProviderOption[] = [
 export const modelCatalog: Record<ProviderId, string[]> = {
   google: [
     "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
-    "gemini-3.1-pro-preview",
-    "gemini-3-flash-preview",
+    "gemini-3.1-pro",
+    "gemini-3.1-flash-lite"
   ],
   anthropic: [
-    "claude-opus-4.8",
-    "claude-sonnet-5",
-    "claude-sonnet-4.6",
-    "claude-fable-5",
-    "claude-haiku-4.5"
+    "claude-sonnet-5-5",
+    "claude-opus-5-5",
+    "claude-haiku-5-5",
+    "claude-fable-5-1"
   ],
   openai: [
-    "gpt-5.5-pro",
+    "gpt-6.1-sol",
+    "gpt-6-luna",
     "gpt-5.5",
-    "gpt-5.4-pro",
-    "gpt-5.4",
-    "gpt-5-mini"
+    "gpt-5.4-mini"
   ],
   openrouter: [
     "meta-llama/llama-4-maverick",

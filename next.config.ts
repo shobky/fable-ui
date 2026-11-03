@@ -19,9 +19,10 @@ const nextConfig: NextConfig = {
         return [
             {
                 source: "/components",
-                destination: "/docs/components/metric-card",
+                destination: "/docs/blocks",
                 permanent: true,
             },
+            { source: "/chat", destination: "/playground", permanent: false },
             {
                 source: "/docs",
                 destination: "/docs/introduction",

@@ -25,7 +25,7 @@ export function SiteHeader() {
 
             <div className="flex items-center gap-2 ml-2 group-has-data-[slot=designer]/layout:hidden">
               <Button asChild size="sm" className="h-[31px] rounded-lg">
-                <Link href="/chat">
+                <Link href="/playground">
                   Playground
                 </Link>
               </Button>

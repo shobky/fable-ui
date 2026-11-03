@@ -1,0 +1,230 @@
+{
+  "model": "openai/gpt-5.4-mini",
+  "date": "2026-11-03T07:52:57.156Z",
+  "cases": 12,
+  "toolSchemaTokens": 6856,
+  "uiChoice": 1,
+  "validity": 1,
+  "strictSchema": 1,
+  "expectedBlock": 1,
+  "imagesFromTool": 1,
+  "medianMs": 4007,
+  "results": [
+    {
+      "id": "greeting",
+      "usedUi": false,
+      "uiChoiceCorrect": true,
+      "valid": null,
+      "strictSchema": null,
+      "issues": [],
+      "expectedBlock": null,
+      "blocks": [],
+      "imagesFromTool": true,
+      "ms": 2729,
+      "inputTokens": 6876,
+      "outputTokens": 13
+    },
+    {
+      "id": "fact",
+      "usedUi": false,
+      "uiChoiceCorrect": true,
+      "valid": null,
+      "strictSchema": null,
+      "issues": [],
+      "expectedBlock": null,
+      "blocks": [],
+      "imagesFromTool": true,
+      "ms": 2344,
+      "inputTokens": 6879,
+      "outputTokens": 7
+    },
+    {
+      "id": "compare",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "markdown",
+        "table",
+        "columns",
+        "heading",
+        "list",
+        "heading",
+        "list",
+        "heading",
+        "list",
+        "callout",
+        "markdown",
+        "actions"
+      ],
+      "imagesFromTool": true,
+      "ms": 6127,
+      "inputTokens": 6888,
+      "outputTokens": 890
+    },
+    {
+      "id": "trend",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "metrics",
+        "chart",
+        "markdown",
+        "actions"
+      ],
+      "imagesFromTool": true,
+      "ms": 3775,
+      "inputTokens": 6906,
+      "outputTokens": 404
+    },
+    {
+      "id": "kpis",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "metrics",
+        "markdown",
+        "actions"
+      ],
+      "imagesFromTool": true,
+      "ms": 3034,
+      "inputTokens": 6915,
+      "outputTokens": 277
+    },
+    {
+      "id": "article",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "article"
+      ],
+      "imagesFromTool": true,
+      "ms": 4007,
+      "inputTokens": 6886,
+      "outputTokens": 423
+    },
+    {
+      "id": "email",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "email",
+        "actions"
+      ],
+      "imagesFromTool": true,
+      "ms": 3302,
+      "inputTokens": 6888,
+      "outputTokens": 240
+    },
+    {
+      "id": "template",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "template",
+        "actions"
+      ],
+      "imagesFromTool": true,
+      "ms": 4180,
+      "inputTokens": 6888,
+      "outputTokens": 571
+    },
+    {
+      "id": "clarify",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "hero",
+        "form",
+        "actions"
+      ],
+      "imagesFromTool": true,
+      "ms": 4539,
+      "inputTokens": 6888,
+      "outputTokens": 417
+    },
+    {
+      "id": "howto",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "markdown",
+        "list",
+        "code",
+        "callout",
+        "actions"
+      ],
+      "imagesFromTool": true,
+      "ms": 4700,
+      "inputTokens": 6887,
+      "outputTokens": 660
+    },
+    {
+      "id": "photos",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "hero",
+        "gallery",
+        "list",
+        "actions"
+      ],
+      "imagesFromTool": true,
+      "ms": 6420,
+      "inputTokens": 14133,
+      "outputTokens": 658
+    },
+    {
+      "id": "export",
+      "usedUi": true,
+      "uiChoiceCorrect": true,
+      "valid": true,
+      "strictSchema": true,
+      "issues": [],
+      "expectedBlock": true,
+      "blocks": [
+        "file",
+        "actions"
+      ],
+      "imagesFromTool": true,
+      "ms": 2662,
+      "inputTokens": 6899,
+      "outputTokens": 166
+    }
+  ]
+}

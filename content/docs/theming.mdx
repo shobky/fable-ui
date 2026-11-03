@@ -1,0 +1,53 @@
+---
+title: Theming
+description: Use your shadcn theme, or one of six presets.
+---
+
+Fable blocks use only shadcn's semantic variables: `--background`, `--foreground`, `--card`, `--primary`, `--secondary`, `--muted`, `--accent`, `--border`, `--ring`, `--destructive`, `--chart-1` to `--chart-5` and `--radius`, plus `font-heading`. There are no hard-coded brand colors.
+
+## Use your own theme
+
+Generate a theme in the [shadcn customizer](https://ui.shadcn.com/themes), paste its `:root` and `.dark` blocks into your global CSS, and you're done. Check that `--chart-1…5` are distinguishable from each other: charts and donut slices use them in order.
+
+## Presets
+
+```bash
+npx shadcn@latest add https://fable-ui.shobky.com/r/fable-themes.json
+```
+
+```css title="app/globals.css"
+@import "tailwindcss";
+@import "../styles/fable-themes.css";
+```
+
+Then set the preset on `<html>`, or on any wrapper to theme just the chat:
+
+```tsx
+<html data-fable-theme="cobalt">
+```
+
+| Preset | Character | Radius | Headings |
+| --- | --- | --- | --- |
+| `neutral` | Quiet grayscale, multi-hue charts | 10px | Sans |
+| `cobalt` | Cool blue-gray, product UI | 12px | Sans |
+| `moss` | Deep green, calm | 8px | Sans |
+| `rose` | Warm raspberry, friendly | 16px | `--font-display` |
+| `editorial` | Ink on paper, high contrast | 4px | `--font-serif` |
+| `midnight` | Violet, dark-first | 14px | `--font-display` |
+
+Dark mode follows the `.dark` class, as in every shadcn app. When a preset lives on a wrapper rather than `<html>`, dialogs and menus render in a portal outside it; apply the preset to `<html>` if that matters.
+
+## Fonts
+
+Presets point headings at `--font-serif` or `--font-display` when those exist and fall back to your sans. Load them with `next/font`:
+
+```tsx title="app/layout.tsx"
+import { Bricolage_Grotesque, Newsreader } from "next/font/google"
+
+const serif = Newsreader({ subsets: ["latin"], variable: "--font-serif" })
+const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display" })
+```
+
+## Changing the components
+
+Every block is a file in `components/fable-ui/blocks`. Change spacing, borders or type there; the shared surface style is one constant, `surface`, in `blocks/shared.tsx`.

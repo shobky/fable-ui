@@ -1,0 +1,10 @@
+// Client entry. Server code imports from "./tool", "./prompt" and "./schema" directly.
+export { FableProvider, FableScope, useFable, useFableState } from "./provider"
+export type { FableConfig, FableHostAction } from "./provider"
+export { FableRenderer } from "./renderer"
+export type { FableRendererProps } from "./renderer"
+export { FableToolPart, isFableToolPart } from "./tool-part"
+export type { FableToolPartLike } from "./tool-part"
+export { specToMarkdown } from "./to-markdown"
+export { resolveSpec } from "./resolve"
+export type * from "./schema"

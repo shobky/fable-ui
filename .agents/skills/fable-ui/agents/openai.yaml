@@ -1,4 +1,4 @@
 interface:
   display_name: "Fable UI"
-  short_description: "Install and integrate Fable UI safely"
-  default_prompt: "Use $fable-ui to inspect this app and install the smallest complete Fable UI setup for my requested experience."
+  short_description: "Add generative UI blocks to an AI SDK chat in Next.js"
+  default_prompt: "Use $fable-ui to add Fable UI to this app and verify it."

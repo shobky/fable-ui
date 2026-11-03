@@ -4,12 +4,13 @@
     "introduction",
     "installation",
     "agent-setup",
-    "registry",
-    "manifests",
-    "tool-definitions",
-    "ai-sdk-integration",
-    "data-sources",
-    "components",
-    "architecture"
+    "blocks",
+    "streaming",
+    "actions",
+    "theming",
+    "security",
+    "custom-blocks",
+    "architecture",
+    "evaluation"
   ]
 }

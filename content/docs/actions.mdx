@@ -1,0 +1,60 @@
+---
+title: Actions
+description: Buttons, forms and side effects — and who decides what runs.
+---
+
+The model can put actions on `actions`, `cards` and `hero` blocks. Forms, templates and email drafts have their own controls. Every action is one of five kinds:
+
+| Kind | What happens | Controlled by |
+| --- | --- | --- |
+| `reply` | Sends `message` as the user's next message | `onReply` on `FableProvider` |
+| `link` | Opens an `https`, `http` or `mailto` URL in a new tab | URL policy |
+| `copy` | Copies text to the clipboard | — |
+| `download` | Saves model-written text as a file. Types: txt, md, csv, json, ics | MIME allowlist |
+| `host` | Runs a handler your app registered by name | Your `actions` map |
+
+## Host actions
+
+Register side effects explicitly. Anything else the model names renders disabled with an explanation.
+
+```tsx
+<FableProvider
+  onReply={(text) => sendMessage({ text })}
+  actions={{
+    "email.send": {
+      confirm: "Send this email?",
+      run: async ({ to, subject, body }) => {
+        await sendEmail({ to: String(to), subject: String(subject), body: String(body) })
+        return "Sent"
+      },
+    },
+  }}
+>
+```
+
+- `confirm` adds an inline Confirm / Cancel step before `run`.
+- Throw to show an error; return a string to show a success note.
+- The payload is model-written. Validate it in `run` and authorize on the server as you would any user input.
+
+Tell the model which actions exist, so it doesn't invent names:
+
+```ts
+fableSystemPrompt({ hostActions: { "email.send": "sends an email draft; pass to, subject and body" } })
+```
+
+## Forms
+
+Submitting a form sends a readable message such as:
+
+```text
+Dinner details:
+- Guests: 8
+- Style: Family style
+- Dietary needs: Vegetarian
+```
+
+The model sees exactly what the user sees. To also receive structured data, read the latest user message in your route; the labels and values are stable.
+
+## Read-only while streaming
+
+`FableChat` passes `readOnly` while a response streams, so a click can't start a second turn mid-answer. Pass it yourself if you build your own chat.

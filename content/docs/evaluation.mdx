@@ -1,0 +1,33 @@
+---
+title: Evaluation
+description: Measure how well a model composes answers with Fable.
+---
+
+The repository includes a live evaluation that runs the playground agent against real prompts and checks the result.
+
+```bash
+pnpm eval                       # provider and model from FABLE_UI_EVAL_PROVIDER / FABLE_UI_EVAL_MODEL
+pnpm eval openai gpt-6.1-sol    # or name them
+```
+
+It costs money, so it only runs through `pnpm eval` with a key in `.env.local`. `FABLE_UI_EVAL_MAX_PROMPTS` caps the number of cases.
+
+## What it checks
+
+| Metric | Meaning |
+| --- | --- |
+| UI choice | Used `render_ui` when structure helps, plain text for greetings and single facts |
+| Validity | Every block, including nested ones, passed strict validation |
+| Expected block | Picked a block that fits the request (a table for a comparison, a form for a clarifying question…) |
+| Images from tool | Every image URL came from the `search_images` tool, none invented |
+| Latency, tokens | Wall time and usage per case |
+
+Reports are written to `evals/results/<provider>-<model>-<date>.json`.
+
+## Offline checks
+
+`pnpm test` runs without a model. It validates every block example and playground scenario, replays each scenario at hundreds of partial-JSON prefixes to check that streaming never throws and keys stay stable, and tests the URL, image, filename and CSV policies.
+
+## Results
+
+The latest results are in [`evals/results`](https://github.com/shobky/fable-ui/tree/main/evals/results) and summarized in the README. Results depend on the model; run the eval with yours before relying on them.
