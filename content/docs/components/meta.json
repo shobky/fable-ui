@@ -10,6 +10,7 @@
     "charts",
     "text-editor-card",
     "email-composer-card",
-    "code-block-card"
+    "code-block-card",
+    "v2"
   ]
 }

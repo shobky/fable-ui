@@ -643,6 +643,96 @@
           "target": "~/docs/fable-ui/quickstart.md"
         }
       ]
+    },
+    {
+      "name": "v2-primitives",
+      "type": "registry:component",
+      "title": "Fable UI v2 Primitives (Experimental)",
+      "description": "Provider-free React layout, semantic rich content, typography, metric, entity, chart, filter, and local-image components.",
+      "files": [
+        {
+          "path": "components/fable-ui/v2/index.ts",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/index.ts"
+        },
+        {
+          "path": "components/fable-ui/v2/layout.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/layout.tsx"
+        },
+        {
+          "path": "components/fable-ui/v2/asset-utils.ts",
+          "type": "registry:lib",
+          "target": "@components/fable-ui/v2/asset-utils.ts"
+        },
+        {
+          "path": "components/fable-ui/v2/typography.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/typography.tsx"
+        },
+        {
+          "path": "components/fable-ui/v2/rich-content-utils.ts",
+          "type": "registry:lib",
+          "target": "@components/fable-ui/v2/rich-content-utils.ts"
+        },
+        {
+          "path": "components/fable-ui/v2/rich-content.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/rich-content.tsx"
+        },
+        {
+          "path": "components/fable-ui/v2/metric-card.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/metric-card.tsx"
+        },
+        {
+          "path": "components/fable-ui/v2/entity-card.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/entity-card.tsx"
+        },
+        {
+          "path": "components/fable-ui/v2/chart.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/chart.tsx"
+        },
+        {
+          "path": "components/fable-ui/v2/filter-bar.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/filter-bar.tsx"
+        },
+        {
+          "path": "components/fable-ui/v2/media-image.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/media-image.tsx"
+        }
+      ]
+    },
+    {
+      "name": "v2-renderer",
+      "type": "registry:lib",
+      "title": "Fable UI v2 Renderer (Experimental)",
+      "description": "Strict host-data, host-link, rich-content, and bounded JSONL patch renderer for Fable UI v2.",
+      "dependencies": ["@json-render/core@0.21.3", "zod"],
+      "registryDependencies": [
+        "https://fable-ui.shobky.com/r/v2-primitives.json"
+      ],
+      "files": [
+        {
+          "path": "components/fable-ui/v2/catalog.ts",
+          "type": "registry:lib",
+          "target": "@components/fable-ui/v2/catalog.ts"
+        },
+        {
+          "path": "components/fable-ui/v2/stream.ts",
+          "type": "registry:lib",
+          "target": "@components/fable-ui/v2/stream.ts"
+        },
+        {
+          "path": "components/fable-ui/v2/renderer.tsx",
+          "type": "registry:component",
+          "target": "@components/fable-ui/v2/renderer.tsx"
+        }
+      ]
     }
   ]
 }

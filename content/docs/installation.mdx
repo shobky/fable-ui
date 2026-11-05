@@ -44,7 +44,9 @@ Do not write `FABLE_AI_API_KEY=$OPENAI_API_KEY`: `.env.local` does not expand sh
 
 ## Full catalog
 
-All 13 public items use the hosted URL form below. `core` is directly installable, but surface items normally bring it in transitively.
+The 13 stable v1 items remain available. Two experimental v2 items are additive; `v2-renderer` installs `v2-primitives` as a registry dependency. `core` is directly installable, but v1 surface items normally bring it in transitively.
+
+The v2 install commands below describe this draft branch. Their canonical registry URLs will resolve after the branch's registry files are deployed; this draft has not published them to production.
 
 | Item                  | Category      | Tool or role                                                  |
 | --------------------- | ------------- | ------------------------------------------------------------- |
@@ -61,6 +63,8 @@ All 13 public items use the hosted URL form below. `core` is directly installabl
 | `rest-driver`         | Driver        | Host-owned REST adapter                                       |
 | `firebase-driver`     | Driver        | Host-owned Firestore adapter                                  |
 | `quickstart`          | Example block | Minimal two-tool chat                                         |
+| `v2-primitives`       | Experimental  | Provider-free layout, typography, metric, entity, chart, filter, and media components |
+| `v2-renderer`         | Experimental  | Strict streamed renderer for host-owned typed results        |
 
 ```bash
 # Foundation
@@ -83,7 +87,13 @@ pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/firebase-driver.json
 
 # Minimal example chat
 pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/quickstart.json
+
+# Experimental composable components; neither item changes a v1 integration
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/v2-primitives.json
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/v2-renderer.json
 ```
+
+The v2 playground is available at `/v2/playground`. It streams a deterministic fixture without a model key. Install only `v2-primitives` for ordinary React components; add `v2-renderer` when using the optional JSONL protocol adapter.
 
 ## Installed target categories
 

@@ -1,6 +1,6 @@
 # Fable UI
 
-Fable UI is a copy-and-own shadcn registry for AI-intent-aware product UI in Next.js. It pairs trusted React surfaces with Zod-validated AI SDK tool contracts, model-facing manifests, and examples so an assistant can select a bounded UI instead of emitting untrusted HTML or JSX.
+Fable UI is a copy-and-own shadcn registry for product interfaces in Next.js. Its stable v1 items pair trusted React surfaces with Zod-validated AI SDK tool contracts. The experimental v2 adds provider-free typography, composable layouts, data views, and a strict optional renderer for host-owned results.
 
 The host application still owns data access, authentication, authorization, validation, persistence, and every side effect.
 
@@ -35,7 +35,7 @@ Do not write `FABLE_AI_API_KEY=$OPENAI_API_KEY`: `.env.local` does not do shell-
 
 ## Registry catalog
 
-All 13 public items are available from the hosted origin:
+The 13 stable v1 items remain available. Two experimental v2 items add a separate, opt-in path:
 
 | Item                  | Category      | Tool or responsibility                                                                                  |
 | --------------------- | ------------- | ------------------------------------------------------------------------------------------------------- |
@@ -52,6 +52,8 @@ All 13 public items are available from the hosted origin:
 | `rest-driver`         | Driver        | Host-owned REST resource adapter                                                                        |
 | `firebase-driver`     | Driver        | Host-owned Firestore resource adapter                                                                   |
 | `quickstart`          | Example block | Minimal two-tool chat at `/fable-chat`                                                                  |
+| `v2-primitives`       | Experimental  | Provider-free layout, rich typography, metric, entity, chart, filter, and media components              |
+| `v2-renderer`         | Experimental  | Strict JSONL stream adapter and host-owned result resolver; installs `v2-primitives` as a dependency     |
 
 Install items one at a time when adopting them into an existing app:
 
@@ -76,7 +78,17 @@ pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/firebase-driver.json
 
 # Minimal example chat
 pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/quickstart.json
+
+# Experimental composable components (no AI SDK or Fable data provider)
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/v2-primitives.json
+
+# Optional experimental streamed renderer (also installs v2-primitives)
+pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/v2-renderer.json
 ```
+
+The v2 playground at `/v2/playground` uses deterministic sample data and makes no model or provider request. See [the v2 component guide](https://fable-ui.shobky.com/docs/components/v2) for the host-data boundary and current limitations.
+
+The v2 install commands describe this draft branch. Their canonical registry URLs become available after the branch's registry files are deployed; this draft has not published them to production.
 
 ## What installs where
 
