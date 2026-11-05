@@ -30,8 +30,9 @@ yarn-error.log*
 pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+config.bat
+.env*
