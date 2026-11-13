@@ -3,7 +3,7 @@ import { tool } from "ai"
 import { listIssues, resolveSpec } from "./resolve"
 import { createFableToolSchema, type ContentBlockType } from "./schema"
 
-export const FABLE_TOOL_NAME = "render_ui"
+export { FABLE_TOOL_NAME } from "./protocol"
 
 export interface FableToolOptions {
   /** Restrict the catalog. Fewer blocks: shorter schema, better picks. */

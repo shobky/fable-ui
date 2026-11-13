@@ -43,7 +43,14 @@ export function FableProvider({ children, ...config }: FableConfig & { children:
 
 /** Scopes widget state to one response (usually the tool call id). */
 export function FableScope({ id, children }: { id: string; children: React.ReactNode }) {
-  return <ScopeContext.Provider value={id}>{children}</ScopeContext.Provider>
+  // Changing a scope must switch the entire widget subtree to that scope's
+  // stored values. The keyed fragment remounts descendants when an embedding
+  // reuses the same component tree for a different surface id.
+  return (
+    <ScopeContext.Provider value={id}>
+      <React.Fragment key={id}>{children}</React.Fragment>
+    </ScopeContext.Provider>
+  )
 }
 
 export function useFable() {

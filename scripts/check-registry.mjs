@@ -11,6 +11,23 @@ const errors = []
 const items = new Map(registry.items.map((item) => [item.name, item]))
 const ownName = (url) => url.match(/\/r\/([\w-]+)\.json$/)?.[1]
 
+const renderer = items.get("fable-renderer")
+if (renderer) {
+  const rendererFiles = renderer.files.map((file) => file.path)
+  const rendererDeps = renderer.dependencies ?? []
+  if (rendererDeps.some((dep) => /^(?:ai|@ai-sdk\/)/.test(dep))) {
+    errors.push("fable-renderer: renderer-only item must not depend on the AI SDK")
+  }
+  if (rendererFiles.some((file) => /(?:tool\.ts|tool-part|prompt\.ts|\/chat\/)/.test(file))) {
+    errors.push("fable-renderer: renderer-only item includes an AI adapter or chat file")
+  }
+}
+
+const aiAdapter = items.get("fable-ai")
+if (aiAdapter && !aiAdapter.registryDependencies?.includes("https://fable-ui.shobky.com/r/fable-renderer.json")) {
+  errors.push("fable-ai: adapter must depend on the renderer registry item")
+}
+
 function itemFiles(item, seen = new Set()) {
   if (seen.has(item.name)) return []
   seen.add(item.name)

@@ -14,6 +14,7 @@
     "registry:build": "shadcn build registry.json --output public/r",
     "registry:check": "node scripts/check-registry.mjs",
     "registry:smoke": "node scripts/smoke-install.mjs",
+    "registry:smoke:renderer": "node scripts/smoke-renderer.mjs",
     "skill:build": "node scripts/build-agent-skill.mjs --replace",
     "skill:check": "node scripts/build-agent-skill.mjs --check",
     "screenshots": "node scripts/screenshot.mjs"
@@ -64,6 +65,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "fake-indexeddb": "^6.2.8",
     "jsdom": "^30.0.1",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",

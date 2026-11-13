@@ -1,19 +1,49 @@
 ---
 title: Installation
-description: Add Fable UI to a new or existing Next.js app.
+description: Add a surface to an existing app, connect your chat, or install the optional starter.
 ---
 
 ## Requirements
 
 | | Tested | Notes |
 | --- | --- | --- |
-| Next.js | 16 (App Router) | 15 works; the route and page are plain App Router files. |
+| Next.js | 16.2.6 repository; 16.4.6 clean consumer | App Router; other versions require consumer verification. |
+| Vite | 8.3.8 clean React consumer | Renderer-only path, `src/` layout and `@/*` alias; TypeScript 7.0.2. |
 | React | 19 | |
 | Tailwind CSS | v4 | Blocks use container queries (`@container`, `@lg:`), built into v4. |
-| shadcn/ui | any style | Run `npx shadcn@latest init` first. Blocks inherit your style and tokens. |
-| AI SDK | 7 (`ai`, `@ai-sdk/react`) | Any provider package works. |
+| shadcn/ui | Radix primitives | Initialize the host with Radix (`pnpm dlx shadcn@latest init --base radix --preset nova`). Base UI and React Aria are not compatible with the current blocks. |
+| AI SDK | 7 (`ai`, `@ai-sdk/react`) | Needed for the chat adapter and starter; direct renderer imports do not use it. |
 
 Prefer to let your coding agent do it? Copy a prompt from [Agent setup](/docs/agent-setup).
+
+## Render JSON in an existing panel
+
+You can render host-provided JSON without changing your backend or adopting the chat shell:
+
+The new `fable-renderer` registry item installs the renderer and blocks without the AI SDK. It currently includes Recharts. The optional `fable-ai` item adds the AI SDK tool, prompt and tool-part adapter. The existing `fable-ui` item remains the convenience bundle.
+
+These items must be served from a built registry. For a local checkout, run `pnpm registry:build` and serve `public/r`; install `<registry-origin>/r/fable-renderer.json` using `pnpm dlx shadcn@latest add`. The public registry URLs are not yet verified for release; use your local registry until deployment is checked.
+
+```tsx
+"use client"
+
+import { FableProvider, FableRenderer } from "@/components/fable-ui/renderer-only"
+
+export function ResearchPanel() {
+  return (
+    <FableProvider>
+      <FableRenderer id="research-summary" spec={{ blocks: [
+        { type: "heading", text: "Research summary" },
+        { type: "markdown", text: "Your application's data goes here." },
+      ] }} />
+    </FableProvider>
+  )
+}
+```
+
+The renderer validates the spec. Your app owns loading, errors, cancellation and data fetching. For partial JSON, set `streaming` only while receiving data, then set it to `false` on completion, cancellation or failure. The renderer settles valid blocks and removes incomplete blocks. Diagnostics are opt-in with `debug`; the renderer does not depend on Node environment globals.
+
+Use a unique, stable `id` for surfaces that must retain edits across remounts. Omitted IDs isolate mounted renderer instances. State lives only for the lifetime of the surrounding provider; it is not saved to browser storage. Blocks currently use positional identity: replacing or reordering mutable content requires a new surface ID to avoid reusing another block's edits.
 
 ## Option A — a complete chat (new apps)
 
@@ -54,7 +84,7 @@ npx shadcn@latest add https://fable-ui.shobky.com/r/fable-ui.json
 **Server.** Add the tool and the prompt to your `streamText` call:
 
 ```ts title="app/api/chat/route.ts"
-import { hasToolCall, stepCountIs, streamText } from "ai"
+import { convertToModelMessages, hasToolCall, stepCountIs, streamText } from "ai"
 import { fableSystemPrompt } from "@/components/fable-ui/prompt"
 import { FABLE_TOOL_NAME, fableTool } from "@/components/fable-ui/tool"
 
@@ -73,12 +103,18 @@ const result = streamText({
 ```tsx
 import { FableProvider, FableToolPart, isFableToolPart } from "@/components/fable-ui"
 
-<FableProvider onReply={(text) => sendMessage({ text })} readOnly={status === "streaming"}>
+const busy = status === "submitted" || status === "streaming"
+
+<FableProvider onReply={(text) => sendMessage({ text })} readOnly={busy}>
   {message.parts.map((part, index) =>
-    isFableToolPart(part) ? <FableToolPart key={part.toolCallId} part={part} /> : <YourPart key={index} part={part} />
+    isFableToolPart(part) ? (
+      <FableToolPart key={part.toolCallId} part={part} active={busy && message.id === activeMessageId} />
+    ) : <YourPart key={index} part={part} />
   )}
 </FableProvider>
 ```
+
+Derive `activeMessageId` from your host's currently streaming assistant response. Historical parts must receive `active={false}`, including while a later response is streaming. On stop, transport failure or history replay, idle parts settle and show an interruption notice when appropriate. Keep your existing transport, history and authentication. Registered host actions still require server validation and authorization.
 
 ## Fonts and themes
 
@@ -95,6 +131,6 @@ Fable reads your existing shadcn variables, so it already matches your theme. Fo
 - **Windows / PowerShell**: if `pnpm` is blocked by the execution policy, use `pnpm.cmd dlx shadcn@latest add …`.
 - **Existing files**: the CLI asks before overwriting. Don't pass `--overwrite` for files you changed.
 - **Path aliases**: imports use `@/components/...` and `@/lib/utils`. Keep `components.json` aliases in sync with `tsconfig.json`.
-- **Edge runtime**: the route works on Node and Edge; nothing in Fable uses Node APIs.
+- **Runtime**: the starter uses the host's route runtime. Verify your provider and dependencies before selecting Edge.
 - **Long histories**: every past spec is sent back to the model. The route keeps the last 40 messages; lower it if your answers are large.
 - **Images**: nothing loads from a host you haven't allowed. See [Security](/docs/security#images).

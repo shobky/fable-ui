@@ -26,9 +26,9 @@ export interface FableRendererProps {
   spec: unknown
   /** True while the tool input is still streaming. */
   streaming?: boolean
-  /** Scopes widget state; use the tool call id. */
+  /** Scopes widget state; use a stable surface or tool call id. */
   id?: string
-  /** Show why a block was dropped. Off in production by default. */
+  /** Show why a block was dropped. Off by default; enable in your host's development UI. */
   debug?: boolean
   className?: string
 }
@@ -209,13 +209,15 @@ function Items({ items, debug }: { items: Resolved[]; debug?: boolean }) {
  * Renders a Fable spec. Accepts partial input while streaming: finished
  * blocks render as they close, the open block streams or holds its space.
  */
-export function FableRenderer({ spec, streaming = false, id = "fable", debug, className }: FableRendererProps) {
+export function FableRenderer({ spec, streaming = false, id, debug, className }: FableRendererProps) {
+  const instanceId = React.useId()
+  const rootId = id ?? `fable-${instanceId}`
   const resolved = React.useMemo(() => resolveSpec(spec, streaming), [spec, streaming])
-  const showDebug = debug ?? process.env.NODE_ENV === "development"
+  const showDebug = debug ?? false
 
   return (
     <TooltipProvider delayDuration={300}>
-      <RootScope.Provider value={id}>
+      <RootScope.Provider value={rootId} key={rootId}>
         <div
           data-fable-ui=""
           data-streaming={streaming || undefined}

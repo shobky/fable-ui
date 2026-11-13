@@ -3,7 +3,7 @@
 import { AlertCircleIcon } from "lucide-react"
 
 import { FableRenderer } from "./renderer"
-import { FABLE_TOOL_NAME } from "./tool"
+import { FABLE_TOOL_NAME } from "./protocol"
 
 /** The subset of an AI SDK tool UI part that Fable reads. */
 export interface FableToolPartLike {
@@ -21,7 +21,7 @@ export function isFableToolPart(part: { type: string }, toolName = FABLE_TOOL_NA
 /**
  * Drop-in renderer for `tool-render_ui` parts from `useChat`:
  *
- *   message.parts.map((part) => isFableToolPart(part) ? <FableToolPart part={part} /> : …)
+ *   message.parts.map((part) => isFableToolPart(part) ? <FableToolPart part={part} active={isActiveResponse} /> : …)
  */
 export function FableToolPart({
   part,

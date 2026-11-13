@@ -4,9 +4,6 @@ import path from "path"
 
 const nextConfig: NextConfig = {
     devIndicators: false,
-    typescript: {
-        ignoreBuildErrors: true,
-    },
     images: {
         remotePatterns: [
         ],

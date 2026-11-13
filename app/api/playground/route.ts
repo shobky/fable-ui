@@ -9,14 +9,9 @@ import {
   type UIMessage,
 } from "ai"
 
-import { FABLE_TOOL_NAME } from "@/components/fable-ui/tool"
-import {
-  getConfiguredModel,
-  getProviderReadiness,
-  isModelForProvider,
-  modelCatalog,
-  resolveProviderConfig,
-} from "@/lib/ai/provider-config"
+import { FABLE_TOOL_NAME } from "@/components/fable-ui/protocol"
+import { getProvider, isKnownModel, isProviderId, PROVIDERS } from "@/lib/ai/models"
+import { createModel, serverReadiness } from "@/lib/ai/provider-config"
 import { PLAYGROUND_SYSTEM, playgroundTools as tools } from "@/lib/playground/agent"
 import { demoAgentResponse } from "@/lib/playground/demo-agent"
 
@@ -28,8 +23,13 @@ type ChatMessage = UIMessage<unknown, UIDataTypes, InferUITools<typeof tools>>
 
 /** Which providers have server keys, for the playground's live-mode picker. */
 export function GET() {
+  const readiness = serverReadiness()
   return Response.json(
-    getProviderReadiness().map(({ id, label, defaultModel, isConfigured }) => ({ id, label, defaultModel, isConfigured, models: modelCatalog[id] })),
+    PROVIDERS.map(({ id, label, defaultModel, models }) => ({
+      id, label, defaultModel,
+      isConfigured: process.env.NODE_ENV !== "production" && readiness[id],
+      models: models.map((model) => model.id),
+    })),
     { headers: { "Cache-Control": "no-store" } }
   )
 }
@@ -38,6 +38,9 @@ export async function POST(request: Request) {
   let body: { messages?: unknown; mode?: string; provider?: string; model?: string; speed?: number }
   try {
     body = await request.json()
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Expected an object")
+    if (body.provider !== undefined && typeof body.provider !== "string") throw new Error("Invalid provider")
+    if (body.model !== undefined && typeof body.model !== "string") throw new Error("Invalid model")
   } catch {
     return new Response("Invalid JSON", { status: 400 })
   }
@@ -55,14 +58,22 @@ export async function POST(request: Request) {
     return demoAgentResponse(messages, request.signal, speed)
   }
 
-  const config = resolveProviderConfig(body.provider, body.model)
-  const ready = getProviderReadiness().find((provider) => provider.id === config.provider)?.isConfigured
-  if (!ready || !isModelForProvider(config.provider, config.model)) {
+  // The public demo must never spend an unbounded server credential. A host
+  // deploying paid live mode must supply its own authenticated usage boundary.
+  if (process.env.NODE_ENV === "production") {
+    return new Response("Server-funded live mode is disabled in the public playground.", { status: 403 })
+  }
+  if (body.provider !== undefined && !isProviderId(body.provider)) {
+    return new Response("Unknown provider.", { status: 400 })
+  }
+  const provider = body.provider ?? (isProviderId(process.env.AI_PROVIDER) ? process.env.AI_PROVIDER : "google")
+  const model = body.model ?? (body.provider ? getProvider(provider).defaultModel : process.env.AI_MODEL || getProvider(provider).defaultModel)
+  if (!serverReadiness()[provider] || !isKnownModel(provider, model)) {
     return new Response("Live mode is not configured for this provider. Add its API key to .env.local.", { status: 400 })
   }
 
   const result = streamText({
-    model: getConfiguredModel(config),
+    model: createModel(provider, model),
     system: PLAYGROUND_SYSTEM,
     messages: await convertToModelMessages(messages, { tools }),
     tools,

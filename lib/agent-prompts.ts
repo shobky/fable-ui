@@ -11,8 +11,8 @@ export const AGENT_PROMPTS = {
     prompt: `Set up Fable UI (generative UI blocks for AI chat) in this Next.js app.
 
 1. Check prerequisites and stop to tell me if any fail:
-   - Next.js 15+ with the App Router, React 19, Tailwind CSS v4.
-   - shadcn/ui is initialized (components.json exists). If not, run \`npx shadcn@latest init\` and accept the defaults.
+   - Next.js 16 with the App Router, React 19, Tailwind CSS v4. Verify other versions separately.
+   - shadcn/ui is initialized with Radix primitives (components.json exists). If not, run \`pnpm dlx shadcn@latest init --base radix --preset nova\`. Current blocks are not compatible with Base UI or React Aria primitives.
 2. Install the chat starter, which also installs the blocks:
    npx shadcn@latest add ${REGISTRY}/fable-chat.json
    Review every file the CLI wants to overwrite. Do not pass --overwrite for files I already changed.
@@ -29,6 +29,7 @@ export const AGENT_PROMPTS = {
     prompt: `Add Fable UI to my existing Vercel AI SDK chat. Keep my chat UI and route; only add what is listed.
 
 1. Install the blocks (no chat UI):
+   First verify this host uses Radix shadcn primitives. Preserve its components and theme; do not change its primitive library automatically.
    npx shadcn@latest add ${REGISTRY}/fable-ui.json
 2. Server — in the route that calls streamText:
    import { fableSystemPrompt } from "@/components/fable-ui/prompt"
@@ -39,8 +40,9 @@ export const AGENT_PROMPTS = {
    - if the route calls validateUIMessages or convertToModelMessages with tools, include the new tool there too
 3. Client — where message parts are rendered:
    import { FableProvider, FableToolPart, isFableToolPart } from "@/components/fable-ui"
-   - render \`<FableToolPart part={part} />\` when isFableToolPart(part)
-   - wrap the message list in <FableProvider onReply={(text) => sendMessage({ text })} readOnly={status === "streaming"}>
+   - derive busy from submitted/streaming status and activeMessageId from the current assistant response
+   - render \`<FableToolPart part={part} active={busy && message.id === activeMessageId} />\` when isFableToolPart(part); idle history and interrupted streams must receive active=false
+   - wrap the message list in <FableProvider onReply={(text) => sendMessage({ text })} readOnly={busy}>
 4. Images: if the agent has an image source, pass images={{ allowedHosts: ["your-cdn.com"] }} to FableProvider and tell the model where images come from with fableSystemPrompt({ imageSource: "…" }). Otherwise leave both out.
 5. Add --font-heading: var(--fable-font-heading, var(--font-sans)); to the @theme inline block if missing.
 6. Verify with the type checker, then ask the chat for "a table comparing three databases" and confirm it renders while streaming. Report changed files.`,

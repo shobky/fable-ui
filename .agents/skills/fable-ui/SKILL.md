@@ -13,11 +13,13 @@ Registry: `https://fable-ui.shobky.com/r/<item>.json`
 | --- | --- |
 | `fable-chat` | Chat page `app/fable-chat/page.tsx`, route `app/api/fable-chat/route.ts`, `components/fable-ui/chat/*`, and `fable-ui` |
 | `fable-ui` | `components/fable-ui/*`: schema, prompt, tool, renderer, blocks |
+| `fable-renderer` | Renderer, provider, schema and blocks without AI SDK or chat files (includes charts) |
+| `fable-ai` | Optional AI SDK adapter, prompt and renderer dependencies |
 | `fable-themes` | `styles/fable-themes.css` with six presets |
 
 ## Before you change anything
 
-1. Run `node .agents/skills/fable-ui/scripts/doctor.mjs` from the app root. It checks Next.js, React, Tailwind v4, `components.json`, aliases, AI SDK 7, the font token and an existing install. Fix what it reports first.
+1. For a Next chat integration, run `node .agents/skills/fable-ui/scripts/doctor.mjs` from the app root. It checks Next.js, React, Tailwind v4, Radix primitives, aliases, AI SDK 7, the font token and an existing install. For a renderer-only React host, verify React 19, Tailwind v4, Radix shadcn primitives and host aliases directly; the doctor currently targets Next chat apps. Fix reported issues first.
 2. If the app has an `AGENTS.md`, follow it (Next.js apps often require reading `node_modules/next/dist/docs` first).
 3. Never print, log or commit API keys. Put them in `.env.local`.
 
@@ -39,7 +41,9 @@ npx shadcn@latest add https://fable-ui.shobky.com/r/fable-ui.json
 
 Server (`streamText`): add `[FABLE_TOOL_NAME]: fableTool` to tools, append `fableSystemPrompt()` to the system prompt, and stop after rendering: `stopWhen: [hasToolCall(FABLE_TOOL_NAME), stepCountIs(5)]`. Include the tool wherever the route passes tools to `validateUIMessages` / `convertToModelMessages`.
 
-Client: wrap messages in `<FableProvider onReply={(text) => sendMessage({ text })} readOnly={status === "streaming"}>` and render `<FableToolPart part={part} />` when `isFableToolPart(part)`.
+Client: derive `busy` from submitted/streaming chat status, wrap messages in `<FableProvider onReply={(text) => sendMessage({ text })} readOnly={busy}>`, and render `<FableToolPart part={part} active={busy && message.id === activeMessageId} />` when `isFableToolPart(part)`. The host supplies the active assistant message ID; historical parts, stopped streams and transport failures must receive `active={false}`.
+
+For a JSON panel without a chat or model, install `fable-renderer` and import from `@/components/fable-ui/renderer-only`. Supply a stable unique renderer `id` to restore state across remounts. Provider state is held in memory only; mutable blocks still have positional identity, so use a new surface ID when replacing or reordering content.
 
 ## Images and actions
 

@@ -9,7 +9,8 @@ import { z } from "zod"
 import { listIssues, resolveSpec } from "@/components/fable-ui/resolve"
 import { createFableToolSchema, FableSpecSchema } from "@/components/fable-ui/schema"
 import { FABLE_TOOL_NAME } from "@/components/fable-ui/tool"
-import { getConfiguredModel, getProviderReadiness, resolveProviderConfig } from "@/lib/ai/provider-config"
+import { getProvider, isProviderId } from "@/lib/ai/models"
+import { createModel, serverReadiness } from "@/lib/ai/provider-config"
 import { PLAYGROUND_SYSTEM, playgroundTools } from "@/lib/playground/agent"
 
 /**
@@ -45,8 +46,9 @@ const CASES: Case[] = [
 ]
 
 const enabled = process.env.FABLE_EVAL === "1"
-const config = resolveProviderConfig(process.env.FABLE_UI_EVAL_PROVIDER, process.env.FABLE_UI_EVAL_MODEL)
-const configured = getProviderReadiness().find((provider) => provider.id === config.provider)?.isConfigured
+const evalProvider = isProviderId(process.env.FABLE_UI_EVAL_PROVIDER) ? process.env.FABLE_UI_EVAL_PROVIDER : "openai"
+const config = { provider: evalProvider, model: process.env.FABLE_UI_EVAL_MODEL || getProvider(evalProvider).defaultModel }
+const configured = serverReadiness()[config.provider]
 const limit = Math.min(Number(process.env.FABLE_UI_EVAL_MAX_PROMPTS) || CASES.length, CASES.length)
 
 function blockTypes(spec: unknown): string[] {
@@ -87,7 +89,7 @@ describe.runIf(enabled && configured)(`render_ui eval · ${config.provider}/${co
   it.each(CASES.slice(0, limit))("$id", async (testCase) => {
     const started = Date.now()
     const result = await generateText({
-      model: getConfiguredModel(config),
+      model: createModel(config.provider, config.model),
       system: PLAYGROUND_SYSTEM,
       prompt: testCase.prompt,
       tools: playgroundTools,

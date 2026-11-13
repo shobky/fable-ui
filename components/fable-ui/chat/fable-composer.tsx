@@ -24,6 +24,7 @@ export function FableComposer({
   footer?: React.ReactNode
 }) {
   const [value, setValue] = React.useState("")
+  const inputId = React.useId()
   const ref = React.useRef<HTMLTextAreaElement>(null)
   const canSend = value.trim().length > 0 && !busy
 
@@ -45,11 +46,11 @@ export function FableComposer({
         className
       )}
     >
-      <label htmlFor="fable-composer" className="sr-only">
+      <label htmlFor={inputId} className="sr-only">
         Message
       </label>
       <textarea
-        id="fable-composer"
+        id={inputId}
         ref={ref}
         value={value}
         rows={1}

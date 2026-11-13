@@ -4,6 +4,65 @@
   "homepage": "https://fable-ui.shobky.com",
   "items": [
     {
+      "name": "fable-renderer",
+      "type": "registry:block",
+      "title": "Fable Renderer",
+      "description": "Render validated Fable JSON in an existing React app without adopting Fable's AI SDK tool, chat transport or backend.",
+      "dependencies": ["zod@^4", "react-markdown@^10", "remark-gfm@^4", "recharts@^3", "lucide-react"],
+      "registryDependencies": [
+        "accordion",
+        "badge",
+        "button",
+        "chart",
+        "checkbox",
+        "dialog",
+        "input",
+        "label",
+        "radio-group",
+        "select",
+        "switch",
+        "tabs",
+        "textarea",
+        "tooltip"
+      ],
+      "files": [
+        { "path": "components/fable-ui/renderer-only.ts", "type": "registry:component", "target": "components/fable-ui/renderer-only.ts" },
+        { "path": "components/fable-ui/schema.ts", "type": "registry:lib", "target": "components/fable-ui/schema.ts" },
+        { "path": "components/fable-ui/safety.ts", "type": "registry:lib", "target": "components/fable-ui/safety.ts" },
+        { "path": "components/fable-ui/format.ts", "type": "registry:lib", "target": "components/fable-ui/format.ts" },
+        { "path": "components/fable-ui/resolve.ts", "type": "registry:lib", "target": "components/fable-ui/resolve.ts" },
+        { "path": "components/fable-ui/to-markdown.ts", "type": "registry:lib", "target": "components/fable-ui/to-markdown.ts" },
+        { "path": "components/fable-ui/provider.tsx", "type": "registry:component", "target": "components/fable-ui/provider.tsx" },
+        { "path": "components/fable-ui/renderer.tsx", "type": "registry:component", "target": "components/fable-ui/renderer.tsx" },
+        { "path": "components/fable-ui/blocks/shared.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/shared.tsx" },
+        { "path": "components/fable-ui/blocks/prose.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/prose.tsx" },
+        { "path": "components/fable-ui/blocks/text.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/text.tsx" },
+        { "path": "components/fable-ui/blocks/data.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/data.tsx" },
+        { "path": "components/fable-ui/blocks/table.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/table.tsx" },
+        { "path": "components/fable-ui/blocks/chart.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/chart.tsx" },
+        { "path": "components/fable-ui/blocks/media.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/media.tsx" },
+        { "path": "components/fable-ui/blocks/showcase.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/showcase.tsx" },
+        { "path": "components/fable-ui/blocks/content.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/content.tsx" },
+        { "path": "components/fable-ui/blocks/interactive.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/interactive.tsx" },
+        { "path": "components/fable-ui/blocks/actions.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/actions.tsx" },
+        { "path": "components/fable-ui/blocks/skeleton.tsx", "type": "registry:component", "target": "components/fable-ui/blocks/skeleton.tsx" }
+      ]
+    },
+    {
+      "name": "fable-ai",
+      "type": "registry:lib",
+      "title": "Fable AI SDK adapter",
+      "description": "Optional AI SDK tool, prompt and tool-part adapter for an existing Fable renderer installation.",
+      "dependencies": ["ai@^7", "zod@^4", "lucide-react"],
+      "registryDependencies": ["https://fable-ui.shobky.com/r/fable-renderer.json"],
+      "files": [
+        { "path": "components/fable-ui/protocol.ts", "type": "registry:lib", "target": "components/fable-ui/protocol.ts" },
+        { "path": "components/fable-ui/tool.ts", "type": "registry:lib", "target": "components/fable-ui/tool.ts" },
+        { "path": "components/fable-ui/prompt.ts", "type": "registry:lib", "target": "components/fable-ui/prompt.ts" },
+        { "path": "components/fable-ui/tool-part.tsx", "type": "registry:component", "target": "components/fable-ui/tool-part.tsx" }
+      ]
+    },
+    {
       "name": "fable-ui",
       "type": "registry:block",
       "title": "Fable UI",
@@ -28,6 +87,7 @@
       "files": [
         { "path": "components/fable-ui/index.ts", "type": "registry:component", "target": "components/fable-ui/index.ts" },
         { "path": "components/fable-ui/schema.ts", "type": "registry:lib", "target": "components/fable-ui/schema.ts" },
+        { "path": "components/fable-ui/protocol.ts", "type": "registry:lib", "target": "components/fable-ui/protocol.ts" },
         { "path": "components/fable-ui/prompt.ts", "type": "registry:lib", "target": "components/fable-ui/prompt.ts" },
         { "path": "components/fable-ui/tool.ts", "type": "registry:lib", "target": "components/fable-ui/tool.ts" },
         { "path": "components/fable-ui/safety.ts", "type": "registry:lib", "target": "components/fable-ui/safety.ts" },

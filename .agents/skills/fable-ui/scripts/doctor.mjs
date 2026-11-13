@@ -24,7 +24,7 @@ if (!pkg) {
 }
 const deps = { ...pkg.dependencies, ...pkg.devDependencies }
 
-check(major(deps.next) >= 15, `Next.js ${deps.next ?? "missing"}`, "Fable needs Next.js 15+ with the App Router.")
+check(major(deps.next) >= 16, `Next.js ${deps.next ?? "missing"}`, "The starter is tested with Next.js 16 App Router; verify other versions separately.")
 check(major(deps.react) >= 19, `React ${deps.react ?? "missing"}`, "Upgrade to React 19.")
 check(major(deps.tailwindcss) >= 4, `Tailwind CSS ${deps.tailwindcss ?? "missing"}`, "Fable uses Tailwind v4 container queries.")
 check(major(deps.ai) >= 7, `AI SDK ${deps.ai ?? "missing"}`, "Install ai@^7 (the registry item does this).")
@@ -36,6 +36,7 @@ check(Boolean(appDir), `App Router directory: ${appDir ?? "not found"}`, "Fable'
 const components = readJson("components.json")
 check(Boolean(components), "shadcn components.json", "Run `npx shadcn@latest init`.")
 if (components) {
+  check(!/^(base|aria)-/.test(components.style ?? ""), "Radix-compatible shadcn primitives", "Fable currently uses Radix props. Use a Radix host; Base UI and React Aria are not supported.")
   check(components.tailwind?.cssVariables !== false, "shadcn CSS variables enabled", "Set tailwind.cssVariables to true; Fable reads theme variables.")
   check(Boolean(components.aliases?.components && components.aliases?.utils), "components/utils aliases", "Add aliases.components and aliases.utils to components.json.")
 }

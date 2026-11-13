@@ -29,7 +29,7 @@ function initialValue(field: Field): FieldValue {
   return String(field.defaultValue)
 }
 
-function describeValue(field: Field, value: FieldValue) {
+function describeValue(value: FieldValue) {
   if (typeof value === "boolean") return value ? "Yes" : "No"
   return value.trim() || "—"
 }
@@ -67,7 +67,7 @@ export function FormBlock({ block }: { block: BlockOf<"form"> }) {
       document.getElementById(`${id}-${first}`)?.focus()
       return
     }
-    const lines = block.fields.map((field) => `- ${field.label}: ${describeValue(field, values[field.name] ?? initialValue(field))}`)
+    const lines = block.fields.map((field) => `- ${field.label}: ${describeValue(values[field.name] ?? initialValue(field))}`)
     onReply?.([block.title ? `${block.title}:` : "Here are my answers:", ...lines].join("\n"))
     setSubmitted(true)
   }
