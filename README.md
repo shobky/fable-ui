@@ -6,6 +6,12 @@ The model calls one tool, `render_ui`, with a short list of blocks — an articl
 
 **[Playground](https://fable-ui.shobky.com/playground)** · **[Docs](https://fable-ui.shobky.com/docs/introduction)** · **[Blocks](https://fable-ui.shobky.com/docs/blocks)**
 
+## Upgrading from v1
+
+V2 replaces the v1 registry with five install targets. Existing apps keep the components that shadcn copied into their source trees. Fresh installs and upgrades should use `fable-renderer` for plain React, `fable-ai` for the AI SDK adapter, `fable-ui` for the combined renderer and adapter, or `fable-chat` for the Next.js starter. `fable-themes` adds optional presets. The legacy `core`, `quickstart`, individual card, Firebase driver, and REST driver registry URLs are retired.
+
+The renderer consumes the V2 block schema. Migrate existing model payloads and host integrations before replacing an installed v1 renderer. Connect your own data sources through host actions or the tools in your chat route.
+
 ## Install
 
 New app, complete chat at `/fable-chat`:
