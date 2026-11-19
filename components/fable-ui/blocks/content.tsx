@@ -370,4 +370,3 @@ export function FileBlock({ block, stateKey }: { block: BlockOf<"file">; stateKe
     </div>
   )
 }
-

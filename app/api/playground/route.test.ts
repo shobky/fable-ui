@@ -34,16 +34,16 @@ describe("playground provider contract", () => {
   })
 
   it("keeps the picker response compatible with the shared catalog", async () => {
-    const providers = await GET().json()
+    const providers = await GET(new Request("http://localhost/api/playground")).json()
     expect(providers.find((p: { id: string }) => p.id === "google")).toMatchObject({
-      isConfigured: true, models: expect.arrayContaining(["gemini-3.1-pro"]),
+      isConfigured: true, models: expect.arrayContaining(["gemini-4-hydrogen"]),
     })
     expect(JSON.stringify(providers)).not.toContain("API_KEY")
   })
 
   it("does not expose server-funded live mode in production", async () => {
     vi.stubEnv("NODE_ENV", "production")
-    const providers = await GET().json()
+    const providers = await GET(new Request("http://localhost/api/playground")).json()
     expect(providers.every((p: { isConfigured: boolean }) => !p.isConfigured)).toBe(true)
     expect((await POST(request({ mode: "live", messages: [] }))).status).toBe(403)
     expect(createModel).not.toHaveBeenCalled()
@@ -51,11 +51,17 @@ describe("playground provider contract", () => {
     expect(await (await POST(request({ mode: "demo", messages: [] }))).text()).toBe("demo")
   })
 
-  it("rejects unknown providers, unknown models and missing credentials before model creation", async () => {
-    for (const config of [{ provider: "unknown" }, { provider: "google", model: "unknown" }, { provider: "openai" }]) {
+  it("rejects unknown providers and missing credentials before model creation", async () => {
+    for (const config of [{ provider: "unknown" }, { provider: "openai" }]) {
       expect((await POST(request({ mode: "live", messages: [], ...config }))).status).toBe(400)
     }
     expect(createModel).not.toHaveBeenCalled()
+  })
+
+  it("accepts a bounded custom model id for a configured provider", async () => {
+    const response = await POST(request({ mode: "live", messages: [], provider: "google", model: "gemini-custom-preview" }))
+    expect(response.status).toBe(200)
+    expect(createModel).toHaveBeenCalledWith("google", "gemini-custom-preview")
   })
 
   it("rejects invalid request shapes without starting a response", async () => {
@@ -69,6 +75,21 @@ describe("playground provider contract", () => {
   it("uses the new model factory for a configured development provider", async () => {
     const response = await POST(request({ mode: "live", messages: [], provider: "google" }))
     expect(await response.text()).toBe("live")
-    expect(createModel).toHaveBeenCalledWith("google", "gemini-3.1-pro")
+    expect(createModel).toHaveBeenCalledWith("google", "gemini-4-hydrogen")
+  })
+
+  it("uses only a user cookie for production live requests", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    const response = await POST(new Request("http://localhost/api/playground", {
+      method: "POST",
+      body: JSON.stringify({ mode: "live", messages: [], provider: "google" }),
+      headers: {
+        "Content-Type": "application/json",
+        Origin: "http://localhost",
+        Cookie: "fable-ai-key-google=AIza-test-key-1234",
+      },
+    }))
+    expect(response.status).toBe(200)
+    expect(createModel).toHaveBeenCalledWith("google", "gemini-4-hydrogen", "AIza-test-key-1234")
   })
 })

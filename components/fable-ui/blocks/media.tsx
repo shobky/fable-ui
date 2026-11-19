@@ -279,13 +279,14 @@ export function GalleryBlock({ block }: { block: BlockOf<"gallery"> }) {
       const node = scroller.current
       if (!node) return
       const rtl = getComputedStyle(node).direction === "rtl"
-      node.scrollBy({ left: node.clientWidth * 0.8 * direction * (rtl ? -1 : 1), behavior: "smooth" })
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      node.scrollBy({ left: node.clientWidth * 0.8 * direction * (rtl ? -1 : 1), behavior: reducedMotion ? "auto" : "smooth" })
     }
     body = (
       <div className="relative">
         <div
           ref={scroller}
-          className="-mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="-mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto motion-safe:scroll-smooth px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {images.map((image, index) => (
             <Tile key={index} image={image} aspect="portrait" onOpen={() => setOpen(index)} className="w-[62%] shrink-0 snap-start @lg:w-[38%]" />

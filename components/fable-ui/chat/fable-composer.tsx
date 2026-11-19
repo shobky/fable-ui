@@ -10,6 +10,7 @@ export function FableComposer({
   onSend,
   onStop,
   busy,
+  disabled = false,
   placeholder = "Ask anything",
   autoFocus,
   className,
@@ -18,6 +19,8 @@ export function FableComposer({
   onSend: (text: string) => void
   onStop?: () => void
   busy?: boolean
+  /** Keep drafting available while the host finishes provider setup. */
+  disabled?: boolean
   placeholder?: string
   autoFocus?: boolean
   className?: string
@@ -26,7 +29,7 @@ export function FableComposer({
   const [value, setValue] = React.useState("")
   const inputId = React.useId()
   const ref = React.useRef<HTMLTextAreaElement>(null)
-  const canSend = value.trim().length > 0 && !busy
+  const canSend = value.trim().length > 0 && !busy && !disabled
 
   const send = () => {
     if (!canSend) return
@@ -42,7 +45,7 @@ export function FableComposer({
         send()
       }}
       className={cn(
-        "rounded-[1.5rem] bg-card p-2 ring-1 ring-foreground/10 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_8px_24px_-12px_rgb(0_0_0/0.12)] transition-shadow focus-within:ring-foreground/20 dark:shadow-none",
+        "rounded-[1.5rem] bg-card p-2 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_8px_24px_-12px_rgb(0_0_0/0.12)] ring-1 ring-foreground/10 transition-shadow focus-within:ring-foreground/20 dark:shadow-none",
         className
       )}
     >
@@ -58,17 +61,27 @@ export function FableComposer({
         placeholder={placeholder}
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+          if (
+            event.key === "Enter" &&
+            !event.shiftKey &&
+            !event.nativeEvent.isComposing
+          ) {
             event.preventDefault()
             send()
           }
         }}
-        className="field-sizing-content block max-h-48 min-h-11 w-full resize-none bg-transparent px-3 py-2.5 text-[0.9375rem] leading-6 outline-none placeholder:text-muted-foreground"
+        className="block field-sizing-content max-h-48 min-h-11 w-full resize-none bg-transparent px-3 py-2.5 text-[0.9375rem] leading-6 outline-none placeholder:text-muted-foreground"
       />
       <div className="flex items-center justify-between gap-2 ps-2">
         <div className="min-w-0 text-xs text-muted-foreground">{footer}</div>
         {busy && onStop ? (
-          <Button type="button" size="icon" onClick={onStop} aria-label="Stop" className="rounded-full">
+          <Button
+            type="button"
+            size="icon"
+            onClick={onStop}
+            aria-label="Stop"
+            className="rounded-full"
+          >
             <SquareIcon className="size-3 fill-current" />
           </Button>
         ) : (

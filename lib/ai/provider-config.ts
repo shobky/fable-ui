@@ -43,7 +43,7 @@ export function createModel(provider: ProviderId, model: string, browserKey?: st
 /** Maps provider errors to messages that are safe to show and never echo the key. */
 export function publicProviderError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "")
-  if (/no api key/i.test(message)) return message
+  if (/no api key/i.test(message)) return "This provider has no API key configured."
   if (/unauthori[sz]ed|authenticat|invalid.*key|incorrect.*key|permission|forbidden|401|403/i.test(message))
     return "The provider rejected this key. Check it and its model access."
   if (/rate.?limit|quota|insufficient|billing|429/i.test(message)) return "The provider's rate limit or quota was reached."

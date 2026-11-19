@@ -82,6 +82,32 @@ export function TableBlock({ block, open }: { block: BlockOf<"table">; open?: bo
   const [query, setQuery] = useFableState("query", "")
   const [limit, setLimit] = useFableState("limit", PAGE)
   const searchId = React.useId()
+  const scrollHintId = React.useId()
+  const scroller = React.useRef<HTMLDivElement>(null)
+  const [overflow, setOverflow] = React.useState({ horizontal: false, vertical: false })
+
+  React.useEffect(() => {
+    const node = scroller.current
+    if (!node) return
+    const measure = () => {
+      const horizontal = node.scrollWidth > node.clientWidth
+      const vertical = node.scrollHeight > node.clientHeight
+      setOverflow((current) =>
+        current.horizontal === horizontal && current.vertical === vertical ? current : { horizontal, vertical }
+      )
+    }
+    measure()
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure)
+    observer?.observe(node)
+    if (node.firstElementChild) observer?.observe(node.firstElementChild)
+    window.addEventListener("resize", measure)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener("resize", measure)
+    }
+  }, [])
+
+  const scrollable = overflow.horizontal || overflow.vertical
 
   const sortable = block.sortable !== false && !open
   const searchable = (block.searchable ?? block.rows.length > 10) && !open
@@ -151,7 +177,19 @@ export function TableBlock({ block, open }: { block: BlockOf<"table">; open?: bo
         </div>
       ) : null}
 
-      <div className="max-h-[34rem] overflow-auto overscroll-x-contain" tabIndex={-1}>
+      {overflow.horizontal ? (
+        <p id={scrollHintId} className="border-t border-border/60 px-4 py-2 text-xs text-muted-foreground">
+          Scroll horizontally to see all columns. Use the arrow keys when the table is focused.
+        </p>
+      ) : null}
+      <div
+        ref={scroller}
+        className="max-h-[34rem] overflow-auto overscroll-x-contain focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+        role={scrollable ? "region" : undefined}
+        aria-label={scrollable ? `${block.title ?? "Table"} scroll area` : undefined}
+        aria-describedby={overflow.horizontal ? scrollHintId : undefined}
+        tabIndex={scrollable ? 0 : undefined}
+      >
         <table className="w-full border-separate border-spacing-0 text-sm">
           <thead className="sticky top-0 z-10 bg-card">
             <tr>

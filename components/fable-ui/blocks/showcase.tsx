@@ -196,4 +196,3 @@ export function CardsBlock({ block, stateKey }: { block: BlockOf<"cards">; state
     </section>
   )
 }
-

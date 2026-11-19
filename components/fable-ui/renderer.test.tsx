@@ -1,10 +1,53 @@
-import { fireEvent, render, screen, within } from "@testing-library/react"
-import { beforeAll, describe, expect, it, vi } from "vitest"
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react"
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 
 import { BLOCK_EXAMPLES, LAYOUT_EXAMPLES } from "@/lib/block-examples"
 
 import { FableProvider, FableScope, useFableState } from "./provider"
 import { FableRenderer } from "./renderer"
+import { CONTENT_BLOCKS, type ContentBlockType } from "./schema"
+
+const contentAssertions: Record<ContentBlockType, () => void> = {
+  markdown: () => expect(screen.getByText("Short answer:")).toBeTruthy(),
+  heading: () => expect(screen.getByRole("heading", { name: "Signups are up, activation is flat" })).toBeTruthy(),
+  callout: () => expect(screen.getByText("Before you migrate")).toBeTruthy(),
+  metrics: () => expect(screen.getByText("Monthly revenue")).toBeTruthy(),
+  table: () => expect(screen.getByRole("cell", { name: "Northwind" })).toBeTruthy(),
+  chart: () => {
+    fireEvent.click(screen.getByRole("button", { name: "Show data table" }))
+    expect(screen.getByRole("table")).toBeTruthy()
+    expect(screen.getByRole("rowheader", { name: "W1" })).toBeTruthy()
+  },
+  details: () => expect(screen.getByText("Sam Rivera")).toBeTruthy(),
+  list: () => expect(screen.getByText("Install Fable UI")).toBeTruthy(),
+  checklist: () => expect(screen.getByRole("checkbox", { name: "Write release notes" }).getAttribute("aria-checked")).toBe("true"),
+  code: () => expect(screen.getByLabelText("bash code").textContent).toContain("pnpm dlx shadcn@latest add"),
+  quote: () => expect(screen.getByRole("blockquote").textContent).toContain("Make the common case fast and the rare case possible."),
+  image: () => expect(screen.getByRole("img", { name: "A wooden boat on a turquoise mountain lake" })).toBeTruthy(),
+  gallery: () => expect(screen.getByRole("button", { name: "Open Long living room with a low sofa" })).toBeTruthy(),
+  cards: () => expect(screen.getByRole("button", { name: "Choose Starter" })).toBeTruthy(),
+  hero: () => expect(screen.getByRole("heading", { name: "Ship the boring version first" })).toBeTruthy(),
+  article: () => expect(screen.getByRole("heading", { name: "The pattern" })).toBeTruthy(),
+  form: () => expect(screen.getByRole("textbox", { name: /Project name/ })).toBeTruthy(),
+  template: () => expect(screen.getByRole("textbox", { name: "Their name" })).toBeTruthy(),
+  email: () => expect((screen.getByRole("textbox", { name: "Subject" }) as HTMLInputElement).value).toBe("Quick question about the Q4 roadmap"),
+  actions: () => expect(screen.getByRole("link", { name: "Open docs" }).getAttribute("href")).toBe("https://nextjs.org/docs"),
+  file: () => {
+    expect(screen.getByText("contacts.csv")).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Download" })).toBeTruthy()
+  },
+  sources: () => expect(screen.getByRole("link", { name: /Route Handlers/ })).toBeTruthy(),
+  faq: () => {
+    fireEvent.click(screen.getByRole("button", { name: "Can I use my own components?" }))
+    expect(screen.getByText(/Every block is source code in your repo/)).toBeTruthy()
+  },
+  divider: () => expect(screen.getByRole("separator", { name: "Appendix" })).toBeTruthy(),
+}
+
+const contentTypes = Object.keys(CONTENT_BLOCKS) as ContentBlockType[]
+const layoutTypes = ["columns", "section", "tabs"] as const
+
+afterEach(cleanup)
 
 function ScopedStateProbe() {
   const [value, setValue] = useFableState("value", "initial")
@@ -27,16 +70,50 @@ beforeAll(() => {
 })
 
 describe("FableRenderer", () => {
-  it("renders every block example", () => {
-    const spec = { blocks: [...Object.values(BLOCK_EXAMPLES), ...Object.values(LAYOUT_EXAMPLES)].slice(0, 24) }
+  it("has exactly one fixture for every supported content and layout type", () => {
+    expect(Object.keys(BLOCK_EXAMPLES).sort()).toEqual([...contentTypes].sort())
+    expect(Object.keys(LAYOUT_EXAMPLES).sort()).toEqual([...layoutTypes].sort())
+  })
+
+  it.each(contentTypes)("renders the %s fixture with meaningful content", (name) => {
+    // Each spec stays within the schema and resolver's 24-block limit.
+    const block = BLOCK_EXAMPLES[name]
+    expect(block.type).toBe(name)
     const { container } = render(
       <FableProvider images={{ allowedHosts: ["images.unsplash.com"] }}>
-        <FableRenderer spec={spec} debug />
+        <FableRenderer spec={{ blocks: [block] }} debug />
       </FableProvider>
     )
-    const rendered = new Set([...container.querySelectorAll("[data-fable-block]")].map((node) => node.getAttribute("data-fable-block")))
-    for (const name of Object.keys(BLOCK_EXAMPLES).slice(0, 21)) expect(rendered, name).toContain(name)
+    expect(container.querySelector(`[data-fable-block="${name}"]`)).toBeTruthy()
+    contentAssertions[name]()
     expect(container.textContent).not.toContain("Skipped")
+    expect(container.textContent).not.toContain("failed to render")
+  })
+
+  it.each(layoutTypes)("renders the %s layout fixture", (name) => {
+    expect(LAYOUT_EXAMPLES[name].type).toBe(name)
+    const { container } = render(<FableRenderer spec={{ blocks: [LAYOUT_EXAMPLES[name]] }} debug />)
+    if (name === "tabs") {
+      const tablist = screen.getByRole("tablist")
+      expect(within(tablist).getByRole("tab", { name: "Monthly" }).getAttribute("aria-selected")).toBe("true")
+      const details = within(tablist).getByRole("tab", { name: "Details" })
+      fireEvent.mouseDown(details, { button: 0 })
+      expect(details.getAttribute("aria-selected")).toBe("true")
+      const panel = screen.getByRole("tabpanel", { name: "Details" })
+      expect(within(panel).getByRole("table")).toBeTruthy()
+      expect(within(panel).getByRole("cell", { name: "Northwind" })).toBeTruthy()
+    } else {
+      expect(container.querySelector(`[data-fable-block="${name}"]`)).toBeTruthy()
+      if (name === "columns") {
+        expect(screen.getByRole("heading", { name: "Weekly active users" })).toBeTruthy()
+        expect(screen.getByText("Sam Rivera")).toBeTruthy()
+      } else {
+        expect(screen.getByRole("region", { name: "Recommendation" })).toBeTruthy()
+        expect(screen.getByRole("link", { name: "Open docs" })).toBeTruthy()
+      }
+    }
+    expect(container.textContent).not.toContain("Skipped")
+    expect(container.textContent).not.toContain("failed to render")
   })
 
   it("skips a bad block and keeps the rest", () => {
