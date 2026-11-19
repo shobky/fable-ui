@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
+
 const fontSerif = Newsreader({ subsets: ["latin"], variable: "--font-serif" })
 const fontDisplay = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display" })
 
@@ -24,15 +25,18 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
+  manifest: "/manifest.webmanifest",
   openGraph: {
     type: "website",
     url: "/",
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
+    images: [{ url: "/brand/og.png", width: 1200, height: 630, alt: "Fable UI — your agent’s answers, designed." }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
+    images: ["/brand/og.png"],
     title: siteConfig.name,
     description: siteConfig.description,
   },

@@ -27,7 +27,7 @@ export function ModeSwitcher({
     <Button
       variant={variant}
       size="sm"
-      className={cn("group/toggle extend-touch-target size-8 rounded-sm", className)}
+      className={cn("group/toggle extend-touch-target size-10 rounded-sm active:scale-[0.96] transition-[scale]", className)}
       onClick={toggleTheme}
     >
       <svg

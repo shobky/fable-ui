@@ -66,7 +66,7 @@ export function MobileNav({
               />
             </div>
           </div>
-          <span className="flex h-8 items-center text-lg leading-none font-medium">
+          <span className="hidden h-8 items-center text-lg leading-none font-medium sm:flex">
             Menu
           </span>
         </button>

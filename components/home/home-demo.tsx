@@ -2,9 +2,11 @@
 
 import * as React from "react"
 import { parsePartialJson } from "ai"
+import { RotateCcwIcon } from "lucide-react"
 
 import { FableProvider } from "@/components/fable-ui/provider"
 import { FableRenderer } from "@/components/fable-ui/renderer"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { DEMO_IMAGE_HOSTS, SCENARIOS } from "@/lib/playground/scenarios"
 
@@ -56,33 +58,56 @@ export function HomeDemo() {
   const { partial, streaming } = useReplay(scenario?.spec, `${active}-${run}`)
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10 shadow-[0_24px_80px_-32px_rgb(0_0_0/0.25)]">
-      <div className="flex items-center gap-1 overflow-x-auto border-b border-border px-3 py-2">
-        {SHOWCASE.map((id) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => {
-              setActive(id)
-              setRun((value) => value + 1)
-            }}
-            className={cn(
-              "shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              active === id ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
+    <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_24px_80px_-32px_rgb(0_0_0/0.18)] dark:shadow-[0_24px_80px_-32px_rgb(0_0_0/0.6)]">
+      <div className="flex items-center gap-1.5 overflow-x-auto border-b border-border/70 bg-muted/30 px-3 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex items-center gap-1">
+          {SHOWCASE.map((id) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => {
+                setActive(id)
+                setRun((value) => value + 1)
+              }}
+              className={cn(
+                "shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-[background-color,color,transform] outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.96] sm:text-sm",
+                active === id
+                  ? "bg-background text-foreground shadow-2xs"
+                  : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
+              )}
+            >
+              {LABELS[id]}
+            </button>
+          ))}
+        </div>
+        <div className="ms-auto flex shrink-0 items-center gap-2 ps-3">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => setRun((value) => value + 1)}
+            aria-label="Replay stream"
+            title="Replay stream"
+            className="text-muted-foreground transition-[transform,color] hover:text-foreground active:scale-[0.96]"
           >
-            {LABELS[id]}
-          </button>
-        ))}
-        <span className="ms-auto flex shrink-0 items-center gap-1.5 ps-3 text-xs text-muted-foreground" aria-live="polite">
-          <span className={cn("size-1.5 rounded-full", streaming ? "bg-emerald-500 motion-safe:animate-pulse" : "bg-muted-foreground/40")} />
-          {streaming ? "Streaming" : "Done"}
-        </span>
+            <RotateCcwIcon className="size-3.5" />
+          </Button>
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums" aria-live="polite">
+            <span
+              className={cn(
+                "size-1.5 rounded-full",
+                streaming ? "bg-emerald-500 motion-safe:animate-pulse" : "bg-muted-foreground/40"
+              )}
+            />
+            {streaming ? "Streaming" : "Done"}
+          </span>
+        </div>
       </div>
-      <div className="max-h-[44rem] overflow-y-auto">
+      <div className="max-h-[44rem] overflow-y-auto scrollbar-pretty">
         <div className="mx-auto max-w-3xl px-4 py-6 sm:px-8 sm:py-8">
           <div className="mb-6 flex justify-end">
-            <p className="max-w-[85%] rounded-[1.25rem] rounded-ee-md bg-muted px-4 py-2.5 text-[0.9375rem]">{scenario?.prompt}</p>
+            <p className="max-w-[85%] rounded-[1.25rem] rounded-ee-md bg-muted px-4 py-2.5 text-[0.9375rem] text-foreground">
+              {scenario?.prompt}
+            </p>
           </div>
           <FableProvider images={{ allowedHosts: DEMO_IMAGE_HOSTS }} onReply={() => setRun((value) => value + 1)}>
             <FableRenderer id={`home-${active}`} spec={partial} streaming={streaming} />
