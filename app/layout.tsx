@@ -1,13 +1,17 @@
-import { Geist, Geist_Mono } from "next/font/google"
+import { Bricolage_Grotesque, Geist, Geist_Mono, Newsreader } from "next/font/google"
 import type { Metadata } from "next"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SiteHeader } from "@/components/site-header"
 import { siteConfig } from "@/lib/config"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
+
+
+const fontSerif = Newsreader({ subsets: ["latin"], variable: "--font-serif" })
+const fontDisplay = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display" })
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -21,15 +25,18 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
+  manifest: "/manifest.webmanifest",
   openGraph: {
     type: "website",
     url: "/",
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
+    images: [{ url: "/brand/og.png", width: 1200, height: 630, alt: "Fable UI — your agent’s answers, designed." }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
+    images: ["/brand/og.png"],
     title: siteConfig.name,
     description: siteConfig.description,
   },
@@ -44,7 +51,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
+      className={cn("antialiased", fontMono.variable, fontSerif.variable, fontDisplay.variable, "font-sans", geist.variable)}
     >
       <body
         className={cn(

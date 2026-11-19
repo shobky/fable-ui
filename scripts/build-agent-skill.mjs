@@ -107,7 +107,9 @@ function buildArchive() {
       .split(path.sep)
       .join("/")
     const name = Buffer.from(`fable-ui/${relative}`, "utf8")
-    const content = fs.readFileSync(absolute)
+    const content = /\.(md|mjs|ya?ml)$/.test(relative)
+      ? Buffer.from(fs.readFileSync(absolute, "utf8").replace(/\r\n/g, "\n"))
+      : fs.readFileSync(absolute)
     if (content.length > 0xffffffff)
       throw new Error(`File is too large for ZIP32: ${relative}`)
     return { name, content, crc: crc32(content) }

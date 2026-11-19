@@ -1,246 +1,77 @@
-import childProcess from "node:child_process"
-import fs from "node:fs"
-import path from "node:path"
-import { inspectProject } from "./preflight.mjs"
+#!/usr/bin/env node
+// Checks a Next.js app for what Fable UI needs. Read-only; prints a report.
+// Usage: node doctor.mjs [app-root]
+import { existsSync, readFileSync } from "node:fs"
+import { join, resolve } from "node:path"
 
-const EXPECTED = {
-  core: ["lib/fable-ui/core"],
-  "metric-card": [
-    "components/fable-ui/metric-card",
-    "lib/fable-ui/tools/show-metric-tool.ts",
-  ],
-  "suggested-actions": [
-    "components/fable-ui/suggested-actions",
-    "lib/fable-ui/tools/show-next-actions-tool.ts",
-  ],
-  "confirmation-card": [
-    "components/fable-ui/confirmation-card",
-    "lib/fable-ui/tools/request-confirmation-tool.ts",
-  ],
-  "form-card": [
-    "components/fable-ui/form-card",
-    "lib/fable-ui/tools/collect-input-tool.ts",
-  ],
-  charts: [
-    "components/fable-ui/charts",
-    "lib/fable-ui/tools/show-chart-tool.ts",
-  ],
-  "text-editor-card": [
-    "components/fable-ui/text-editor-card",
-    "lib/fable-ui/tools/show-text-editor-tool.ts",
-  ],
-  "email-composer-card": [
-    "components/fable-ui/email-composer-card",
-    "lib/fable-ui/tools/show-email-composer-tool.ts",
-  ],
-  "code-block-card": [
-    "components/fable-ui/code-block-card",
-    "lib/fable-ui/tools/show-code-block-tool.ts",
-  ],
-  "data-browser": [
-    "components/fable-ui/data-browser",
-    "lib/fable-ui/tools/show-data-browser-tool.ts",
-    "lib/fable-ui/tools/get-rendered-data-tool.ts",
-  ],
-  "rest-driver": ["lib/fable-ui/drivers/rest"],
-  "firebase-driver": ["lib/fable-ui/drivers/firebase"],
-  quickstart: ["app/fable-chat/page.tsx", "app/api/fable-chat/route.ts"],
-}
-const CHAT_TOOLS = {
-  "metric-card": ["show_metric"],
-  "suggested-actions": ["show_next_actions"],
-  "confirmation-card": ["request_confirmation"],
-  "form-card": ["collect_input"],
-  "data-browser": ["show_data_browser", "show_table", "get_rendered_data"],
-  charts: ["show_chart"],
-  "text-editor-card": ["show_text_editor"],
-  "email-composer-card": ["show_email_composer"],
-  "code-block-card": ["show_code_block"],
-}
+const root = resolve(process.argv[2] ?? ".")
+const results = []
+const check = (ok, label, fix) => results.push({ ok, label, fix })
 
-function parseArgs(argv) {
-  const result = { root: null, items: [], run: false }
-  for (let index = 0; index < argv.length; index += 1) {
-    const value = argv[index]
-    if (value === "--items")
-      result.items = (argv[++index] ?? "").split(",").filter(Boolean)
-    else if (value === "--run") result.run = true
-    else if (!value.startsWith("--") && !result.root) result.root = value
-    else throw new Error(`Unknown or misplaced argument: ${value}`)
+const readJson = (file) => {
+  try {
+    return JSON.parse(readFileSync(join(root, file), "utf8"))
+  } catch {
+    return null
   }
-  if (!result.root)
-    throw new Error(
-      "Usage: node scripts/doctor.mjs <project-root> --items item,item [--run]"
-    )
-  if (result.items.includes("all")) result.items = Object.keys(EXPECTED)
-  const invalidItems = result.items.filter((item) => !(item in EXPECTED))
-  if (invalidItems.length)
-    throw new Error(`Unknown Fable UI item(s): ${invalidItems.join(", ")}`)
-  return result
+}
+const major = (range) => Number(String(range ?? "").replace(/^[^\d]*/, "").split(".")[0]) || 0
+
+const pkg = readJson("package.json")
+if (!pkg) {
+  console.error(`No package.json in ${root}`)
+  process.exit(1)
+}
+const deps = { ...pkg.dependencies, ...pkg.devDependencies }
+
+check(major(deps.next) >= 16, `Next.js ${deps.next ?? "missing"}`, "The starter is tested with Next.js 16 App Router; verify other versions separately.")
+check(major(deps.react) >= 19, `React ${deps.react ?? "missing"}`, "Upgrade to React 19.")
+check(major(deps.tailwindcss) >= 4, `Tailwind CSS ${deps.tailwindcss ?? "missing"}`, "Fable uses Tailwind v4 container queries.")
+check(major(deps.ai) >= 7, `AI SDK ${deps.ai ?? "missing"}`, "Install ai@^7 (the registry item does this).")
+check(Boolean(deps.zod) && major(deps.zod) >= 4, `zod ${deps.zod ?? "missing"}`, "Install zod@^4.")
+
+const appDir = ["app", "src/app"].find((dir) => existsSync(join(root, dir)))
+check(Boolean(appDir), `App Router directory: ${appDir ?? "not found"}`, "Fable's route and page target the App Router.")
+
+const components = readJson("components.json")
+check(Boolean(components), "shadcn components.json", "Run `npx shadcn@latest init`.")
+if (components) {
+  check(!/^(base|aria)-/.test(components.style ?? ""), "Radix-compatible shadcn primitives", "Fable currently uses Radix props. Use a Radix host; Base UI and React Aria are not supported.")
+  check(components.tailwind?.cssVariables !== false, "shadcn CSS variables enabled", "Set tailwind.cssVariables to true; Fable reads theme variables.")
+  check(Boolean(components.aliases?.components && components.aliases?.utils), "components/utils aliases", "Add aliases.components and aliases.utils to components.json.")
 }
 
-function walk(root) {
-  const files = []
-  const visit = (directory) => {
-    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-      if (["node_modules", ".next", ".git"].includes(entry.name)) continue
-      const file = path.join(directory, entry.name)
-      if (entry.isDirectory()) visit(file)
-      else if (/\.(?:[cm]?[jt]sx?)$/.test(entry.name)) files.push(file)
-    }
-  }
-  visit(root)
-  return files
+const tsconfig = readJson("tsconfig.json")
+const paths = tsconfig?.compilerOptions?.paths ?? {}
+check(Boolean(paths["@/*"]), "tsconfig path alias @/*", "Fable files import from @/components and @/lib.")
+
+const cssPath = components?.tailwind?.css
+const css = cssPath && existsSync(join(root, cssPath)) ? readFileSync(join(root, cssPath), "utf8") : ""
+check(Boolean(css), `Global CSS: ${cssPath ?? "unknown"}`, "Set tailwind.css in components.json.")
+if (css) {
+  check(/--font-heading\s*:/.test(css), "font-heading token", "Add `--font-heading: var(--fable-font-heading, var(--font-sans));` to @theme inline.")
+  check(/--chart-1\s*:/.test(css), "chart colors --chart-1…5", "Add chart variables (any shadcn theme includes them).")
+  const usesPresets = existsSync(join(root, "styles/fable-themes.css"))
+  if (usesPresets) check(/fable-themes\.css/.test(css), "fable-themes.css imported", "@import the presets file after tailwind.")
 }
 
-function contains(files, pattern) {
-  return files.some((file) => pattern.test(fs.readFileSync(file, "utf8")))
+const installed = ["components/fable-ui/renderer.tsx", "src/components/fable-ui/renderer.tsx"].find((file) => existsSync(join(root, file)))
+check(Boolean(installed), `Fable UI installed: ${installed ?? "no"}`, "npx shadcn@latest add https://fable-ui.shobky.com/r/fable-ui.json")
+
+const route = ["app/api/fable-chat/route.ts", "src/app/api/fable-chat/route.ts"].find((file) => existsSync(join(root, file)))
+if (route) {
+  const envFile = [".env.local", ".env"].find((file) => existsSync(join(root, file)))
+  const env = envFile ? readFileSync(join(root, envFile), "utf8") : ""
+  const source = readFileSync(join(root, route), "utf8")
+  const provider = source.match(/@ai-sdk\/(\w+)/)?.[1] ?? "openai"
+  const keyName = { openai: "OPENAI_API_KEY", anthropic: "ANTHROPIC_API_KEY", google: "GOOGLE_GENERATIVE_AI_API_KEY", mistral: "MISTRAL_API_KEY" }[provider]
+  if (keyName) check(new RegExp(`^${keyName}=.+`, "m").test(env), `${keyName} set in ${envFile ?? ".env.local"}`, `Add ${keyName} to .env.local (never commit it).`)
 }
 
-function existingFiles(root, relativePaths) {
-  return relativePaths
-    .map((relativePath) => path.join(root, relativePath))
-    .filter((filePath) => fs.existsSync(filePath))
+const width = Math.max(...results.map((result) => result.label.length))
+for (const result of results) {
+  console.log(`${result.ok ? "✓" : "✗"} ${result.label.padEnd(width)}${result.ok ? "" : `  → ${result.fix}`}`)
 }
-
-function commandFor(manager, script) {
-  if (manager === "pnpm")
-    return [process.platform === "win32" ? "pnpm.cmd" : "pnpm", ["run", script]]
-  if (manager === "yarn") return ["yarn", [script]]
-  if (manager === "npm")
-    return [process.platform === "win32" ? "npm.cmd" : "npm", ["run", script]]
-  if (manager === "bun") return ["bun", ["run", script]]
-  return null
-}
-
-function runChecks(root, manager, packageJson) {
-  const checks = []
-  for (const script of ["typecheck", "lint", "build"]) {
-    if (!packageJson.scripts?.[script]) {
-      checks.push({ script, status: "skipped", reason: "script missing" })
-      continue
-    }
-    const command = commandFor(manager, script)
-    if (!command) {
-      checks.push({
-        script,
-        status: "skipped",
-        reason: "package manager unknown",
-      })
-      continue
-    }
-    const result = childProcess.spawnSync(command[0], command[1], {
-      cwd: root,
-      encoding: "utf8",
-      shell: false,
-    })
-    checks.push({
-      script,
-      status: result.status === 0 ? "passed" : "failed",
-      exitCode: result.status,
-    })
-  }
-  return checks
-}
-
-try {
-  const { root: givenRoot, items, run } = parseArgs(process.argv.slice(2))
-  const preflight = inspectProject(givenRoot, items)
-  const root = preflight.root
-  const errors = [...preflight.errors]
-  const warnings = [...preflight.warnings]
-  const files = fs.existsSync(root) ? walk(root) : []
-  const hostFiles = [
-    ...files.filter((file) => {
-      const relative = path.relative(root, file).replaceAll(path.sep, "/")
-      return (
-        !relative.startsWith("components/fable-ui/") &&
-        !relative.startsWith("lib/fable-ui/")
-      )
-    }),
-    ...existingFiles(root, [
-      "components/fable-ui/chat/fable-chat.tsx",
-      "components/fable-ui/chat/fable-message.tsx",
-      "components/fable-ui/chat/fable-tool-part.tsx",
-    ]),
-  ]
-  for (const item of items)
-    for (const expected of EXPECTED[item] ?? [])
-      if (!fs.existsSync(path.join(root, expected)))
-        errors.push(`${item}: missing ${expected}`)
-  if (
-    items.some(
-      (item) =>
-        item !== "quickstart" &&
-        item !== "core" &&
-        !fs.existsSync(path.join(root, "lib/fable-ui/core"))
-    )
-  )
-    errors.push("selected surface: missing lib/fable-ui/core")
-  if (
-    items.includes("suggested-actions") &&
-    !contains(hostFiles, /onSuggestedAction/)
-  )
-    warnings.push("suggested-actions: no host onSuggestedAction callback found")
-  if (items.includes("confirmation-card") && !contains(hostFiles, /onConfirm/))
-    warnings.push("confirmation-card: no host onConfirm callback found")
-  if (items.includes("form-card") && !contains(hostFiles, /onSubmit/))
-    warnings.push("form-card: no host onSubmit callback found")
-  if (items.includes("quickstart")) {
-    const serverFiles = existingFiles(root, [
-      "app/api/fable-chat/route.ts",
-      "lib/fable-ui/quickstart/tools.ts",
-    ])
-    const clientFiles = existingFiles(root, [
-      "components/fable-ui/chat/fable-chat.tsx",
-      "components/fable-ui/chat/fable-message.tsx",
-      "components/fable-ui/chat/fable-tool-part.tsx",
-      "lib/fable-ui/quickstart/tools.ts",
-    ])
-
-    for (const item of items) {
-      for (const toolName of CHAT_TOOLS[item] ?? []) {
-        const pattern = new RegExp(`\\b${toolName}\\b`)
-        if (!contains(serverFiles, pattern))
-          errors.push(
-            `${item}: ${toolName} is not registered in the quickstart server tool set`
-          )
-        if (!contains(clientFiles, pattern))
-          errors.push(
-            `${item}: ${toolName} is not registered in the quickstart client renderer set`
-          )
-      }
-    }
-  }
-  if (items.includes("data-browser")) {
-    if (!contains(hostFiles, /FableDataProvider/))
-      errors.push("data-browser: missing FableDataProvider")
-    if (!contains(hostFiles, /getRenderedData\s*\(/))
-      errors.push(
-        "data-browser: missing provider-cache getRenderedData handler"
-      )
-    if (contains(hostFiles, /getRenderedData[\s\S]{0,300}\bfetch\s*\(/))
-      errors.push("data-browser: rendered-data handler appears to fetch")
-  }
-  if (contains(files, /(?:D:\\fable-ui|file:\/{2,}[^\s"']*fable-ui)/i))
-    errors.push("source-checkout path leaked into consumer source")
-  const packageJson = fs.existsSync(path.join(root, "package.json"))
-    ? JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"))
-    : {}
-  const commandChecks = run
-    ? runChecks(root, preflight.packageManager, packageJson)
-    : []
-  for (const check of commandChecks)
-    if (check.status === "failed") errors.push(`${check.script} failed`)
-  const report = {
-    root,
-    selectedItems: items,
-    static: { errors, warnings },
-    commands: commandChecks,
-  }
-  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
-  process.exitCode = errors.length ? 2 : 0
-} catch (error) {
-  process.stderr.write(`doctor: ${error.message}\n`)
-  process.exitCode = 2
-}
+const failed = results.filter((result) => !result.ok).length
+console.log(failed ? `\n${failed} issue(s) to fix.` : "\nReady for Fable UI.")
+process.exit(failed ? 1 : 0)

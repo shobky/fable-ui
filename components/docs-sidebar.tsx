@@ -18,32 +18,32 @@ import {
 } from "@/components/ui/sidebar"
 import { Badge } from "./ui/badge"
 
-const TOP_LEVEL_SECTIONS = [
-  { name: "Components", href: "/docs/components" },
-  { name: "Introduction", href: "/docs/introduction" },
+const SECTIONS = [
   {
-    name: "Installation",
-    href: "/docs/installation",
+    label: "Get started",
+    pages: [
+      { name: "Introduction", href: "/docs/introduction" },
+      { name: "Installation", href: "/docs/installation" },
+      { name: "Agent setup", href: "/docs/agent-setup" },
+    ],
   },
   {
-    name: "Agent Skill",
-    href: "/docs/agent-setup",
+    label: "Build",
+    pages: [
+      { name: "Blocks", href: "/docs/blocks" },
+      { name: "Streaming", href: "/docs/streaming" },
+      { name: "Actions", href: "/docs/actions" },
+      { name: "Theming", href: "/docs/theming" },
+      { name: "Custom blocks", href: "/docs/custom-blocks" },
+    ],
   },
   {
-    name: "Registry",
-    href: "/docs/registry",
-  },
-  {
-    name: "Manifests",
-    href: "/docs/manifests",
-  },
-  {
-    name: "Tool Definitions",
-    href: "/docs/tool-definitions",
-  },
-  {
-    name: "AI SDK Integration",
-    href: "/docs/ai-sdk-integration",
+    label: "Understand",
+    pages: [
+      { name: "Security", href: "/docs/security" },
+      { name: "Architecture", href: "/docs/architecture" },
+      { name: "Evaluation", href: "/docs/evaluation" },
+    ],
   },
 ]
 
@@ -60,13 +60,14 @@ export function DocsSidebar({
       {...props}
     >
       <SidebarContent className="w-(--sidebar-menu-width) scroll-fade scrollbar-none overflow-x-hidden pl-2.5">
-        <SidebarGroup className="pt-12">
+        {SECTIONS.map((section, index) => (
+        <SidebarGroup key={section.label} className={index === 0 ? "pt-12" : undefined}>
           <SidebarGroupLabel className="font-medium text-muted-foreground">
-            Sections
+            {section.label}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {TOP_LEVEL_SECTIONS.map(
+              {section.pages.map(
                 ({ name, href }: { name: string; href: string }) => {
                   return (
                     <SidebarMenuItem key={name}>
@@ -93,6 +94,7 @@ export function DocsSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        ))}
         {tree.children.map((item) => {
           if (item.type !== "folder") {
             return null

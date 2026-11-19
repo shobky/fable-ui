@@ -1,0 +1,771 @@
+{
+  "darkBeforeHeaderFix": [
+    {
+      "documentOverflow": 2,
+      "previews": [
+        {
+          "name": "markdown",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "heading",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "callout",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "quote",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "code",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "divider",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "metrics",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "table",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "chart",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "details",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "list",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "checklist",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "faq",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "sources",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "image",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "gallery",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "cards",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "hero",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "article",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "form",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "template",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "email",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "actions",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "file",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "columns",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "section",
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "name": "metrics",
+          "overflow": 0,
+          "width": 257
+        }
+      ],
+      "width": 320
+    },
+    {
+      "documentOverflow": 0,
+      "previews": [
+        {
+          "name": "markdown",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "heading",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "callout",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "quote",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "code",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "divider",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "metrics",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "table",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "chart",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "details",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "list",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "checklist",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "faq",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "sources",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "image",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "gallery",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "cards",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "hero",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "article",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "form",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "template",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "email",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "actions",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "file",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "columns",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "section",
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "name": "metrics",
+          "overflow": 0,
+          "width": 327
+        }
+      ],
+      "width": 390
+    },
+    {
+      "documentOverflow": 0,
+      "previews": [
+        {
+          "name": "markdown",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "heading",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "callout",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "quote",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "code",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "divider",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "metrics",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "table",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "chart",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "details",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "list",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "checklist",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "faq",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "sources",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "image",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "gallery",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "cards",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "hero",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "article",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "form",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "template",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "email",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "actions",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "file",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "columns",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "section",
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "name": "metrics",
+          "overflow": 0,
+          "width": 640
+        }
+      ],
+      "width": 1280
+    }
+  ],
+  "lightAfterHeaderFix": [
+    {
+      "documentOverflow": 0,
+      "previews": [
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        },
+        {
+          "overflow": 0,
+          "width": 257
+        }
+      ],
+      "width": 320
+    },
+    {
+      "documentOverflow": 0,
+      "previews": [
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        },
+        {
+          "overflow": 0,
+          "width": 327
+        }
+      ],
+      "width": 390
+    },
+    {
+      "documentOverflow": 0,
+      "previews": [
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        },
+        {
+          "overflow": 0,
+          "width": 640
+        }
+      ],
+      "width": 1280
+    }
+  ]
+}

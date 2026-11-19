@@ -13,19 +13,8 @@ import { ComponentSource } from "@/components/component-source"
 import { ComponentsList } from "@/components/components-list"
 import { CopyButton } from "@/components/copy-button"
 import { getIconForLanguageExtension } from "@/components/icons"
-import {
-  ChartsPreview,
-  CodeBlockCardPreview,
-  ConfirmationCardPreview,
-  DataBrowserPreview,
-  EmailComposerCardPreview,
-  FormCardPreview,
-  MetricCardPreview,
-  PieChartPreview,
-  ShowTablePreview,
-  SuggestedActionsPreview,
-  TextEditorCardPreview,
-} from "@/components/fable-ui-previews"
+import { BlockPreview } from "@/components/docs/block-preview"
+import { CopyPrompt } from "@/components/docs/copy-prompt"
 import { RegistryInstallCommand } from "@/components/registry-install-command"
 import {
   Accordion,
@@ -462,17 +451,8 @@ export const mdxComponents = {
   AspectRatio,
   CodeTabs,
   ComponentPreview,
-  ChartsPreview,
-  CodeBlockCardPreview,
-  PieChartPreview,
-  MetricCardPreview,
-  SuggestedActionsPreview,
-  ConfirmationCardPreview,
-  FormCardPreview,
-  DataBrowserPreview,
-  ShowTablePreview,
-  TextEditorCardPreview,
-  EmailComposerCardPreview,
+  BlockPreview,
+  CopyPrompt,
   RegistryInstallCommand,
   ComponentSource,
   CodeCollapsibleWrapper,

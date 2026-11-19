@@ -1,47 +1,68 @@
 ---
 name: fable-ui
-description: Install, configure, extend, debug, or validate Fable UI in a Next.js and shadcn/ui consumer app. Use when adding Fable UI registry items or quickstart chat, selecting the smallest complete surface set, wiring AI SDK tools and trusted renderers, configuring host callbacks or rendered-data reasoning, diagnosing an installation, or checking a consumer without using a Fable UI source checkout.
+description: Install, wire, theme and extend Fable UI — generative UI blocks (articles, tables, charts, forms, editable drafts, galleries) that an AI agent streams through one AI SDK tool, rendered with shadcn/ui in a Next.js app. Use when the user asks to add Fable UI, rich/generative UI to an AI chat, a render_ui tool, Fable themes, or a custom Fable block.
 ---
 
 # Fable UI
 
-Integrate from the hosted registry into a consumer app. Inspect before writing, select only the requested experience, and keep data access and side effects in host code.
+Fable UI is a copy-and-own shadcn registry. The model calls one tool, `render_ui`, with a list of blocks; `FableRenderer` validates each block and renders it while the tool input streams.
 
-## Guardrails
+Registry: `https://fable-ui.shobky.com/r/<item>.json`
 
-- Refuse the Fable UI source checkout. Run `node scripts/preflight.mjs <project-root> --items <csv>` and stop on `sourceRepository: true`.
-- Use only `https://fable-ui.shobky.com/r/<item>.json`; never copy files from a checkout.
-- Let preflight choose the package manager and report Next, shadcn, aliases, existing installations, and collisions.
-- Preview every hosted item with `add --dry-run`; do not use `--overwrite`. Stop and ask for approval if a reviewed install still needs an overwrite.
-- Never read, echo, serialize, or print environment-variable values. Check names only when configuration is relevant.
-- Preserve the host's auth, authorization, validation, data access, writes, and styling. A rendered confirmation or model output is never authorization.
+| Item | Installs |
+| --- | --- |
+| `fable-chat` | Chat page `app/fable-chat/page.tsx`, route `app/api/fable-chat/route.ts`, `components/fable-ui/chat/*`, and `fable-ui` |
+| `fable-ui` | `components/fable-ui/*`: schema, prompt, tool, renderer, blocks |
+| `fable-renderer` | Renderer, provider, schema and blocks without AI SDK or chat files (includes charts) |
+| `fable-ai` | Optional AI SDK adapter, prompt and renderer dependencies |
+| `fable-themes` | `styles/fable-themes.css` with six presets |
 
-## Workflow
+## Before you change anything
 
-1. Inspect the target with preflight. If it is Next.js but lacks shadcn, initialize it with `pnpm dlx shadcn@latest init --preset rhea --base radix --yes` (or the detected runner); `radix-rhea` is the generated style name, not the CLI preset. If it is not a Next.js consumer, report the missing prerequisite rather than modifying its configuration.
-2. Read [the catalog](references/catalog.md). Ask only for a missing choice that materially changes the selected surfaces or data source; do not install the full catalog by default.
-3. Preview each selected hosted URL, show collisions, and install sequentially with the detected runner. Run the host typecheck after each meaningful install.
-4. For chat-enabled work, read [chat integration](references/chat-integration.md). Register each `.tool` on the server and each full definition in the client renderer; either half alone is incomplete.
-5. For `data-browser` reasoning, also read [rendered-data](references/rendered-data.md). Keep the provider and client-tool output browser-owned and no-refetch.
-6. Run `node scripts/doctor.mjs <project-root> --items <csv>`. Use `--run` only after static checks are clean to run the detected typecheck, lint, and build commands.
-7. Report selected items, installed URLs, host glue, checks passed, known failures, and separately unverified provider, browser, live-registry, device, or deployment behavior.
+1. For a Next chat integration, run `node .agents/skills/fable-ui/scripts/doctor.mjs` from the app root. It checks Next.js, React, Tailwind v4, Radix primitives, aliases, AI SDK 7, the font token and an existing install. For a renderer-only React host, verify React 19, Tailwind v4, Radix shadcn primitives and host aliases directly; the doctor currently targets Next chat apps. Fix reported issues first.
+2. If the app has an `AGENTS.md`, follow it (Next.js apps often require reading `node_modules/next/dist/docs` first).
+3. Never print, log or commit API keys. Put them in `.env.local`.
 
-## Commands
-
-Use the runner that preflight reports. Example for pnpm:
+## New app: full chat
 
 ```bash
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/metric-card.json --dry-run
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/metric-card.json --yes
-pnpm exec tsc --noEmit
+npx shadcn@latest add https://fable-ui.shobky.com/r/fable-chat.json
 ```
 
-On Windows, use `pnpm.cmd` when PowerShell blocks the pnpm shim. For an existing Fable item, inspect the shadcn diff and merge the specific change; never overwrite by default.
+- Review files the CLI wants to overwrite; never pass `--overwrite` for files the user changed.
+- The route uses `@ai-sdk/openai` and `FABLE_MODEL`. For another provider, install its `@ai-sdk/*` package and change the `model` line only.
+- Add `--font-heading: var(--fable-font-heading, var(--font-sans));` to `@theme inline` if missing.
 
-## Completion standard
+## Existing chat
 
-- Install the smallest complete requested item set from hosted URLs.
-- Register selected chat tools on the server and full definitions on the client.
-- Supply explicit host callbacks for interactive tools; email is a user-controlled compose handoff, not automatic delivery.
-- Keep rendered-data reads in the provider cache with no new fetch.
-- Resolve doctor errors owned by the integration, then report typecheck, lint, build, and any browser smoke independently.
+```bash
+npx shadcn@latest add https://fable-ui.shobky.com/r/fable-ui.json
+```
+
+Server (`streamText`): add `[FABLE_TOOL_NAME]: fableTool` to tools, append `fableSystemPrompt()` to the system prompt, and stop after rendering: `stopWhen: [hasToolCall(FABLE_TOOL_NAME), stepCountIs(5)]`. Include the tool wherever the route passes tools to `validateUIMessages` / `convertToModelMessages`.
+
+Client: derive `busy` from submitted/streaming chat status, wrap messages in `<FableProvider onReply={(text) => sendMessage({ text })} readOnly={busy}>`, and render `<FableToolPart part={part} active={busy && message.id === activeMessageId} />` when `isFableToolPart(part)`. The host supplies the active assistant message ID; historical parts, stopped streams and transport failures must receive `active={false}`.
+
+For a JSON panel without a chat or model, install `fable-renderer` and import from `@/components/fable-ui/renderer-only`. Supply a stable unique renderer `id` to restore state across remounts. Provider state is held in memory only; mutable blocks still have positional identity, so use a new surface ID when replacing or reordering content.
+
+## Images and actions
+
+- Images load only from `images.allowedHosts` on `FableProvider`; others ask first. Tell the model the image source with `fableSystemPrompt({ imageSource })`; without one it is told not to use images.
+- Side effects run only through `actions` on `FableProvider` (`{ confirm?, run(payload) }`), named in `fableSystemPrompt({ hostActions })`. Validate payloads server-side.
+
+## Themes
+
+Fable uses shadcn variables only. A theme from the shadcn customizer works as-is. For presets: install `fable-themes`, `@import` the CSS after tailwind, set `data-fable-theme="neutral|cobalt|moss|rose|editorial|midnight"` on `<html>`.
+
+## Custom block
+
+Follow `references/custom-block.md`: schema (bounded) → component (tokens, `surface`, container queries) → renderer case → skeleton → `to-markdown` → one prompt line → test.
+
+## Verify
+
+1. Type check and lint.
+2. Start the dev server, open the chat, and ask: "Compare three databases in a table" (table streams in), "Help me plan a dinner, ask what you need" (form; submit sends answers), "hi" (plain text).
+3. Check the browser console for errors and hydration warnings.
+4. Report changed files, env vars the user must set, and anything skipped.
+
+See `references/catalog.md` for every block and its fields.

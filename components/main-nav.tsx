@@ -24,7 +24,7 @@ export function MainNav({
           variant="ghost"
           asChild
           size="sm"
-          className="px-2.5"
+          className="px-2.5 active:scale-[0.96] transition-[scale,background-color]"
         >
           <Link
             href={item.href}

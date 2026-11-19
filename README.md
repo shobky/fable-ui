@@ -1,161 +1,110 @@
 # Fable UI
 
-Fable UI is a copy-and-own shadcn registry for AI-intent-aware product UI in Next.js. It pairs trusted React surfaces with Zod-validated AI SDK tool contracts, model-facing manifests, and examples so an assistant can select a bounded UI instead of emitting untrusted HTML or JSX.
+Generative UI for your AI agent, built from shadcn/ui components you own.
 
-The host application still owns data access, authentication, authorization, validation, persistence, and every side effect.
+The model calls one tool, `render_ui`, with a short list of blocks — an article, a sortable table, a chart, a form, an editable email, a gallery. Fable validates each block and renders it while the answer streams.
+
+**[Playground](https://fable-ui.shobky.com/playground)** · **[Docs](https://fable-ui.shobky.com/docs/introduction)** · **[Blocks](https://fable-ui.shobky.com/docs/blocks)**
+
+## Upgrading from v1
+
+V2 replaces the v1 registry with five install targets. Existing apps keep the components that shadcn copied into their source trees. Fresh installs and upgrades should use `fable-renderer` for plain React, `fable-ai` for the AI SDK adapter, `fable-ui` for the combined renderer and adapter, or `fable-chat` for the Next.js starter. `fable-themes` adds optional presets. The legacy `core`, `quickstart`, individual card, Firebase driver, and REST driver registry URLs are retired.
+
+The renderer consumes the V2 block schema. Migrate existing model payloads and host integrations before replacing an installed v1 renderer. Connect your own data sources through host actions or the tools in your chat route.
 
 ## Install
 
-The canonical public registry origin is `https://fable-ui.shobky.com/r/<item>.json`. Install an item by URL into a Next.js app that already has shadcn/ui:
+New app, complete chat at `/fable-chat`:
 
 ```bash
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/quickstart.json
+npx shadcn@latest add https://fable-ui.shobky.com/r/fable-chat.json
 ```
 
-Use `pnpm.cmd` instead of `pnpm` on Windows when a PowerShell execution policy blocks the `pnpm.ps1` shim. Inspect the proposed files and do not use `--overwrite` unless you have reviewed the exact target collision.
-
-## Quickstart boundary
-
-`quickstart` installs `/fable-chat` and `/api/fable-chat` with exactly two display tools:
-
-- `show_metric`
-- `show_next_actions`
-
-It is a minimal chat example, not the complete Fable catalog. It does not register confirmation, form, chart, editor, email, code, DataBrowser, driver, or `get_rendered_data` integration. Add those deliberately with the [AI SDK integration guide](https://fable-ui.shobky.com/docs/ai-sdk-integration).
-
-Configure the installed route with server-only values in `.env.local`:
-
-```env
-FABLE_AI_PROVIDER=google
-FABLE_AI_MODEL=gemini-3-flash-preview
-FABLE_AI_API_KEY=replace-with-the-real-secret
-```
-
-Do not write `FABLE_AI_API_KEY=$OPENAI_API_KEY`: `.env.local` does not do shell-style interpolation. Paste the intended secret value into `FABLE_AI_API_KEY`, keep the file ignored, and never log or commit it.
-
-## Registry catalog
-
-All 13 public items are available from the hosted origin:
-
-| Item                  | Category      | Tool or responsibility                                                                                  |
-| --------------------- | ------------- | ------------------------------------------------------------------------------------------------------- |
-| `core`                | Foundation    | Shared renderer, schemas, provider, and data-source registry. Usually transitive; directly installable. |
-| `metric-card`         | Surface       | `show_metric`                                                                                           |
-| `suggested-actions`   | Surface       | `show_next_actions`                                                                                     |
-| `confirmation-card`   | Surface       | `request_confirmation`                                                                                  |
-| `form-card`           | Surface       | `collect_input`                                                                                         |
-| `charts`              | Block         | `show_chart`                                                                                            |
-| `text-editor-card`    | Surface       | `show_text_editor`                                                                                      |
-| `email-composer-card` | Surface       | `show_email_composer`                                                                                   |
-| `code-block-card`     | Surface       | `show_code_block`                                                                                       |
-| `data-browser`        | Block         | `show_table`, `show_data_browser`, and client-only `get_rendered_data`                                  |
-| `rest-driver`         | Driver        | Host-owned REST resource adapter                                                                        |
-| `firebase-driver`     | Driver        | Host-owned Firestore resource adapter                                                                   |
-| `quickstart`          | Example block | Minimal two-tool chat at `/fable-chat`                                                                  |
-
-Install items one at a time when adopting them into an existing app:
+Existing AI SDK chat, blocks and renderer only:
 
 ```bash
-# Foundation
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/core.json
-
-# Product surfaces and blocks
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/metric-card.json
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/suggested-actions.json
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/confirmation-card.json
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/form-card.json
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/charts.json
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/text-editor-card.json
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/email-composer-card.json
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/code-block-card.json
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/data-browser.json
-
-# Optional host-owned data drivers
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/rest-driver.json
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/firebase-driver.json
-
-# Minimal example chat
-pnpm dlx shadcn@latest add https://fable-ui.shobky.com/r/quickstart.json
+npx shadcn@latest add https://fable-ui.shobky.com/r/fable-ui.json
 ```
 
-## What installs where
+Six theme presets (optional; any shadcn theme already works):
 
-The shadcn CLI resolves `@components`, `@lib`, and `@hooks` through the host app's `components.json`; keep those aliases accurate before installing. Fable items can install all of these target categories:
+```bash
+npx shadcn@latest add https://fable-ui.shobky.com/r/fable-themes.json
+```
 
-| Target category          | Typical destination                                                |
-| ------------------------ | ------------------------------------------------------------------ |
-| Fable core               | `lib/fable-ui/core/*`                                              |
-| Surface and block source | `components/fable-ui/<item>/*`                                     |
-| Tool contracts           | `lib/fable-ui/tools/*`                                             |
-| Model manifests          | `lib/fable-ui/manifests/*`                                         |
-| Shared hooks             | `hooks/*`                                                          |
-| Data drivers             | `lib/fable-ui/drivers/rest/*` or `lib/fable-ui/drivers/firebase/*` |
-| shadcn primitives        | Host `components/ui/*` files resolved from registry dependencies   |
-| Quickstart routes        | `app/fable-chat/page.tsx` and `app/api/fable-chat/route.ts`        |
-| Quickstart UI and config | `components/fable-ui/chat/*` and `lib/fable-ui/quickstart/*`       |
-| Quickstart notes         | `docs/fable-ui/quickstart.md`                                      |
+Requires Next.js 15+ (App Router), React 19, Tailwind CSS v4, shadcn/ui and AI SDK 7. Or paste a prompt from [Agent setup](https://fable-ui.shobky.com/docs/agent-setup) into Claude Code, Cursor or Codex and let it install and verify everything.
 
-Routes use explicit `app/...` targets. The quickstart does not overwrite `/chat` or `/api/chat`.
-
-## Add a tool deliberately
-
-On the server, pass only the AI SDK tool object to `streamText`. In the client, map the complete Fable definition to `FableToolPart`.
+## Wire it into an existing chat
 
 ```ts
-import { streamText } from "ai"
-import { showMetric } from "@/lib/fable-ui/tools/show-metric-tool"
+// route.ts
+import { hasToolCall, stepCountIs, streamText } from "ai"
+import { fableSystemPrompt } from "@/components/fable-ui/prompt"
+import { FABLE_TOOL_NAME, fableTool } from "@/components/fable-ui/tool"
 
 streamText({
   model,
-  messages,
-  tools: { show_metric: showMetric.tool },
+  system: [yourInstructions, fableSystemPrompt()].join("\n\n"),
+  messages: await convertToModelMessages(messages),
+  tools: { ...yourTools, [FABLE_TOOL_NAME]: fableTool },
+  stopWhen: [hasToolCall(FABLE_TOOL_NAME), stepCountIs(5)],
 })
 ```
 
 ```tsx
-import { FableToolPart } from "@/lib/fable-ui/core/tool-renderer"
-import { showMetric } from "@/lib/fable-ui/tools/show-metric-tool"
+// chat.tsx
+import { FableProvider, FableToolPart, isFableToolPart } from "@/components/fable-ui"
 
-const registry = { show_metric: showMetric }
-
-export function ToolPart({ part }: { part: unknown }) {
-  return <FableToolPart part={part} registry={registry} />
-}
+<FableProvider onReply={(text) => sendMessage({ text })} readOnly={status === "streaming"}>
+  {message.parts.map((part, i) => (isFableToolPart(part) ? <FableToolPart key={i} part={part} /> : <YourPart key={i} part={part} />))}
+</FableProvider>
 ```
 
-Read the [AI SDK guide](https://fable-ui.shobky.com/docs/ai-sdk-integration) for additive email registration/rendering, confirmation and form callbacks, and the provider-backed `get_rendered_data` loop. Read [Manifests](https://fable-ui.shobky.com/docs/manifests) before changing tool-selection behavior.
+## The catalog
 
-## Firebase with pnpm 11
+| Group | Blocks |
+| --- | --- |
+| Text | `markdown`, `heading`, `callout`, `quote`, `code`, `divider` |
+| Data | `metrics`, `table`, `chart` (bar, line, area, pie, donut), `details` |
+| Structure | `list` (bullets, steps, timeline), `checklist`, `faq`, `sources` |
+| Media | `image`, `gallery` (grid, featured, masonry, carousel), `cards`, `hero` (split, cover, editorial, spotlight), `article` |
+| Interactive | `form`, `template`, `email`, `actions`, `file` |
+| Layout | `columns`, `section`, `tabs` |
 
-`firebase-driver` can surface a pnpm 11 ignored-build prompt for `@firebase/util` and `protobufjs`. Do not approve either script by default. Review the package scripts and the actual deployment runtime, record an explicit `allowBuilds` policy in `pnpm-workspace.yaml`, then install and validate. A compile-only mock may deny both scripts, but that is not a production recommendation. See the [Firebase driver guide](https://fable-ui.shobky.com/docs/data-sources/firebase).
+## Why it's safe
 
-## Agent setup
+- The model writes JSON, never code, HTML or CSS. Every block is bounded and validated on its own.
+- Links must be `https`, `http` or `mailto`. Images load only from hosts you allow; others wait for a click.
+- Downloads are text files with an allowlisted type and a forced extension. CSV formulas are defused.
+- Side effects run only through actions you register, with optional confirmation.
 
-The repository skill at `.agents/skills/fable-ui` is an installation and integration guide for coding agents, not an MCP server. See [Agent setup](https://fable-ui.shobky.com/docs/agent-setup) for the repository install command and downloadable `.skill` package.
+## Evaluation
 
-## Documentation
+`pnpm eval openai gpt-6.1-sol` runs the playground agent against 12 prompts and checks UI-vs-text choice, spec validity, block fit, and that image URLs come from the image tool. Reports go to `evals/results/`. Latest runs:
 
-- [Introduction](https://fable-ui.shobky.com/docs/introduction)
-- [Installation](https://fable-ui.shobky.com/docs/installation)
-- [Registry](https://fable-ui.shobky.com/docs/registry)
-- [Tool Definitions](https://fable-ui.shobky.com/docs/tool-definitions)
-- [AI SDK Integration](https://fable-ui.shobky.com/docs/ai-sdk-integration)
-- [Data Sources](https://fable-ui.shobky.com/docs/data-sources/overview)
-- [Components](https://fable-ui.shobky.com/docs/components)
-- [Agent setup](https://fable-ui.shobky.com/docs/agent-setup)
+| Model (2026-11-03) | Cases | UI vs text | Renders cleanly | Strict schema | Fitting block | Images from tool | Median |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `openai/gpt-6.1-sol` | 12 | 100% | 100% | 100% | 100% | 100% | 7.6 s |
+| `openai/gpt-5.4-mini` | 12 | 100% | 100% | 100% | 100% | 100% | 4.0 s |
 
-## Local development
+Twelve cases is a smoke test, not a benchmark: run it with your model and prompts before relying on it. The first GPT-5.4 mini run scored 83% / 88% / 70% on UI choice, validity and block fit; the prompt rules and bounded repair that fixed it are in `prompt.ts` and `resolve.ts`.
+
+## Develop
 
 ```bash
 pnpm install
-pnpm test
-pnpm typecheck
-pnpm build
-pnpm registry:check
+pnpm dev              # site, docs and playground on :3000
+pnpm test             # offline: catalog, streaming, safety, renderer
+pnpm typecheck && pnpm lint
+pnpm registry:build   # public/r/*.json
+pnpm registry:check   # every import in each item is declared
+pnpm registry:smoke   # installs the registry into a fresh Next.js app (network)
+pnpm skill:build      # public/skills/fable-ui.skill
+pnpm eval             # live model eval (costs money; needs a key)
 ```
 
-Run `pnpm registry:consumer-smoke` before publishing a registry update. It validates installed consumer behavior, which is stronger evidence than JSON validation alone.
+Playground links: `/playground?run=trip&preset=midnight&dark=1&speed=0.4`.
 
 ## License
 
-Fable UI is available under the [MIT License](./LICENSE.MD).
+MIT

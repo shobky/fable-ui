@@ -1,0 +1,49 @@
+---
+title: Security
+description: What the model can and cannot make your app do.
+---
+
+Treat everything the model writes as untrusted input, including text that came from a prompt injection in a document or web page it read. Fable is designed so that untrusted specs can only produce safe UI.
+
+## The model never runs code
+
+The model writes JSON. Fable validates it with Zod and renders your own components. There is no HTML, CSS, JavaScript, iframe or `eval` path, so there is no sandbox to maintain.
+
+## Bounded input
+
+Every string, array and number in the catalog has a maximum: 24 top-level blocks, 12 children per layout, 200 table rows, 60 chart points, 12,000 characters of Markdown per block, and so on. Unknown keys are stripped. A block that fails validation is skipped on its own.
+
+## Links
+
+Links from Markdown, tables, sources and actions must be `https:`, `http:` or `mailto:` without embedded credentials. They open in a new tab with `rel="noopener noreferrer nofollow"`. `javascript:`, `data:` and relative URLs render as plain text.
+
+## Images
+
+A remote image is a network request the user never asked for, and a prompt-injected image URL can carry secrets in its query string the moment it loads. So:
+
+- Markdown images are never rendered.
+- Image, gallery, card, hero and article images load immediately only from hosts in `images.allowedHosts`.
+- Other `https` images show a **Load image** card naming the host; set `otherHosts: "block"` to never load them.
+- Every image uses `referrerPolicy="no-referrer"` and lazy loading.
+
+```tsx
+<FableProvider images={{ allowedHosts: ["cdn.example.com", "*.cloudinary.com"] }}>
+```
+
+Tell the model where images come from with `fableSystemPrompt({ imageSource })`. Without a source, the prompt tells it not to use images at all — invented URLs are always broken.
+
+## Downloads
+
+Downloads are text files built in the browser. MIME types are limited to `text/plain`, `text/markdown`, `text/csv`, `application/json` and `text/calendar`, and the extension is forced to match, so a file can never arrive as `.html`, `.svg` or `.exe`. CSV cells that start with `=`, `+`, `-` or `@` are prefixed to defuse spreadsheet formulas.
+
+## Side effects
+
+Only [host actions](/docs/actions#host-actions) you register can run, optionally behind a confirmation step. Their payloads are model-written: validate and authorize them on the server.
+
+## Paid model requests
+
+The public playground disables server-funded live requests in production. Configured server keys enable live mode only during local development; the deterministic demo remains available in production. The optional chat starter is host application code: protect its route with your application's authentication, authorization and usage limits before exposing paid requests publicly. A browser confirmation is not a server authorization boundary.
+
+## Facts
+
+The model writes table rows and chart values the same way it writes prose. When numbers must be authoritative, fetch them with your own server tools and have the model display the tool results. Fable shows what it is given; it does not verify it.

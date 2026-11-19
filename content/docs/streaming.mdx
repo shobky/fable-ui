@@ -1,0 +1,32 @@
+---
+title: Streaming
+description: How answers render while the model is still writing them.
+---
+
+The AI SDK streams tool input as it is generated. `useChat` exposes the partial object on the `tool-render_ui` part with `state: "input-streaming"`. `FableToolPart` passes it to `FableRenderer` with `streaming`, and the resolver decides, block by block, what is safe to show.
+
+| Block state | What renders |
+| --- | --- |
+| Closed and valid | The block, with a short fade-in |
+| Closed and invalid | Nothing (a notice in development); the rest still renders |
+| Open, streamable (markdown, article, table, list, metrics, code…) | The partial content, growing as it arrives. Half-written list items or rows are held back until they close |
+| Open, not streamable (image, gallery, hero, form, email, template, chart, file) | A skeleton shaped like the block, so the page doesn't jump when it lands |
+
+Blocks are keyed by position, so sorting a table or ticking a checklist keeps its state while later blocks stream in.
+
+Try it in the [playground](/playground): set the speed to 0.4× and open the inspector to watch the spec grow.
+
+## Without the AI SDK
+
+`FableRenderer` takes any object. If you stream JSON yourself, parse partial text with a partial-JSON parser and pass the result:
+
+```tsx
+import { parsePartialJson } from "ai"
+
+const { value } = await parsePartialJson(buffer)
+<FableRenderer spec={value} streaming={!done} id={responseId} />
+```
+
+## Markdown fallback
+
+`specToMarkdown(spec)` turns any finished spec into Markdown. The chat uses it for **Copy response**. Use it for emails, exports, search indexing, or clients that can't render React.

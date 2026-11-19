@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fable-ui",
+      "runtimeExecutable": "pnpm.cmd",
+      "runtimeArgs": ["dev", "--port", "3002"],
+      "port": 3002
+    }
+  ]
+}

@@ -1,228 +1,346 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
-import type { FormEvent, KeyboardEvent } from "react"
+import * as React from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport, type UIMessage } from "ai"
-import { LoaderCircle, SendHorizontal } from "lucide-react"
+import { AlertCircleIcon, ArrowDownIcon } from "lucide-react"
 
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupTextarea,
-} from "@/components/ui/input-group"
-import {
-  Marker,
-  MarkerContent,
-  MarkerIcon,
-} from "@/components/ui/marker"
-import {
-  MessageScroller,
-  MessageScrollerButton,
-  MessageScrollerContent,
-  MessageScrollerItem,
-  MessageScrollerProvider,
-  MessageScrollerViewport,
-} from "@/components/ui/message-scroller"
-import { FableMessage } from "@/components/fable-ui/chat/fable-message"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
-function describeClientError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error || "")
+import { FableProvider, type FableHostAction } from "../provider"
+import type { FableImagePolicy } from "../safety"
+import { FableComposer } from "./fable-composer"
+import { FableMessage, Thinking } from "./fable-message"
 
-  if (/rate limit|quota|429/i.test(message)) {
-    return "The AI provider is rate limited right now. Wait a moment and try again."
-  }
-
-  if (/api key|unauthorized|authentication|401|403/i.test(message)) {
-    return "The AI provider rejected the request. Check `FABLE_AI_API_KEY` and model access."
-  }
-
-  if (/network|fetch|timeout|econn|enotfound/i.test(message)) {
-    return "The chat request could not reach the server. Check your connection and try again."
-  }
-
-  return "The chat request failed. Please try again."
+export interface FableChatController {
+  send: (text: string) => void
+  clear: () => void
 }
 
-function ThinkingRow() {
-  return (
-    <Marker role="status" className="mx-auto w-full max-w-3xl px-4">
-      <MarkerIcon>
-        <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-      </MarkerIcon>
-      <MarkerContent>
-        <span className="inline-flex animate-pulse bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground bg-[length:200%_100%] bg-clip-text text-transparent motion-reduce:animate-none">
-          Thinking...
-        </span>
-      </MarkerContent>
-    </Marker>
-  )
+export interface FableChatProps {
+  /** Route that streams AI SDK UI messages. */
+  api?: string
+  /** Extra JSON sent with every request, e.g. a model id. */
+  body?: Record<string, unknown> | (() => Record<string, unknown>)
+  title?: React.ReactNode
+  description?: React.ReactNode
+  suggestions?: { label: string; prompt: string }[]
+  placeholder?: string
+  images?: FableImagePolicy
+  actions?: Record<string, FableHostAction>
+  composerFooter?: React.ReactNode
+  /** Show skipped-block diagnostics. */
+  debug?: boolean
+  /** Prevent requests while the host needs a key or valid model selection. */
+  disabled?: boolean
+  onMessagesChange?: (messages: UIMessage[]) => void
+  /** Lets a parent send prompts or clear the thread. */
+  controllerRef?: React.Ref<FableChatController>
+  className?: string
 }
 
-export function FableChat() {
-  const [input, setInput] = useState("")
-  const [clientError, setClientError] = useState<string | null>(null)
-  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/fable-chat" }), [])
-  const { messages, sendMessage, status, error, clearError } = useChat<UIMessage>({
-    transport,
-    messages: [],
-    experimental_throttle: 80,
-    onError: (nextError) => {
-      setClientError(describeClientError(nextError))
-    },
+const resolveBody = (body: FableChatProps["body"]) =>
+  typeof body === "function" ? body() : (body ?? {})
+
+/** Keeps the thread pinned to the newest message unless the reader scrolls up. */
+function useStickToBottom(dependency: unknown) {
+  const ref = React.useRef<HTMLDivElement>(null)
+  const pinned = React.useRef(true)
+  const [away, setAway] = React.useState(false)
+
+  React.useEffect(() => {
+    const node = ref.current
+    if (!node) return
+    const onScroll = () => {
+      const distance = node.scrollHeight - node.scrollTop - node.clientHeight
+      pinned.current = distance < 80
+      setAway(distance > 240)
+    }
+    node.addEventListener("scroll", onScroll, { passive: true })
+    const observer = new ResizeObserver(() => {
+      if (pinned.current) node.scrollTop = node.scrollHeight
+    })
+    if (node.firstElementChild) observer.observe(node.firstElementChild)
+    observer.observe(node)
+    return () => {
+      node.removeEventListener("scroll", onScroll)
+      observer.disconnect()
+    }
+  }, [])
+
+  React.useLayoutEffect(() => {
+    const node = ref.current
+    if (node && pinned.current) node.scrollTop = node.scrollHeight
+  }, [dependency])
+
+  const toBottom = React.useCallback(() => {
+    pinned.current = true
+    ref.current?.scrollTo({ top: ref.current.scrollHeight, behavior: "smooth" })
+  }, [])
+  const pin = React.useCallback(() => {
+    pinned.current = true
+  }, [])
+
+  return [ref, away, toBottom, pin] as const
+}
+
+export function FableChat({
+  api = "/api/fable-chat",
+  body,
+  title = "What can I help with?",
+  description,
+  suggestions = [],
+  placeholder,
+  images,
+  actions,
+  composerFooter,
+  debug,
+  disabled = false,
+  onMessagesChange,
+  controllerRef,
+  className,
+}: FableChatProps) {
+  const bodyRef = React.useRef(body)
+  React.useLayoutEffect(() => {
+    bodyRef.current = body
   })
-  const isBusy = status === "submitted" || status === "streaming"
-  const visibleError = clientError || (error ? describeClientError(error) : null)
+  const [transport] = React.useState(() => new DefaultChatTransport({ api }))
+  const {
+    messages,
+    sendMessage,
+    setMessages,
+    status,
+    stop,
+    error,
+    regenerate,
+    clearError,
+  } = useChat({ transport, experimental_throttle: 50 })
+  const busy = status === "submitted" || status === "streaming"
+  const [scrollRef, away, toBottom, pin] = useStickToBottom(messages)
+  const frameRef = React.useRef<HTMLDivElement>(null)
+  const composerRef = React.useRef<HTMLDivElement>(null)
 
-  const sendText = useCallback(
-    async (text: string) => {
-      const prompt = text.trim()
+  // Keep the fade and scroll clearance aligned as the textarea grows, and
+  // account for native scrollbars so messages and composer share one column.
+  React.useLayoutEffect(() => {
+    const frame = frameRef.current
+    const viewport = scrollRef.current
+    const composer = composerRef.current
+    if (!frame || !viewport || !composer) return
+    const measure = () => {
+      frame.style.setProperty(
+        "--chat-composer-height",
+        `${composer.offsetHeight}px`
+      )
+      frame.style.setProperty(
+        "--chat-scrollbar-width",
+        `${viewport.offsetWidth - viewport.clientWidth}px`
+      )
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(composer)
+    observer.observe(viewport)
+    return () => observer.disconnect()
+  }, [scrollRef])
 
-      if (!prompt || isBusy) {
-        return false
-      }
+  React.useEffect(() => {
+    onMessagesChange?.(messages)
+  }, [messages, onMessagesChange])
 
-      setClientError(null)
-      clearError()
+  // Always calls the latest chat helpers, but keeps one identity so blocks don't re-render on every chunk.
+  const latest = React.useRef({
+    disabled,
+    sendMessage,
+    clearError,
+    stop,
+    setMessages,
+    pin,
+  })
+  React.useLayoutEffect(() => {
+    latest.current = {
+      disabled,
+      sendMessage,
+      clearError,
+      stop,
+      setMessages,
+      pin,
+    }
+  })
+  const send = React.useCallback((text: string) => {
+    if (!text.trim() || latest.current.disabled) return
+    latest.current.pin()
+    latest.current.clearError()
+    void latest.current.sendMessage(
+      { text },
+      { body: resolveBody(bodyRef.current) }
+    )
+  }, [])
 
-      try {
-        await sendMessage({ text: prompt })
-        return true
-      } catch (nextError) {
-        setClientError(describeClientError(nextError))
-        return false
-      }
-    },
-    [clearError, isBusy, sendMessage],
+  React.useImperativeHandle(
+    controllerRef,
+    () => ({
+      send,
+      clear: () => {
+        void latest.current.stop()
+        latest.current.setMessages([])
+        latest.current.clearError()
+      },
+    }),
+    [send]
   )
 
-  async function submitPrompt() {
-    const text = input.trim()
-
-    if (!text || isBusy) {
-      return
-    }
-
-    setInput("")
-
-    const wasSent = await sendText(text)
-
-    if (!wasSent) {
-      setInput(text)
-    }
-  }
-
-  const handleSuggestedAction = useCallback(
-    (action: { prompt: string }) => {
-      void sendText(action.prompt)
-    },
-    [sendText],
-  )
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    await submitPrompt()
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault()
-      void submitPrompt()
-    }
-  }
+  const last = messages[messages.length - 1]
+  const waiting =
+    status === "submitted" ||
+    (status === "streaming" &&
+      last?.role === "assistant" &&
+      last.parts.every((part) => part.type === "step-start"))
 
   return (
-    <MessageScrollerProvider
-      autoScroll
-      defaultScrollPosition="last-anchor"
-      scrollPreviousItemPeek={64}
+    <FableProvider
+      onReply={send}
+      actions={actions}
+      images={images}
+      readOnly={busy || disabled}
     >
-      <section className="flex h-dvh min-h-0 flex-col overflow-hidden bg-background text-foreground">
-        <header className="border-b px-4 py-3 sm:px-6">
-          <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="truncate text-sm font-semibold">Fable Chat</h1>
-              <p className="truncate text-xs text-muted-foreground">
-                Live AI responses with Fable UI tool rendering
-              </p>
-            </div>
-          </div>
-        </header>
-
-        <MessageScroller className="min-h-0 flex-1">
-          <MessageScrollerViewport>
-            <MessageScrollerContent className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-end gap-4 px-4 py-6 sm:px-6">
-              {messages.length === 0 && !isBusy ? (
-                <div className="flex flex-1 items-center justify-center text-center text-muted-foreground">
-                  <p className="max-w-md text-balance text-sm leading-6">
-                    Ask a question. If a Fable UI surface is useful, the model can render it inline.
+      <div
+        ref={frameRef}
+        className={cn(
+          "relative isolate min-h-0 flex-1 overflow-hidden",
+          className
+        )}
+      >
+        <div
+          ref={scrollRef}
+          data-slot="chat-viewport"
+          className="absolute inset-0 overflow-y-auto overscroll-contain"
+          style={{
+            scrollPaddingBottom:
+              "calc(var(--chat-composer-height, 7rem) + 1.5rem)",
+            maskImage:
+              "linear-gradient(to bottom, black calc(100% - var(--chat-composer-height, 7rem)), transparent calc(100% - var(--chat-composer-height, 7rem) + 4rem))",
+          }}
+        >
+          <div
+            data-slot="chat-messages"
+            className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pt-8 sm:px-6"
+            style={{
+              paddingBottom: "calc(var(--chat-composer-height, 7rem) + 1.5rem)",
+            }}
+          >
+            {messages.length === 0 ? (
+              <div className="flex min-h-[50vh] flex-col items-center justify-center gap-6 text-center">
+                <div className="space-y-2">
+                  <h1 className="font-heading text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
+                    {title}
+                  </h1>
+                  {description ? (
+                    <p className="mx-auto max-w-md text-sm text-pretty text-muted-foreground">
+                      {description}
+                    </p>
+                  ) : null}
+                </div>
+                {suggestions.length ? (
+                  <div className="grid w-full max-w-xl gap-2 sm:grid-cols-2">
+                    {suggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.label}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => send(suggestion.prompt)}
+                        className="rounded-xl bg-card px-4 py-3 text-start text-sm ring-1 ring-foreground/[0.08] transition-[background-color,box-shadow,scale] outline-none hover:bg-muted/50 hover:ring-foreground/15 focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                      >
+                        <span className="font-medium">{suggestion.label}</span>
+                        <span className="mt-0.5 line-clamp-1 block text-xs text-muted-foreground">
+                          {suggestion.prompt}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              messages.map((message, index) => (
+                <FableMessage
+                  key={message.id}
+                  message={message}
+                  debug={debug}
+                  streaming={busy && index === messages.length - 1}
+                  onRegenerate={
+                    !busy && !disabled && index === messages.length - 1
+                      ? () =>
+                          void regenerate({
+                            body: resolveBody(bodyRef.current),
+                          })
+                      : undefined
+                  }
+                />
+              ))
+            )}
+            {waiting ? <Thinking /> : null}
+            {error ? (
+              <div
+                role="alert"
+                className="flex items-start gap-3 rounded-xl bg-destructive/[0.06] px-4 py-3 text-sm ring-1 ring-destructive/20"
+              >
+                <AlertCircleIcon
+                  className="mt-0.5 size-4 shrink-0 text-destructive"
+                  aria-hidden
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">The response failed.</p>
+                  <p className="text-muted-foreground">
+                    Check the server logs or try again.
                   </p>
                 </div>
-              ) : null}
-
-              {messages.map((message) => (
-                <MessageScrollerItem
-                  key={message.id}
-                  messageId={message.id}
-                  scrollAnchor={message.role === "user"}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={disabled}
+                  onClick={() =>
+                    void regenerate({ body: resolveBody(bodyRef.current) })
+                  }
                 >
-                  <FableMessage
-                    message={message}
-                    onSuggestedAction={isBusy ? undefined : handleSuggestedAction}
-                  />
-                </MessageScrollerItem>
-              ))}
-
-              {isBusy ? (
-                <MessageScrollerItem messageId="assistant-thinking">
-                  <ThinkingRow />
-                </MessageScrollerItem>
-              ) : null}
-            </MessageScrollerContent>
-          </MessageScrollerViewport>
-
-          <MessageScrollerButton />
-        </MessageScroller>
-
-        <form onSubmit={handleSubmit} className="border-t bg-background/95 px-4 py-4 sm:px-6">
-          <div className="mx-auto max-w-3xl">
-            {visibleError ? (
-              <div role="alert" className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {visibleError}
+                  Try again
+                </Button>
               </div>
             ) : null}
-
-            <InputGroup className="min-h-24 rounded-3xl bg-card p-2 shadow-sm ring-1 ring-border">
-              <InputGroupTextarea
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask Fable Chat..."
-                aria-label="Message"
-                rows={1}
-                disabled={isBusy}
-                className="min-h-12 px-3 text-base"
-              />
-              <InputGroupAddon align="block-end" className="justify-end pt-2">
-                <InputGroupButton
-                  type="submit"
-                  variant="default"
-                  size="icon-sm"
-                  disabled={isBusy || input.trim().length === 0}
-                  aria-label="Send message"
-                >
-                  {isBusy ? (
-                    <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                  ) : (
-                    <SendHorizontal aria-hidden="true" />
-                  )}
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
           </div>
-        </form>
-      </section>
-    </MessageScrollerProvider>
+        </div>
+
+        <div
+          ref={composerRef}
+          data-slot="chat-composer-overlay"
+          className="pointer-events-none absolute inset-s-0 bottom-0 z-10"
+          style={{ insetInlineEnd: "var(--chat-scrollbar-width, 0px)" }}
+        >
+          <div className="relative mx-auto w-full max-w-3xl px-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
+            {away ? (
+              <Button
+                size="icon-sm"
+                variant="outline"
+                onClick={toBottom}
+                aria-label="Scroll to latest"
+                className="pointer-events-auto absolute -top-12 left-1/2 -translate-x-1/2 rounded-full bg-background shadow-sm"
+              >
+                <ArrowDownIcon />
+              </Button>
+            ) : null}
+            <FableComposer
+              className="pointer-events-auto"
+              onSend={send}
+              onStop={stop}
+              busy={busy}
+              disabled={disabled}
+              placeholder={placeholder}
+              footer={composerFooter}
+              autoFocus
+            />
+          </div>
+        </div>
+      </div>
+    </FableProvider>
   )
 }

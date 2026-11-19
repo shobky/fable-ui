@@ -1,0 +1,58 @@
+---
+title: Architecture
+description: The design decisions behind Fable UI, and how it compares with GPT-6 Intelligent UI.
+---
+
+## The pieces
+
+```text
+components/fable-ui/
+  schema.ts        Zod catalog: every block, layout and action, with bounds
+  prompt.ts        System prompt that teaches composition
+  tool.ts          The render_ui AI SDK tool
+  safety.ts        URL, image, filename and MIME policies
+  resolve.ts       Turns a partial spec into renderable blocks
+  to-markdown.ts   Deterministic Markdown fallback
+  provider.tsx     FableProvider: actions, image policy, widget state
+  renderer.tsx     FableRenderer
+  tool-part.tsx    FableToolPart for useChat message parts
+  blocks/*.tsx     The components
+  chat/*.tsx       Optional chat shell
+```
+
+`schema`, `prompt`, `tool`, `safety`, `format`, `resolve` and `to-markdown` import no React and run on the server.
+
+## Decisions
+
+**One tool, many blocks.** The model calls a single `render_ui` tool with a list of blocks, instead of one tool per component. It composes freely, and you register one tool.
+
+**Nested, two levels.** A spec is a list of blocks; layout blocks (`columns`, `section`, `tabs`) contain content blocks and never nest. Nested JSON streams in reading order, so a block can render the moment it closes. Two levels keep the JSON Schema non-recursive, which every provider accepts, and keep layouts readable.
+
+**A compact tool schema.** The schema sent to the model describes each block once; layout children refer to the top-level shapes. Fable still validates every child strictly before it renders. This keeps the tool definition about four times smaller.
+
+**Lenient shape, strict bounds.** Unknown keys are stripped rather than rejected, so a slightly-off model still renders. Every field has a maximum, and each block is validated on its own.
+
+**Container queries.** Blocks respond to their own width, not the viewport, so the same chart works full-width and inside a column.
+
+**State that survives streaming.** Blocks are keyed by position, and widget state (sorting, checklist ticks, form answers, edited drafts) lives in `FableProvider`, scoped to the tool call.
+
+## Compared with GPT-6 Intelligent UI
+
+ChatGPT's Intelligent UI (October 2026) answers with native components from a fixed kit, compiled progressively as the model streams. Public reporting and teardowns describe a model-written mix of Markdown, JSX-like tags and JavaScript, compiled on the server and run in a sandboxed iframe and worker, with a Markdown fallback stored alongside. Weak spots called out by reviewers: layout shift while streaming, no navigation in long answers, an invisible capability ceiling, and unclear state persistence.
+
+| | GPT-6 Intelligent UI | Fable UI |
+| --- | --- | --- |
+| Where it runs | Inside ChatGPT | Your Next.js app, with your model provider |
+| Components | Closed kit | Source code in your repo; add, remove or restyle blocks |
+| Look | ChatGPT's | Your shadcn tokens, or six presets |
+| Model output | Markup plus JavaScript, compiled to code | JSON, validated; nothing executes |
+| Sandbox | Required | Not needed |
+| Layout shift | Reported | Skeletons hold each block's space; media never renders from a partial URL |
+| Long answers | No navigation | Article contents, tabs and FAQs |
+| Back to the model | New user turn | `reply` actions and form submits, as visible messages |
+| Side effects | — | Only actions you register, with optional confirmation |
+| Fallback | Stored Markdown | `specToMarkdown` |
+
+What Fable deliberately gives up: generated mini-apps with arbitrary logic (ChatGPT's AppBlock). Fable's interactive blocks (forms, checklists, templates, editable drafts, sortable tables) cover the common cases without executing model code.
+
+How a given model performs with Fable depends on the model; measure it with the [evaluation](/docs/evaluation).

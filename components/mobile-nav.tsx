@@ -16,32 +16,17 @@ import {
 import { Badge } from "./ui/badge"
 
 const TOP_LEVEL_SECTIONS = [
-  { name: "Components", href: "/docs/components" },
   { name: "Introduction", href: "/docs/introduction" },
-  {
-    name: "Installation",
-    href: "/docs/installation",
-  },
-  {
-    name: "Agent Skill",
-    href: "/docs/agent-setup",
-  },
-  {
-    name: "Registry",
-    href: "/docs/registry",
-  },
-  {
-    name: "Manifests",
-    href: "/docs/manifests",
-  },
-  {
-    name: "Tool Definitions",
-    href: "/docs/tool-definitions",
-  },
-  {
-    name: "AI SDK Integration",
-    href: "/docs/ai-sdk-integration",
-  },
+  { name: "Installation", href: "/docs/installation" },
+  { name: "Agent setup", href: "/docs/agent-setup" },
+  { name: "Blocks", href: "/docs/blocks" },
+  { name: "Streaming", href: "/docs/streaming" },
+  { name: "Actions", href: "/docs/actions" },
+  { name: "Theming", href: "/docs/theming" },
+  { name: "Custom blocks", href: "/docs/custom-blocks" },
+  { name: "Security", href: "/docs/security" },
+  { name: "Architecture", href: "/docs/architecture" },
+  { name: "Evaluation", href: "/docs/evaluation" },
 ]
 
 export function MobileNav({
@@ -81,7 +66,7 @@ export function MobileNav({
               />
             </div>
           </div>
-          <span className="flex h-8 items-center text-lg leading-none font-medium">
+          <span className="hidden h-8 items-center text-lg leading-none font-medium sm:flex">
             Menu
           </span>
         </button>

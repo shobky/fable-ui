@@ -1,0 +1,59 @@
+---
+title: Custom blocks
+description: Teach the model a component of your own.
+---
+
+A block is four small pieces: a schema, a component, a skeleton and a sentence in the prompt. Here is a `weather` block end to end. Or [copy the agent prompt](/docs/agent-setup) and let your coding agent do it.
+
+## 1. Schema
+
+```ts title="components/fable-ui/schema.ts"
+const WeatherBlock = z.object({
+  type: z.literal("weather"),
+  location: label(80),
+  temperature: z.number().min(-90).max(60),
+  condition: z.enum(["sun", "cloud", "rain", "snow"]),
+  forecast: z.array(z.object({ day: label(12), high: z.number(), low: z.number() })).max(7).optional(),
+})
+```
+
+Add it to `CONTENT_BLOCKS` and `ALL_CONTENT`. Bound every string and array. Add the name to `STREAMABLE_BLOCKS` only if showing it half-written makes sense.
+
+## 2. Component
+
+```tsx title="components/fable-ui/blocks/weather.tsx"
+export function WeatherBlock({ block }: { block: BlockOf<"weather"> }) {
+  return (
+    <section className={cn(surface, "p-4 @lg:p-5")} aria-label={`Weather in ${block.location}`}>
+      <p className="text-sm text-muted-foreground">{block.location}</p>
+      <p className="font-heading text-4xl font-semibold tabular-nums">{Math.round(block.temperature)}°</p>
+    </section>
+  )
+}
+```
+
+Use tokens (`bg-card`, `text-muted-foreground`, `--chart-*`), the shared `surface`, container-query breakpoints (`@lg:`), and `tabular-nums` for numbers. Route images through `FableImg` and links through `safeLinkUrl`.
+
+## 3. Renderer, skeleton, fallback
+
+- `renderer.tsx`: add `case "weather": return <WeatherBlock block={block} />`.
+- `blocks/skeleton.tsx`: add a skeleton with the block's footprint if the default lines look wrong.
+- `to-markdown.ts`: add a Markdown version.
+
+## 4. Prompt
+
+```ts title="components/fable-ui/prompt.ts"
+weather: "weather — current conditions and a short forecast for one place, only with data from the weather tool.",
+```
+
+Pair data blocks with a server tool that fetches the data, so the model displays facts rather than inventing them.
+
+## Smaller catalogs
+
+If your agent only needs a few blocks, narrow the tool. The schema and the prompt shrink with it:
+
+```ts
+const include = ["markdown", "table", "chart", "actions"] as const
+createFableTool({ include })
+fableSystemPrompt({ include })
+```

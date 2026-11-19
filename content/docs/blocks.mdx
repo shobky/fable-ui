@@ -1,0 +1,234 @@
+---
+title: Blocks
+description: Every block the model can write, live.
+---
+
+Each preview below is rendered by `FableRenderer` from the JSON shown under **Model output**. Layout blocks contain content blocks and never nest. All blocks respond to their own width (container queries), so they lay out correctly inside columns and tabs.
+
+## Text
+
+### markdown
+
+Prose with GitHub Markdown: bold, lists, links, inline code, small tables. Raw HTML is skipped and Markdown images are dropped; links pass the URL policy.
+
+Fields: `text`
+
+<BlockPreview name="markdown" />
+
+### heading
+
+Titles a multi-part answer, with an optional eyebrow and one-line description.
+
+Fields: `text`, `eyebrow`, `description`, `level` (1–3)
+
+<BlockPreview name="heading" />
+
+### callout
+
+One warning, tip or key takeaway. Tones: info, tip, success, warning, danger.
+
+Fields: `tone`, `title`, `text`
+
+<BlockPreview name="callout" />
+
+### quote
+
+A quotation with attribution.
+
+Fields: `text`, `author`, `source`
+
+<BlockPreview name="quote" />
+
+### code
+
+Code with a filename or language label and a copy button. Scrolls inside its own frame.
+
+Fields: `code`, `language`, `filename`
+
+<BlockPreview name="code" />
+
+### divider
+
+Separates major parts, optionally labelled.
+
+Fields: `label`
+
+<BlockPreview name="divider" />
+
+## Data
+
+### metrics
+
+One to eight headline numbers with formatted values and colored deltas. `invertDelta` marks metrics where lower is better.
+
+Fields: `items[]`: `label`, `value`, `format`, `currency`, `delta`, `deltaLabel`, `invertDelta`
+
+<BlockPreview name="metrics" />
+
+### table
+
+Typed columns (number, currency, percent, date, badge, link), sorting, search over 10 rows, sticky header and first column, footer totals, CSV copy and download.
+
+Fields: `columns[]`, `rows[]`, `footer`, `sortable`, `searchable`, `downloadable`
+
+<BlockPreview name="table" />
+
+### chart
+
+Bar, line, area, pie and donut charts on your `--chart-1…5` colors. Every chart can switch to an accessible data table.
+
+Fields: `kind`, `xKey`, `series[]`, `data[]`, `format`, `stacked`, `horizontal`
+
+<BlockPreview name="chart" />
+
+### details
+
+Label/value facts about one thing, in one or two columns.
+
+Fields: `items[]`: `label`, `value`, `tone`
+
+<BlockPreview name="details" />
+
+## Structure
+
+### list
+
+Bullets, numbers, checks, steps with status, or a dated timeline.
+
+Fields: `style`, `items[]`: `title`, `description`, `meta`, `status`
+
+<BlockPreview name="list" />
+
+### checklist
+
+Tasks the user ticks off, with a progress bar. State survives re-renders.
+
+Fields: `items[]`: `label`, `checked`, `note`
+
+<BlockPreview name="checklist" />
+
+### faq
+
+Collapsible questions with Markdown answers.
+
+Fields: `items[]`: `question`, `answer`
+
+<BlockPreview name="faq" />
+
+### sources
+
+Numbered source cards with publisher and snippet.
+
+Fields: `items[]`: `title`, `url`, `publisher`, `snippet`
+
+<BlockPreview name="sources" />
+
+## Media and showcase
+
+### image
+
+One image with caption and credit, in a fixed aspect ratio.
+
+Fields: `image`, `aspect`
+
+<BlockPreview name="image" />
+
+### gallery
+
+Grid, featured, masonry or carousel layouts, with a keyboard-friendly lightbox.
+
+Fields: `layout`, `images[]`
+
+<BlockPreview name="gallery" />
+
+### cards
+
+Two to twelve options to compare or pick from, each with an optional image, badge and action.
+
+Fields: `items[]`, `columns`
+
+<BlockPreview name="cards" />
+
+### hero
+
+An opener with four compositions: `split` (text beside an image), `cover` (text over an image), `editorial` (type-led, no image) and `spotlight` (centered on a quiet accent).
+
+Fields: `variant`, `eyebrow`, `title`, `description`, `image`, `stats`, `actions`
+
+<BlockPreview name="hero" />
+
+### article
+
+Long-form writing in sections with a table of contents (three or more headings), cover image, and Markdown copy/download.
+
+Fields: `title`, `subtitle`, `byline`, `readingTime`, `cover`, `sections[]`
+
+<BlockPreview name="article" />
+
+## Interactive
+
+### form
+
+Asks for missing details in place. Validates required and email fields; submitting sends the answers as the user's next message.
+
+Fields: `fields[]`: `name`, `label`, `type`, `options`, `required`, `defaultValue`
+
+<BlockPreview name="form" />
+
+### template
+
+Text with `{{placeholders}}`. The user fills the blanks or edits the whole text, then copies or downloads it.
+
+Fields: `body`, `variables[]`, `filename`
+
+<BlockPreview name="template" />
+
+### email
+
+An editable draft with To, Cc and Subject. Copy, save, open in the mail app, or send through a host action.
+
+Fields: `to`, `cc`, `subject`, `body`, `sendAction`
+
+<BlockPreview name="email" />
+
+### actions
+
+One to six buttons: reply, link, copy, download or a host action.
+
+Fields: `items[]`
+
+<BlockPreview name="actions" />
+
+### file
+
+A downloadable text file (csv, md, json, ics, txt) with name, type and size.
+
+Fields: `filename`, `mimeType`, `content`, `description`
+
+<BlockPreview name="file" />
+
+## Layouts
+
+### columns
+
+Two or three columns that stack on narrow containers. Ratios: equal, wide-left, wide-right.
+
+Fields: `columns[]`: `blocks[]`, `ratio`
+
+<BlockPreview name="columns" />
+
+### section
+
+Groups blocks under a title, plain, as a card, or on a muted field.
+
+Fields: `title`, `description`, `variant`, `blocks[]`
+
+<BlockPreview name="section" />
+
+### tabs
+
+Alternatives the user switches between.
+
+Fields: `tabs[]`: `label`, `blocks[]`
+
+<BlockPreview name="tabs" />

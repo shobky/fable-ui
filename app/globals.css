@@ -1,97 +1,104 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/fable-themes.css";
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --card: oklch(97% 0.00011 271.152);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(20.904% 0.00002 271.152);
-  --primary-foreground: oklch(0.98 0.016 73.684);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+:root,
+:root[data-fable-theme="neutral"] {
+  --brand-ink: #17151C;
+  --brand-paper: #F4F1EA;
+  --brand-ember: #E8552E;
+  --brand-stone: #8A8590;
+  --card: #FBFAF7;
+  --card-foreground: #17151C;
+  --popover: #FBFAF7;
+  --popover-foreground: #17151C;
+  --primary: #17151C;
+  --primary-foreground: #F4F1EA;
+  --secondary: #EAE6DD;
+  --secondary-foreground: #17151C;
+  --muted: #EAE6DD;
+  --muted-foreground: #6B6670;
+  --accent: #E6E1D7;
+  --accent-foreground: #17151C;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.837 0.128 66.29);
-  --chart-2: oklch(0.705 0.213 47.604);
-  --chart-3: oklch(0.646 0.222 41.116);
-  --chart-4: oklch(0.553 0.195 38.402);
-  --chart-5: oklch(0.47 0.157 37.304);
+  --border: #DDD8CE;
+  --input: #DDD8CE;
+  --ring: #8A8590;
+  --chart-1: oklch(0.56 0.19 259);
+  --chart-2: oklch(0.7 0.13 182);
+  --chart-3: oklch(0.79 0.15 78);
+  --chart-4: oklch(0.6 0.2 302);
+  --chart-5: oklch(0.66 0.2 16);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.646 0.222 41.116);
-  --sidebar-primary-foreground: oklch(0.98 0.016 73.684);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --surface: oklch(0.98 0 0);
+  --sidebar: #ECE8DF;
+  --sidebar-foreground: #17151C;
+  --sidebar-primary: #17151C;
+  --sidebar-primary-foreground: #F4F1EA;
+  --sidebar-accent: #E6E1D7;
+  --sidebar-accent-foreground: #17151C;
+  --sidebar-border: #DDD8CE;
+  --sidebar-ring: #8A8590;
+  --background: #F4F1EA;
+  --foreground: #17151C;
+  --surface: #ECE8DF;
   --surface-foreground: var(--foreground);
   --code: var(--surface);
   --code-foreground: var(--surface-foreground);
-  --code-highlight: oklch(0.96 0 0);
-  --code-number: oklch(0.56 0 0);
-  --selection: oklch(0% 0 0);
-  --selection-foreground: oklch(1 0 0);
+  --code-highlight: #E6E1D7;
+  --code-number: #6B6670;
+  --selection: #17151C;
+  --selection-foreground: #F4F1EA;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(98.288% 0.00104 11.251);
-  --primary-foreground: oklch(0% 0 0);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+.dark,
+:root.dark[data-fable-theme="neutral"] {
+  --background: #17151C;
+  --foreground: #F4F1EA;
+  --card: #211E26;
+  --card-foreground: #F4F1EA;
+  --popover: #211E26;
+  --popover-foreground: #F4F1EA;
+  --primary: #F4F1EA;
+  --primary-foreground: #17151C;
+  --secondary: #2C2832;
+  --secondary-foreground: #F4F1EA;
+  --muted: #2C2832;
+  --muted-foreground: #B4AEBB;
+  --accent: #332F39;
+  --accent-foreground: #F4F1EA;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.837 0.128 66.29);
-  --chart-2: oklch(0.705 0.213 47.604);
-  --chart-3: oklch(0.646 0.222 41.116);
-  --chart-4: oklch(0.553 0.195 38.402);
-  --chart-5: oklch(0.47 0.157 37.304);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.705 0.213 47.604);
-  --sidebar-primary-foreground: oklch(0.98 0.016 73.684);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --border: #3B3642;
+  --input: #3B3642;
+  --ring: #8A8590;
+  --chart-1: oklch(0.66 0.17 259);
+  --chart-2: oklch(0.74 0.12 182);
+  --chart-3: oklch(0.82 0.14 80);
+  --chart-4: oklch(0.68 0.18 302);
+  --chart-5: oklch(0.7 0.18 16);
+  --sidebar: #1D1A22;
+  --sidebar-foreground: #F4F1EA;
+  --sidebar-primary: #F4F1EA;
+  --sidebar-primary-foreground: #17151C;
+  --sidebar-accent: #2C2832;
+  --sidebar-accent-foreground: #F4F1EA;
+  --sidebar-border: #3B3642;
+  --sidebar-ring: #8A8590;
 
-   --surface: oklch(0.2 0 0);
-  --surface-foreground: oklch(0.708 0 0);
+   --surface: #211E26;
+  --surface-foreground: #B4AEBB;
   --code: var(--surface);
   --code-foreground: var(--surface-foreground);
-  --code-highlight: oklch(0.27 0 0);
-  --code-number: oklch(0.72 0 0);
-  --selection: oklch(0.922 0 0);
-  --selection-foreground: oklch(0.205 0 0);
+  --code-highlight: #2C2832;
+  --code-number: #B4AEBB;
+  --selection: #F4F1EA;
+  --selection-foreground: #17151C;
 }
 
 @theme inline {
-  --font-heading: var(--font-sans);
+  --font-heading: var(--fable-font-heading, var(--font-sans));
   --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -360,4 +367,29 @@
 
 .scrollbar-pretty::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* Image outlines for depth consistency */
+img {
+  outline: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dark img {
+  outline: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility container-wrapper {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1400px;
+}
+
+@utility container {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding-inline: 1rem;
+  @media (width >= 640px) {
+    padding-inline: 1.5rem;
+  }
 }
