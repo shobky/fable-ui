@@ -109,7 +109,19 @@ export function serializeDeletedKeyCookie(provider: ProviderId, secure = process
  * Origin or Referer is always checked, and production requires one.
  */
 export function isSameOriginRequest(request: Request) {
-  const expected = new URL(request.url).origin
+  const url = new URL(request.url)
+  // A standalone Next server can construct request.url with its internal
+  // hostname. Host carries the authority the browser actually addressed.
+  const host = request.headers.get("host")
+  let expected = url.origin
+  if (host) {
+    if (!/^[a-z0-9.:[\]-]+$/i.test(host)) return false
+    try {
+      expected = new URL(`${url.protocol}//${host}`).origin
+    } catch {
+      return false
+    }
+  }
   const origin = request.headers.get("origin")
   if (origin) return origin === expected
   const referer = request.headers.get("referer")

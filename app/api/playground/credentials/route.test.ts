@@ -53,6 +53,18 @@ describe("playground credential cookies", () => {
     }))).status).toBe(400)
   })
 
+  it("checks the public host when Next supplies an internal request URL", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    const save = (origin: string) => POST(request("https://internal.example/api/playground/credentials", {
+      method: "POST",
+      body: JSON.stringify({ provider: "google", apiKey: "AIza-test-key-1234" }),
+      headers: { Host: "fable.example", Origin: origin },
+    }))
+    expect((await save("https://fable.example")).status).toBe(200)
+    expect((await save("https://internal.example")).status).toBe(403)
+    expect((await save("http://fable.example")).status).toBe(403)
+  })
+
   it("enforces the body limit even when Content-Length is missing or inaccurate", async () => {
     const body = JSON.stringify({ provider: "google", apiKey: "AIza-test-key-1234", padding: "x".repeat(20_000) })
     const response = await POST(request("http://localhost/api/playground/credentials", {
